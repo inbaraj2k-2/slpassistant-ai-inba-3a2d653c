@@ -1,0 +1,118 @@
+import { createServerFn } from "@tanstack/react-start";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { generateText, Output } from "ai";
+import { z } from "zod";
+import { createLovableAiGatewayProvider } from "./ai-gateway.server";
+
+const CaseInputSchema = z.object({
+  caseId: z.string().uuid(),
+});
+
+const AnalysisSchema = z.object({
+  possible_conditions: z
+    .array(
+      z.object({
+        name: z.string(),
+        confidence: z.number().min(0).max(100),
+        rationale: z.string(),
+      }),
+    )
+    .min(1)
+    .max(6),
+  differential_diagnoses: z.array(z.string()).max(8),
+  recommended_assessments: z.array(z.string()).max(10),
+  materials_required: z.array(z.string()).max(10),
+  therapy_goals: z.array(z.string()).max(10),
+  questions_to_ask_next: z.array(z.string()).max(8),
+  summary: z.string(),
+});
+
+export type AnalysisResult = z.infer<typeof AnalysisSchema>;
+
+const SUPPORTED = [
+  "Autism Spectrum Disorder",
+  "Developmental Language Disorder",
+  "Articulation Disorder",
+  "Phonological Disorder",
+  "Childhood Apraxia of Speech",
+  "Dysarthria",
+  "Stuttering",
+  "Voice Disorders",
+  "Hearing Loss Related Speech Disorders",
+  "Aphasia",
+  "Selective Mutism",
+  "Cleft Palate Speech Disorder",
+  "Resonance Disorders",
+];
+
+const SYSTEM_PROMPT = `You are a clinical decision support assistant for Speech-Language Pathologists, Audiologists, and BASLP students.
+You analyze pediatric/adult case histories and produce RANKED, NON-DIAGNOSTIC suggestions only.
+
+Rules:
+- Never state a confirmed diagnosis. Use words like "consistent with", "possible", "consider".
+- Restrict possible_conditions primarily to this supported list (you may include "Other / Needs further evaluation"): ${SUPPORTED.join(", ")}.
+- Provide a confidence score (0-100) per condition reflecting how well the history matches.
+- Recommended assessments should be real, named SLP/Audiology tools (e.g., REELS, CELF, GFTA-3, Khan-Lewis, SSI-4, CAPE-V, PPVT, Boston Naming, MASA, Bzoch Error Pattern, Pure-tone audiometry, OAE, ABR, etc.) when appropriate.
+- Materials should be concrete (picture cards, oromotor kit, articulation deck, AAC board, mirror, tongue depressor, audiometer, etc.).
+- Therapy goals should be measurable and SLP-appropriate (e.g., "Produce /s/ in initial position in 8/10 trials across 3 sessions").
+- Keep each list item concise (one line).`;
+
+export const analyzeCase = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => CaseInputSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const apiKey = process.env.LOVABLE_API_KEY;
+    if (!apiKey) throw new Error("AI service is not configured.");
+
+    const { supabase, userId } = context;
+    const { data: row, error } = await supabase
+      .from("cases")
+      .select("*")
+      .eq("id", data.caseId)
+      .eq("user_id", userId)
+      .single();
+    if (error || !row) throw new Error("Case not found.");
+
+    const caseText = `
+Name: ${row.name ?? ""}
+Age: ${row.age ?? ""}
+Gender: ${row.gender ?? ""}
+Chief Complaint: ${row.chief_complaint ?? ""}
+Prenatal History: ${row.prenatal_history ?? ""}
+Natal History: ${row.natal_history ?? ""}
+Postnatal History: ${row.postnatal_history ?? ""}
+Motor Milestones: ${row.motor_milestones ?? ""}
+Speech Milestones: ${row.speech_milestones ?? ""}
+Language History: ${row.language_history ?? ""}
+Hearing History: ${row.hearing_history ?? ""}
+Education History: ${row.education_history ?? ""}
+Family History: ${row.family_history ?? ""}
+Additional Notes: ${row.additional_notes ?? ""}
+`.trim();
+
+    const gateway = createLovableAiGatewayProvider(apiKey);
+
+    try {
+      const { experimental_output: output } = await generateText({
+        model: gateway("google/gemini-3-flash-preview"),
+        system: SYSTEM_PROMPT,
+        prompt: `Analyze the following case history and produce ranked clinical suggestions.\n\nCASE HISTORY:\n${caseText}`,
+        experimental_output: Output.object({ schema: AnalysisSchema }),
+      });
+
+      const { error: upErr } = await supabase
+        .from("cases")
+        .update({ analysis: JSON.parse(JSON.stringify(output)) })
+        .eq("id", data.caseId)
+        .eq("user_id", userId);
+      if (upErr) throw upErr;
+
+      return output as AnalysisResult;
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      if (msg.includes("429")) throw new Error("AI rate limit reached. Please try again shortly.");
+      if (msg.includes("402"))
+        throw new Error("AI credits exhausted. Please add credits in workspace billing.");
+      throw new Error(`AI analysis failed: ${msg}`);
+    }
+  });
