@@ -102,7 +102,7 @@ Additional Notes: ${row.additional_notes ?? ""}
 
       const { error: upErr } = await supabase
         .from("cases")
-        .update({ analysis: output as unknown as Record<string, unknown> })
+        .update({ analysis: JSON.parse(JSON.stringify(output)) })
         .eq("id", data.caseId)
         .eq("user_id", userId);
       if (upErr) throw upErr;
