@@ -78,13 +78,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { name: "theme-color", content: "#5b21b6" },
-      { title: "SLP Assist AI" },
+      { title: "SLP Assist AI Inba" },
       {
         name: "description",
         content:
           "AI-powered clinical decision support for Speech-Language Pathologists, Audiologists, and BASLP students.",
       },
-      { property: "og:title", content: "SLP Assist AI" },
+      { property: "og:title", content: "SLP Assist AI Inba" },
       {
         property: "og:description",
         content:
@@ -92,6 +92,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { name: "twitter:title", content: "SLP Assist AI Inba" },
+      { name: "description", content: "AI-powered Clinical Decision Support Tool for BASLP Students, Interns, Speech Language Pathologists and Audiologists. Provides AI-based suggestions for assessme" },
+      { property: "og:description", content: "AI-powered Clinical Decision Support Tool for BASLP Students, Interns, Speech Language Pathologists and Audiologists. Provides AI-based suggestions for assessme" },
+      { name: "twitter:description", content: "AI-powered Clinical Decision Support Tool for BASLP Students, Interns, Speech Language Pathologists and Audiologists. Provides AI-based suggestions for assessme" },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/ff78cc70-3d29-4595-b530-9cfdd67c2f3c" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/ff78cc70-3d29-4595-b530-9cfdd67c2f3c" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
