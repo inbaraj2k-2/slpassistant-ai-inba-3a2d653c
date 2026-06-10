@@ -111,7 +111,7 @@ function TileLink({
       </span>
       <div>
         <p className="text-sm font-semibold">{label}</p>
-        <p className="text-xs text-muted-foreground" dangerouslySetInnerHTML={{ __html: desc }} />
+        <p className="text-xs text-muted-foreground">{desc}</p>
       </div>
     </Link>
   );
