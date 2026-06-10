@@ -85,7 +85,8 @@ function AuthPage() {
           {(["signin", "signup"] as const).map((m) => (
             <button
               key={m}
-              onClick={() => setMode(m)}
+              type="button"
+              onClick={() => { setMode(m); setError(null); setInfo(null); }}
               className={`flex-1 rounded-lg py-2 font-medium transition ${
                 mode === m
                   ? "bg-card text-primary shadow-card"
@@ -116,19 +117,48 @@ function AuthPage() {
             placeholder="you@clinic.com"
             required
           />
-          <Field
-            label="Password"
-            value={password}
-            onChange={setPassword}
-            type="password"
-            placeholder="At least 6 characters"
-            required
-            minLength={6}
-          />
+          {mode !== "forgot" && (
+            <Field
+              label="Password"
+              value={password}
+              onChange={setPassword}
+              type="password"
+              placeholder="At least 6 characters"
+              required
+              minLength={6}
+            />
+          )}
+
+          {mode === "signin" && (
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => { setMode("forgot"); setError(null); setInfo(null); }}
+                className="text-xs font-medium text-primary hover:underline"
+              >
+                Forgot password?
+              </button>
+            </div>
+          )}
+
+          {mode === "forgot" && (
+            <button
+              type="button"
+              onClick={() => { setMode("signin"); setError(null); setInfo(null); }}
+              className="text-xs font-medium text-primary hover:underline"
+            >
+              ← Back to sign in
+            </button>
+          )}
 
           {error && (
             <p className="rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">
               {error}
+            </p>
+          )}
+          {info && (
+            <p className="rounded-lg bg-primary/10 px-3 py-2 text-xs text-primary">
+              {info}
             </p>
           )}
 
@@ -138,7 +168,7 @@ function AuthPage() {
             className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-gradient-primary font-semibold text-primary-foreground shadow-card transition hover:opacity-95 disabled:opacity-60"
           >
             {busy && <Loader2 className="h-4 w-4 animate-spin" />}
-            {mode === "signin" ? "Sign in" : "Create account"}
+            {mode === "signin" ? "Sign in" : mode === "signup" ? "Create account" : "Send reset link"}
           </button>
         </form>
       </div>
