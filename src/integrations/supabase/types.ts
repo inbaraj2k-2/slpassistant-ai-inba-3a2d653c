@@ -14,7 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      cases: {
+        Row: {
+          additional_notes: string | null
+          age: string | null
+          analysis: Json | null
+          chief_complaint: string | null
+          created_at: string
+          education_history: string | null
+          family_history: string | null
+          gender: string | null
+          hearing_history: string | null
+          id: string
+          language_history: string | null
+          motor_milestones: string | null
+          name: string
+          natal_history: string | null
+          postnatal_history: string | null
+          prenatal_history: string | null
+          speech_milestones: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          additional_notes?: string | null
+          age?: string | null
+          analysis?: Json | null
+          chief_complaint?: string | null
+          created_at?: string
+          education_history?: string | null
+          family_history?: string | null
+          gender?: string | null
+          hearing_history?: string | null
+          id?: string
+          language_history?: string | null
+          motor_milestones?: string | null
+          name: string
+          natal_history?: string | null
+          postnatal_history?: string | null
+          prenatal_history?: string | null
+          speech_milestones?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          additional_notes?: string | null
+          age?: string | null
+          analysis?: Json | null
+          chief_complaint?: string | null
+          created_at?: string
+          education_history?: string | null
+          family_history?: string | null
+          gender?: string | null
+          hearing_history?: string | null
+          id?: string
+          language_history?: string | null
+          motor_milestones?: string | null
+          name?: string
+          natal_history?: string | null
+          postnatal_history?: string | null
+          prenatal_history?: string | null
+          speech_milestones?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
