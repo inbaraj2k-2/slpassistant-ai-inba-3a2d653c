@@ -113,16 +113,7 @@ Use plain numbers (e.g. 85, not "85" or 8,5). Escape any quotes inside strings. 
         model: gateway("google/gemini-3-flash-preview"),
         system: SYSTEM_PROMPT + "\n\n" + jsonInstructions,
         prompt: `Analyze the following case history and produce ranked clinical suggestions as JSON.\n\nCASE HISTORY:\n${caseText}\n\nRespond with the JSON object only.`,
-      const safe = "AI analysis failed. Please try again later.";
-      console.error("[analyzeCase] AI error:", msg);
-      throw new Error(safe);
-    }
-  });
-
-function cap(v: unknown, max = 4000): string {
-  const s = v == null ? "" : String(v);
-  return s.length > max ? s.slice(0, max) + "…[truncated]" : s;
-}
+      });
 
       const parsed = extractJSON(text);
       const output = AnalysisSchema.parse(normalizeAnalysis(parsed));
@@ -140,9 +131,17 @@ function cap(v: unknown, max = 4000): string {
       if (msg.includes("429")) throw new Error("AI rate limit reached. Please try again shortly.");
       if (msg.includes("402"))
         throw new Error("AI credits exhausted. Please add credits in workspace billing.");
-      throw new Error(`AI analysis failed: ${msg}`);
+      if (msg.startsWith("Case history is too long")) throw new Error(msg);
+      console.error("[analyzeCase] AI error:", msg);
+      throw new Error("AI analysis failed. Please try again later.");
     }
   });
+
+function cap(v: unknown, max = 4000): string {
+  const s = v == null ? "" : String(v);
+  return s.length > max ? s.slice(0, max) + "…[truncated]" : s;
+}
+
 
 function extractJSON(raw: string): unknown {
   let s = raw.trim();
