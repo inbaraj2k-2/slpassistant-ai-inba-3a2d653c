@@ -74,21 +74,25 @@ export const analyzeCase = createServerFn({ method: "POST" })
     if (error || !row) throw new Error("Case not found.");
 
     const caseText = `
-Name: ${row.name ?? ""}
-Age: ${row.age ?? ""}
-Gender: ${row.gender ?? ""}
-Chief Complaint: ${row.chief_complaint ?? ""}
-Prenatal History: ${row.prenatal_history ?? ""}
-Natal History: ${row.natal_history ?? ""}
-Postnatal History: ${row.postnatal_history ?? ""}
-Motor Milestones: ${row.motor_milestones ?? ""}
-Speech Milestones: ${row.speech_milestones ?? ""}
-Language History: ${row.language_history ?? ""}
-Hearing History: ${row.hearing_history ?? ""}
-Education History: ${row.education_history ?? ""}
-Family History: ${row.family_history ?? ""}
-Additional Notes: ${row.additional_notes ?? ""}
+Name: ${cap(row.name, 200)}
+Age: ${cap(row.age, 50)}
+Gender: ${cap(row.gender, 50)}
+Chief Complaint: ${cap(row.chief_complaint)}
+Prenatal History: ${cap(row.prenatal_history)}
+Natal History: ${cap(row.natal_history)}
+Postnatal History: ${cap(row.postnatal_history)}
+Motor Milestones: ${cap(row.motor_milestones)}
+Speech Milestones: ${cap(row.speech_milestones)}
+Language History: ${cap(row.language_history)}
+Hearing History: ${cap(row.hearing_history)}
+Education History: ${cap(row.education_history)}
+Family History: ${cap(row.family_history)}
+Additional Notes: ${cap(row.additional_notes)}
 `.trim();
+
+    if (caseText.length > 20000) {
+      throw new Error("Case history is too long. Please shorten the entries and try again.");
+    }
 
     const gateway = createLovableAiGatewayProvider(apiKey);
 
