@@ -92,13 +92,27 @@ Additional Notes: ${row.additional_notes ?? ""}
 
     const gateway = createLovableAiGatewayProvider(apiKey);
 
+    const jsonInstructions = `Return ONLY a single valid JSON object matching this exact TypeScript type — no markdown, no code fences, no commentary:
+{
+  "possible_conditions": Array<{ "name": string, "confidence": number /* 0-100 */, "rationale": string }>, // 1-6 items
+  "differential_diagnoses": string[], // up to 8
+  "recommended_assessments": string[], // up to 10
+  "materials_required": string[], // up to 10
+  "therapy_goals": string[], // up to 10
+  "questions_to_ask_next": string[], // up to 8
+  "summary": string
+}
+Use plain numbers (e.g. 85, not "85" or 8,5). Escape any quotes inside strings. If a field has no content, use an empty array or empty string. Output JSON only.`;
+
     try {
-      const { experimental_output: output } = await generateText({
+      const { text } = await generateText({
         model: gateway("google/gemini-3-flash-preview"),
-        system: SYSTEM_PROMPT,
-        prompt: `Analyze the following case history and produce ranked clinical suggestions.\n\nCASE HISTORY:\n${caseText}`,
-        experimental_output: Output.object({ schema: AnalysisSchema }),
+        system: SYSTEM_PROMPT + "\n\n" + jsonInstructions,
+        prompt: `Analyze the following case history and produce ranked clinical suggestions as JSON.\n\nCASE HISTORY:\n${caseText}\n\nRespond with the JSON object only.`,
       });
+
+      const parsed = extractJSON(text);
+      const output = AnalysisSchema.parse(normalizeAnalysis(parsed));
 
       const { error: upErr } = await supabase
         .from("cases")
@@ -107,7 +121,7 @@ Additional Notes: ${row.additional_notes ?? ""}
         .eq("user_id", userId);
       if (upErr) throw upErr;
 
-      return output as AnalysisResult;
+      return output;
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
       if (msg.includes("429")) throw new Error("AI rate limit reached. Please try again shortly.");
