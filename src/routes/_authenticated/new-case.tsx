@@ -230,6 +230,7 @@ function Area({
       <span className="mb-1 block text-xs font-medium text-foreground/80">{label}</span>
       <textarea
         rows={3}
+        maxLength={4000}
         value={value}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
