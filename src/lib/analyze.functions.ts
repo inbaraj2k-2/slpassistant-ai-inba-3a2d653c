@@ -130,3 +130,54 @@ Use plain numbers (e.g. 85, not "85" or 8,5). Escape any quotes inside strings. 
       throw new Error(`AI analysis failed: ${msg}`);
     }
   });
+
+function extractJSON(raw: string): unknown {
+  let s = raw.trim();
+  s = s.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
+  if (!s.startsWith("{") && !s.startsWith("[")) {
+    const start = s.indexOf("{");
+    const end = s.lastIndexOf("}");
+    if (start !== -1 && end > start) s = s.slice(start, end + 1);
+    else throw new Error("No JSON object found in AI response");
+  }
+  try {
+    return JSON.parse(s);
+  } catch {
+    const start = s.indexOf("{");
+    const end = s.lastIndexOf("}");
+    if (start !== -1 && end > start) return JSON.parse(s.slice(start, end + 1));
+    throw new Error("Failed to parse AI JSON response");
+  }
+}
+
+function asStringArray(v: unknown): string[] {
+  if (!Array.isArray(v)) return [];
+  return v.map((x) => (typeof x === "string" ? x : String(x ?? ""))).filter(Boolean);
+}
+
+function normalizeAnalysis(input: unknown): unknown {
+  const o = (input ?? {}) as Record<string, unknown>;
+  const rawConds = Array.isArray(o.possible_conditions) ? o.possible_conditions : [];
+  const possible_conditions = rawConds
+    .map((c) => {
+      const x = (c ?? {}) as Record<string, unknown>;
+      const conf = typeof x.confidence === "number" ? x.confidence : Number(x.confidence ?? 0);
+      return {
+        name: String(x.name ?? "Unspecified"),
+        confidence: Math.max(0, Math.min(100, Number.isFinite(conf) ? conf : 0)),
+        rationale: String(x.rationale ?? ""),
+      };
+    })
+    .filter((c) => c.name);
+  return {
+    possible_conditions: possible_conditions.length
+      ? possible_conditions.slice(0, 6)
+      : [{ name: "Needs further evaluation", confidence: 0, rationale: "Insufficient information." }],
+    differential_diagnoses: asStringArray(o.differential_diagnoses).slice(0, 8),
+    recommended_assessments: asStringArray(o.recommended_assessments).slice(0, 10),
+    materials_required: asStringArray(o.materials_required).slice(0, 10),
+    therapy_goals: asStringArray(o.therapy_goals).slice(0, 10),
+    questions_to_ask_next: asStringArray(o.questions_to_ask_next).slice(0, 8),
+    summary: String(o.summary ?? ""),
+  };
+}
