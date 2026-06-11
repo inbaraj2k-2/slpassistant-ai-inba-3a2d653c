@@ -60,6 +60,11 @@ function NewCasePage() {
       setError("Patient name is required.");
       return;
     }
+    const tooLong = Object.entries(f).find(([, v]) => (v ?? "").length > 4000);
+    if (tooLong) {
+      setError(`Field "${tooLong[0]}" is too long (max 4000 characters).`);
+      return;
+    }
     setBusy(true);
     try {
       const { data: u } = await supabase.auth.getUser();
@@ -172,6 +177,7 @@ function Field({
       <input
         {...props}
         value={value}
+        maxLength={props.maxLength ?? 500}
         onChange={(e) => onChange(e.target.value)}
         className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-ring/30"
       />
@@ -224,6 +230,7 @@ function Area({
       <span className="mb-1 block text-xs font-medium text-foreground/80">{label}</span>
       <textarea
         rows={3}
+        maxLength={4000}
         value={value}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
