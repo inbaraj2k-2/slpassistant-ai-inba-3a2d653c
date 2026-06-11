@@ -177,6 +177,7 @@ function Field({
       <input
         {...props}
         value={value}
+        maxLength={props.maxLength ?? 500}
         onChange={(e) => onChange(e.target.value)}
         className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-ring/30"
       />
