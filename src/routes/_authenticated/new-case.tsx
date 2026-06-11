@@ -60,6 +60,11 @@ function NewCasePage() {
       setError("Patient name is required.");
       return;
     }
+    const tooLong = Object.entries(f).find(([, v]) => (v ?? "").length > 4000);
+    if (tooLong) {
+      setError(`Field "${tooLong[0]}" is too long (max 4000 characters).`);
+      return;
+    }
     setBusy(true);
     try {
       const { data: u } = await supabase.auth.getUser();
