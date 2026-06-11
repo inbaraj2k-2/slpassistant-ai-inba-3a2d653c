@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { generateText, Output } from "ai";
+import { generateText } from "ai";
 import { z } from "zod";
 import { createLovableAiGatewayProvider } from "./ai-gateway.server";
 
@@ -92,13 +92,27 @@ Additional Notes: ${row.additional_notes ?? ""}
 
     const gateway = createLovableAiGatewayProvider(apiKey);
 
+    const jsonInstructions = `Return ONLY a single valid JSON object matching this exact TypeScript type — no markdown, no code fences, no commentary:
+{
+  "possible_conditions": Array<{ "name": string, "confidence": number /* 0-100 */, "rationale": string }>, // 1-6 items
+  "differential_diagnoses": string[], // up to 8
+  "recommended_assessments": string[], // up to 10
+  "materials_required": string[], // up to 10
+  "therapy_goals": string[], // up to 10
+  "questions_to_ask_next": string[], // up to 8
+  "summary": string
+}
+Use plain numbers (e.g. 85, not "85" or 8,5). Escape any quotes inside strings. If a field has no content, use an empty array or empty string. Output JSON only.`;
+
     try {
-      const { experimental_output: output } = await generateText({
+      const { text } = await generateText({
         model: gateway("google/gemini-3-flash-preview"),
-        system: SYSTEM_PROMPT,
-        prompt: `Analyze the following case history and produce ranked clinical suggestions.\n\nCASE HISTORY:\n${caseText}`,
-        experimental_output: Output.object({ schema: AnalysisSchema }),
+        system: SYSTEM_PROMPT + "\n\n" + jsonInstructions,
+        prompt: `Analyze the following case history and produce ranked clinical suggestions as JSON.\n\nCASE HISTORY:\n${caseText}\n\nRespond with the JSON object only.`,
       });
+
+      const parsed = extractJSON(text);
+      const output = AnalysisSchema.parse(normalizeAnalysis(parsed));
 
       const { error: upErr } = await supabase
         .from("cases")
@@ -107,7 +121,7 @@ Additional Notes: ${row.additional_notes ?? ""}
         .eq("user_id", userId);
       if (upErr) throw upErr;
 
-      return output as AnalysisResult;
+      return output;
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
       if (msg.includes("429")) throw new Error("AI rate limit reached. Please try again shortly.");
@@ -116,3 +130,54 @@ Additional Notes: ${row.additional_notes ?? ""}
       throw new Error(`AI analysis failed: ${msg}`);
     }
   });
+
+function extractJSON(raw: string): unknown {
+  let s = raw.trim();
+  s = s.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
+  if (!s.startsWith("{") && !s.startsWith("[")) {
+    const start = s.indexOf("{");
+    const end = s.lastIndexOf("}");
+    if (start !== -1 && end > start) s = s.slice(start, end + 1);
+    else throw new Error("No JSON object found in AI response");
+  }
+  try {
+    return JSON.parse(s);
+  } catch {
+    const start = s.indexOf("{");
+    const end = s.lastIndexOf("}");
+    if (start !== -1 && end > start) return JSON.parse(s.slice(start, end + 1));
+    throw new Error("Failed to parse AI JSON response");
+  }
+}
+
+function asStringArray(v: unknown): string[] {
+  if (!Array.isArray(v)) return [];
+  return v.map((x) => (typeof x === "string" ? x : String(x ?? ""))).filter(Boolean);
+}
+
+function normalizeAnalysis(input: unknown): unknown {
+  const o = (input ?? {}) as Record<string, unknown>;
+  const rawConds = Array.isArray(o.possible_conditions) ? o.possible_conditions : [];
+  const possible_conditions = rawConds
+    .map((c) => {
+      const x = (c ?? {}) as Record<string, unknown>;
+      const conf = typeof x.confidence === "number" ? x.confidence : Number(x.confidence ?? 0);
+      return {
+        name: String(x.name ?? "Unspecified"),
+        confidence: Math.max(0, Math.min(100, Number.isFinite(conf) ? conf : 0)),
+        rationale: String(x.rationale ?? ""),
+      };
+    })
+    .filter((c) => c.name);
+  return {
+    possible_conditions: possible_conditions.length
+      ? possible_conditions.slice(0, 6)
+      : [{ name: "Needs further evaluation", confidence: 0, rationale: "Insufficient information." }],
+    differential_diagnoses: asStringArray(o.differential_diagnoses).slice(0, 8),
+    recommended_assessments: asStringArray(o.recommended_assessments).slice(0, 10),
+    materials_required: asStringArray(o.materials_required).slice(0, 10),
+    therapy_goals: asStringArray(o.therapy_goals).slice(0, 10),
+    questions_to_ask_next: asStringArray(o.questions_to_ask_next).slice(0, 8),
+    summary: String(o.summary ?? ""),
+  };
+}
