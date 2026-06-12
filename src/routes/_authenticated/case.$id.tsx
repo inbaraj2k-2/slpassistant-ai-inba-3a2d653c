@@ -14,11 +14,13 @@ import {
   HelpCircle,
   Loader2,
   Package,
+  Pencil,
   RefreshCw,
   Sparkles,
   Target,
   Trash2,
 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 
 const searchSchema = z.object({ run: z.number().optional() });
 
@@ -99,13 +101,23 @@ function CaseDetail() {
       back
       hideNav
       right={
-        <button
-          onClick={onDelete}
-          className="grid h-9 w-9 place-items-center rounded-full bg-secondary text-destructive transition hover:bg-destructive/10"
-          aria-label="Delete case"
-        >
-          <Trash2 className="h-4 w-4" />
-        </button>
+        <div className="flex items-center gap-2">
+          <Link
+            to="/case/$id/edit"
+            params={{ id }}
+            className="grid h-9 w-9 place-items-center rounded-full bg-secondary text-primary transition hover:bg-primary/10"
+            aria-label="Edit case"
+          >
+            <Pencil className="h-4 w-4" />
+          </Link>
+          <button
+            onClick={onDelete}
+            className="grid h-9 w-9 place-items-center rounded-full bg-secondary text-destructive transition hover:bg-destructive/10"
+            aria-label="Delete case"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
       }
     >
       {isLoading || !row ? (

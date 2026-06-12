@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { Disclaimer } from "@/components/Disclaimer";
-import { BookOpen, FolderClock, PlusCircle, Settings, Sparkles } from "lucide-react";
+import { BookOpen, FileText, FolderClock, PlusCircle, Settings, Sparkles } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -58,8 +58,14 @@ function HomePage() {
         <TileLink
           to="/cases"
           icon={<FolderClock className="h-5 w-5" />}
-          label="Previous Cases"
+          label="My Cases"
           desc={`${stats?.count ?? 0} saved`}
+        />
+        <TileLink
+          to="/saved-reports"
+          icon={<FileText className="h-5 w-5" />}
+          label="Saved Reports"
+          desc="AI analyses"
         />
         <TileLink
           to="/knowledge"

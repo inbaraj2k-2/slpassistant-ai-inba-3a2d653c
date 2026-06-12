@@ -14,11 +14,13 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedSavedReportsRouteImport } from './routes/_authenticated/saved-reports'
 import { Route as AuthenticatedNewCaseRouteImport } from './routes/_authenticated/new-case'
 import { Route as AuthenticatedKnowledgeRouteImport } from './routes/_authenticated/knowledge'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedCasesRouteImport } from './routes/_authenticated/cases'
 import { Route as AuthenticatedCaseIdRouteImport } from './routes/_authenticated/case.$id'
+import { Route as AuthenticatedCaseIdEditRouteImport } from './routes/_authenticated/case.$id.edit'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -44,6 +46,12 @@ const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedSavedReportsRoute =
+  AuthenticatedSavedReportsRouteImport.update({
+    id: '/saved-reports',
+    path: '/saved-reports',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedNewCaseRoute = AuthenticatedNewCaseRouteImport.update({
   id: '/new-case',
   path: '/new-case',
@@ -69,6 +77,11 @@ const AuthenticatedCaseIdRoute = AuthenticatedCaseIdRouteImport.update({
   path: '/case/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCaseIdEditRoute = AuthenticatedCaseIdEditRouteImport.update({
+  id: '/edit',
+  path: '/edit',
+  getParentRoute: () => AuthenticatedCaseIdRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -78,8 +91,10 @@ export interface FileRoutesByFullPath {
   '/home': typeof AuthenticatedHomeRoute
   '/knowledge': typeof AuthenticatedKnowledgeRoute
   '/new-case': typeof AuthenticatedNewCaseRoute
+  '/saved-reports': typeof AuthenticatedSavedReportsRoute
   '/settings': typeof AuthenticatedSettingsRoute
-  '/case/$id': typeof AuthenticatedCaseIdRoute
+  '/case/$id': typeof AuthenticatedCaseIdRouteWithChildren
+  '/case/$id/edit': typeof AuthenticatedCaseIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -89,8 +104,10 @@ export interface FileRoutesByTo {
   '/home': typeof AuthenticatedHomeRoute
   '/knowledge': typeof AuthenticatedKnowledgeRoute
   '/new-case': typeof AuthenticatedNewCaseRoute
+  '/saved-reports': typeof AuthenticatedSavedReportsRoute
   '/settings': typeof AuthenticatedSettingsRoute
-  '/case/$id': typeof AuthenticatedCaseIdRoute
+  '/case/$id': typeof AuthenticatedCaseIdRouteWithChildren
+  '/case/$id/edit': typeof AuthenticatedCaseIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -102,8 +119,10 @@ export interface FileRoutesById {
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/knowledge': typeof AuthenticatedKnowledgeRoute
   '/_authenticated/new-case': typeof AuthenticatedNewCaseRoute
+  '/_authenticated/saved-reports': typeof AuthenticatedSavedReportsRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
-  '/_authenticated/case/$id': typeof AuthenticatedCaseIdRoute
+  '/_authenticated/case/$id': typeof AuthenticatedCaseIdRouteWithChildren
+  '/_authenticated/case/$id/edit': typeof AuthenticatedCaseIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -115,8 +134,10 @@ export interface FileRouteTypes {
     | '/home'
     | '/knowledge'
     | '/new-case'
+    | '/saved-reports'
     | '/settings'
     | '/case/$id'
+    | '/case/$id/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -126,8 +147,10 @@ export interface FileRouteTypes {
     | '/home'
     | '/knowledge'
     | '/new-case'
+    | '/saved-reports'
     | '/settings'
     | '/case/$id'
+    | '/case/$id/edit'
   id:
     | '__root__'
     | '/'
@@ -138,8 +161,10 @@ export interface FileRouteTypes {
     | '/_authenticated/home'
     | '/_authenticated/knowledge'
     | '/_authenticated/new-case'
+    | '/_authenticated/saved-reports'
     | '/_authenticated/settings'
     | '/_authenticated/case/$id'
+    | '/_authenticated/case/$id/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -186,6 +211,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/saved-reports': {
+      id: '/_authenticated/saved-reports'
+      path: '/saved-reports'
+      fullPath: '/saved-reports'
+      preLoaderRoute: typeof AuthenticatedSavedReportsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/new-case': {
       id: '/_authenticated/new-case'
       path: '/new-case'
@@ -221,16 +253,35 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCaseIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/case/$id/edit': {
+      id: '/_authenticated/case/$id/edit'
+      path: '/edit'
+      fullPath: '/case/$id/edit'
+      preLoaderRoute: typeof AuthenticatedCaseIdEditRouteImport
+      parentRoute: typeof AuthenticatedCaseIdRoute
+    }
   }
 }
+
+interface AuthenticatedCaseIdRouteChildren {
+  AuthenticatedCaseIdEditRoute: typeof AuthenticatedCaseIdEditRoute
+}
+
+const AuthenticatedCaseIdRouteChildren: AuthenticatedCaseIdRouteChildren = {
+  AuthenticatedCaseIdEditRoute: AuthenticatedCaseIdEditRoute,
+}
+
+const AuthenticatedCaseIdRouteWithChildren =
+  AuthenticatedCaseIdRoute._addFileChildren(AuthenticatedCaseIdRouteChildren)
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedCasesRoute: typeof AuthenticatedCasesRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedKnowledgeRoute: typeof AuthenticatedKnowledgeRoute
   AuthenticatedNewCaseRoute: typeof AuthenticatedNewCaseRoute
+  AuthenticatedSavedReportsRoute: typeof AuthenticatedSavedReportsRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
-  AuthenticatedCaseIdRoute: typeof AuthenticatedCaseIdRoute
+  AuthenticatedCaseIdRoute: typeof AuthenticatedCaseIdRouteWithChildren
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -238,8 +289,9 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedKnowledgeRoute: AuthenticatedKnowledgeRoute,
   AuthenticatedNewCaseRoute: AuthenticatedNewCaseRoute,
+  AuthenticatedSavedReportsRoute: AuthenticatedSavedReportsRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
-  AuthenticatedCaseIdRoute: AuthenticatedCaseIdRoute,
+  AuthenticatedCaseIdRoute: AuthenticatedCaseIdRouteWithChildren,
 }
 
 const AuthenticatedRouteRouteWithChildren =
