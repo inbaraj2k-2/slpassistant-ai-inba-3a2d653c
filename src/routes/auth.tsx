@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 import { Disclaimer } from "@/components/Disclaimer";
 import { Loader2, Stethoscope } from "lucide-react";
 
@@ -17,14 +18,8 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"signin" | "signup" | "forgot">("signin");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [info, setInfo] = useState<string | null>(null);
-
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -32,41 +27,25 @@ function AuthPage() {
     });
   }, [navigate]);
 
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function signInWithGoogle() {
     setError(null);
-    setInfo(null);
     setBusy(true);
     try {
-      if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: { full_name: name },
-            emailRedirectTo: window.location.origin,
-          },
-        });
-        if (error) throw error;
-        navigate({ to: "/home", replace: true });
-      } else if (mode === "forgot") {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}/reset-password`,
-        });
-        if (error) throw error;
-        setInfo("If an account exists for that email, a reset link has been sent.");
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        navigate({ to: "/home", replace: true });
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+      });
+      if (result.error) {
+        setError("Could not sign in with Google. Please try again.");
+        setBusy(false);
+        return;
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Authentication failed");
-    } finally {
+      if (result.redirected) return;
+      navigate({ to: "/home", replace: true });
+    } catch {
+      setError("Could not sign in with Google. Please try again.");
       setBusy(false);
     }
   }
-
 
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-md flex-col bg-gradient-soft px-5 pb-10 pt-14">
@@ -80,97 +59,35 @@ function AuthPage() {
         </p>
       </div>
 
-      <div className="rounded-2xl bg-card p-5 shadow-card">
-        <div className="mb-4 flex rounded-xl bg-secondary p-1 text-sm">
-          {(["signin", "signup"] as const).map((m) => (
-            <button
-              key={m}
-              type="button"
-              onClick={() => { setMode(m); setError(null); setInfo(null); }}
-              className={`flex-1 rounded-lg py-2 font-medium transition ${
-                mode === m
-                  ? "bg-card text-primary shadow-card"
-                  : "text-muted-foreground"
-              }`}
-            >
-              {m === "signin" ? "Sign in" : "Create account"}
-            </button>
-          ))}
-        </div>
+      <div className="rounded-2xl bg-card p-6 shadow-card">
+        <h2 className="mb-1 text-lg font-semibold">Welcome</h2>
+        <p className="mb-5 text-sm text-muted-foreground">
+          Sign in with your Google account to continue.
+        </p>
 
-        <form onSubmit={onSubmit} className="space-y-3">
-          {mode === "signup" && (
-            <Field
-              label="Full name"
-              value={name}
-              onChange={setName}
-              type="text"
-              placeholder="Dr. Jane Doe"
-              required
-            />
+        <button
+          type="button"
+          onClick={signInWithGoogle}
+          disabled={busy}
+          className="flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-input bg-background font-semibold text-foreground shadow-card transition hover:bg-accent disabled:opacity-60"
+        >
+          {busy ? (
+            <Loader2 className="h-5 w-5 animate-spin" />
+          ) : (
+            <GoogleIcon />
           )}
-          <Field
-            label="Email"
-            value={email}
-            onChange={setEmail}
-            type="email"
-            placeholder="you@clinic.com"
-            required
-          />
-          {mode !== "forgot" && (
-            <Field
-              label="Password"
-              value={password}
-              onChange={setPassword}
-              type="password"
-              placeholder="At least 6 characters"
-              required
-              minLength={6}
-            />
-          )}
+          <span>Continue with Google</span>
+        </button>
 
-          {mode === "signin" && (
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={() => { setMode("forgot"); setError(null); setInfo(null); }}
-                className="text-xs font-medium text-primary hover:underline"
-              >
-                Forgot password?
-              </button>
-            </div>
-          )}
+        {error && (
+          <p className="mt-4 rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">
+            {error}
+          </p>
+        )}
 
-          {mode === "forgot" && (
-            <button
-              type="button"
-              onClick={() => { setMode("signin"); setError(null); setInfo(null); }}
-              className="text-xs font-medium text-primary hover:underline"
-            >
-              ← Back to sign in
-            </button>
-          )}
-
-          {error && (
-            <p className="rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">
-              {error}
-            </p>
-          )}
-          {info && (
-            <p className="rounded-lg bg-primary/10 px-3 py-2 text-xs text-primary">
-              {info}
-            </p>
-          )}
-
-          <button
-            type="submit"
-            disabled={busy}
-            className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-gradient-primary font-semibold text-primary-foreground shadow-card transition hover:opacity-95 disabled:opacity-60"
-          >
-            {busy && <Loader2 className="h-4 w-4 animate-spin" />}
-            {mode === "signin" ? "Sign in" : mode === "signup" ? "Create account" : "Send reset link"}
-          </button>
-        </form>
+        <p className="mt-5 text-center text-xs text-muted-foreground">
+          By continuing, you agree to our clinical-use disclaimer below.
+        </p>
       </div>
 
       <div className="mt-6">
@@ -180,25 +97,25 @@ function AuthPage() {
   );
 }
 
-function Field({
-  label,
-  value,
-  onChange,
-  ...props
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-} & Omit<React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange">) {
+function GoogleIcon() {
   return (
-    <label className="block">
-      <span className="mb-1 block text-xs font-medium text-foreground/80">{label}</span>
-      <input
-        {...props}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm outline-none transition placeholder:text-muted-foreground/60 focus:border-primary focus:ring-2 focus:ring-ring/30"
+    <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        fill="#EA4335"
+        d="M12 10.2v3.9h5.5c-.24 1.4-1.66 4.1-5.5 4.1-3.3 0-6-2.74-6-6.1s2.7-6.1 6-6.1c1.88 0 3.14.8 3.86 1.49l2.64-2.55C16.83 3.43 14.66 2.5 12 2.5 6.76 2.5 2.5 6.76 2.5 12S6.76 21.5 12 21.5c6.92 0 9.5-4.86 9.5-9.36 0-.63-.07-1.11-.16-1.94H12z"
       />
-    </label>
+      <path
+        fill="#4285F4"
+        d="M21.34 10.2H12v3.9h5.5c-.26 1.5-1.78 4.1-5.5 4.1v3.3c3.3 0 6.05-1.08 8.06-2.94 2.08-1.92 3.28-4.76 3.28-8.16 0-.63-.07-1.11-.16-1.94z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M5.5 13.7l-.78.6-2.72 2.1A9.5 9.5 0 0 0 12 21.5v-3.3c-2.62 0-4.84-1.74-5.62-4.1l-.88-.4z"
+      />
+      <path
+        fill="#34A853"
+        d="M12 5.9c1.88 0 3.14.8 3.86 1.49l2.64-2.55C16.83 3.43 14.66 2.5 12 2.5A9.5 9.5 0 0 0 2.5 12c0 1.52.36 2.96 1 4.25l3.5-2.7C6.66 12.74 6.4 11.92 6.4 11c0-2.85 2.36-5.1 5.6-5.1z"
+      />
+    </svg>
   );
 }
