@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { Disclaimer } from "@/components/Disclaimer";
-import { BookOpen, FolderClock, PlusCircle, Settings, Sparkles } from "lucide-react";
+import { BookOpen, FileText, FolderClock, PlusCircle, Settings, Sparkles } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
