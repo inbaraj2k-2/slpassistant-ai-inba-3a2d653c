@@ -14,11 +14,13 @@ import {
   HelpCircle,
   Loader2,
   Package,
+  Pencil,
   RefreshCw,
   Sparkles,
   Target,
   Trash2,
 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 
 const searchSchema = z.object({ run: z.number().optional() });
 
