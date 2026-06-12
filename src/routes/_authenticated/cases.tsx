@@ -23,7 +23,7 @@ function CasesPage() {
   });
 
   return (
-    <AppShell title="Previous Cases" subtitle="Your saved case histories">
+    <AppShell title="My Cases" subtitle="Your saved case histories">
       {isLoading ? (
         <SkeletonList />
       ) : !data || data.length === 0 ? (
