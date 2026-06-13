@@ -1,6 +1,7 @@
 import { Link, useRouter } from "@tanstack/react-router";
 import { ArrowLeft, BookOpen, FolderClock, Home, Settings } from "lucide-react";
 import type { ReactNode } from "react";
+import { BrandMark } from "@/components/BrandMark";
 
 interface Props {
   title: string;
@@ -26,8 +27,8 @@ export function AppShell({ title, subtitle, back, right, children, hideNav }: Pr
               <ArrowLeft className="h-4 w-4" />
             </button>
           ) : (
-            <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-primary text-primary-foreground shadow-card">
-              <span className="text-sm font-bold">SLP</span>
+            <div className="grid h-9 w-9 place-items-center overflow-hidden rounded-xl bg-gradient-primary text-primary-foreground shadow-card">
+              <BrandMark />
             </div>
           )}
           <div className="min-w-0 flex-1">
