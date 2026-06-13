@@ -1,9 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { Disclaimer } from "@/components/Disclaimer";
+import { BrandMark } from "@/components/BrandMark";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Info, LogOut, Mail, ShieldCheck, Stethoscope } from "lucide-react";
+import { Info, LogOut, Mail, ShieldCheck } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({ meta: [{ title: "Settings — SLP Assist AI" }] }),
@@ -29,8 +30,8 @@ function SettingsPage() {
     <AppShell title="Settings">
       <section className="mb-4 rounded-2xl border border-border bg-card p-4 shadow-card">
         <div className="flex items-center gap-3">
-          <div className="grid h-12 w-12 place-items-center rounded-xl bg-gradient-primary text-primary-foreground">
-            <Stethoscope className="h-5 w-5" />
+          <div className="grid h-12 w-12 place-items-center overflow-hidden rounded-xl bg-gradient-primary text-primary-foreground">
+            <BrandMark />
           </div>
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold">

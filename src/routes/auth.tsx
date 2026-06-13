@@ -3,7 +3,9 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { Disclaimer } from "@/components/Disclaimer";
-import { Loader2, Stethoscope, UserRound } from "lucide-react";
+import { BrandMark } from "@/components/BrandMark";
+import { ensureUserProfile } from "@/lib/profile";
+import { Loader2, UserRound } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -22,8 +24,16 @@ function AuthPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user) navigate({ to: "/home", replace: true });
+    supabase.auth.getUser().then(async ({ data }) => {
+      if (data.user) {
+        try {
+          await ensureUserProfile(data.user);
+        } catch (e) {
+          setError(`Google signed in, but the profile could not be saved: ${e instanceof Error ? e.message : String(e)}`);
+          return;
+        }
+        navigate({ to: "/home", replace: true });
+      }
     });
   }, [navigate]);
 
@@ -33,16 +43,20 @@ function AuthPage() {
     try {
       const result = await lovable.auth.signInWithOAuth("google", {
         redirect_uri: window.location.origin,
+        extraParams: { prompt: "select_account" },
       });
       if (result.error) {
-        setError("Could not sign in with Google. Please try again.");
+        setError(getGoogleAuthError(result.error));
         setBusy(null);
         return;
       }
       if (result.redirected) return;
+      const { data, error: userError } = await supabase.auth.getUser();
+      if (userError || !data.user) throw userError ?? new Error("Google session was not created");
+      await ensureUserProfile(data.user);
       navigate({ to: "/home", replace: true });
-    } catch {
-      setError("Could not sign in with Google. Please try again.");
+    } catch (e) {
+      setError(getGoogleAuthError(e));
       setBusy(null);
     }
   }
@@ -54,7 +68,8 @@ function AuthPage() {
       const { error } = await supabase.auth.signInAnonymously();
       if (error) throw error;
       navigate({ to: "/home", replace: true });
-    } catch {
+    } catch (e) {
+      console.error(e);
       setError("Could not start guest session. Please try again.");
       setBusy(null);
     }
@@ -63,8 +78,8 @@ function AuthPage() {
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-md flex-col bg-gradient-soft px-5 pb-10 pt-14">
       <div className="mb-8 flex flex-col items-center text-center">
-        <div className="mb-4 grid h-16 w-16 place-items-center rounded-2xl bg-gradient-primary text-primary-foreground shadow-elev">
-          <Stethoscope className="h-8 w-8" />
+        <div className="mb-4 grid h-16 w-16 place-items-center overflow-hidden rounded-2xl bg-gradient-primary text-primary-foreground shadow-elev">
+          <BrandMark />
         </div>
         <h1 className="text-2xl font-bold tracking-tight">SLP Assist AI</h1>
         <p className="mt-1 text-sm text-muted-foreground text-balance">
@@ -128,6 +143,28 @@ function AuthPage() {
       </div>
     </div>
   );
+}
+
+function getGoogleAuthError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  const lower = message.toLowerCase();
+
+  if (lower.includes("popup was blocked")) {
+    return "Google sign-in popup was blocked. Allow popups for this site and try again.";
+  }
+  if (lower.includes("cancelled")) {
+    return "Google sign-in was cancelled before the account was selected.";
+  }
+  if (lower.includes("preview mode") || lower.includes("new tab")) {
+    return "Google sign-in cannot complete inside this preview frame. Open the app in a new tab or use the published URL.";
+  }
+  if (lower.includes("provider") || lower.includes("oauth") || lower.includes("client") || lower.includes("redirect")) {
+    return `Google sign-in configuration error: ${message}`;
+  }
+  if (lower.includes("session") || lower.includes("token")) {
+    return `Google signed in, but the session could not be saved: ${message}`;
+  }
+  return `Google sign-in failed: ${message}`;
 }
 
 function GoogleIcon() {
