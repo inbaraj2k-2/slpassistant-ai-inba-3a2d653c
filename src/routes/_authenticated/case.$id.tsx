@@ -260,6 +260,33 @@ function AnalysisView({ analysis }: { analysis: AnalysisResult }) {
       <Block icon={<HelpCircle className="h-4 w-4" />} title="Questions To Ask Next">
         <BulletList items={analysis.questions_to_ask_next} />
       </Block>
+
+      {analysis.clinical_sources && analysis.clinical_sources.length > 0 && (
+        <Block icon={<ClipboardList className="h-4 w-4" />} title="Clinical Sources">
+          <ul className="space-y-2 text-xs">
+            {analysis.clinical_sources.map((s, i) => (
+              <li key={i} className="rounded-lg border border-border/70 bg-background p-2.5">
+                <p className="text-sm font-semibold">{s.disorder_name}</p>
+                <p className="text-muted-foreground">
+                  {[s.primary_source, s.secondary_source].filter(Boolean).join(" • ")}
+                  {s.verification_status ? ` — ${s.verification_status}` : ""}
+                  {s.kind ? ` (${s.kind})` : ""}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </Block>
+      )}
+
+      {analysis.unmatched_conditions && analysis.unmatched_conditions.length > 0 && (
+        <div className="rounded-2xl border border-warning/40 bg-warning/10 p-4 text-xs">
+          <p className="mb-1 font-semibold">Unmapped conditions</p>
+          <p className="text-muted-foreground">
+            The AI suggested conditions not in the clinical catalog. No linked assessments,
+            materials, or goals are available for: {analysis.unmatched_conditions.join(", ")}.
+          </p>
+        </div>
+      )}
     </div>
   );
 }
