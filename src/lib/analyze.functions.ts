@@ -20,42 +20,30 @@ const AnalysisSchema = z.object({
     .min(1)
     .max(6),
   differential_diagnoses: z.array(z.string()).max(8),
-  recommended_assessments: z.array(z.string()).max(10),
-  materials_required: z.array(z.string()).max(10),
-  therapy_goals: z.array(z.string()).max(10),
+  recommended_assessments: z.array(z.string()).max(20),
+  materials_required: z.array(z.string()).max(20),
+  therapy_goals: z.array(z.string()).max(20),
   questions_to_ask_next: z.array(z.string()).max(8),
+  clinical_sources: z
+    .array(
+      z.object({
+        disorder_name: z.string(),
+        primary_source: z.string().nullable(),
+        secondary_source: z.string().nullable(),
+        verification_status: z.string().nullable(),
+        kind: z.string(),
+      }),
+    )
+    .default([]),
+  unmatched_conditions: z.array(z.string()).default([]),
   summary: z.string(),
 });
 
 export type AnalysisResult = z.infer<typeof AnalysisSchema>;
 
-const SUPPORTED = [
-  "Autism Spectrum Disorder",
-  "Developmental Language Disorder",
-  "Articulation Disorder",
-  "Phonological Disorder",
-  "Childhood Apraxia of Speech",
-  "Dysarthria",
-  "Stuttering",
-  "Voice Disorders",
-  "Hearing Loss Related Speech Disorders",
-  "Aphasia",
-  "Selective Mutism",
-  "Cleft Palate Speech Disorder",
-  "Resonance Disorders",
-];
-
-const SYSTEM_PROMPT = `You are a clinical decision support assistant for Speech-Language Pathologists, Audiologists, and BASLP students.
-You analyze pediatric/adult case histories and produce RANKED, NON-DIAGNOSTIC suggestions only.
-
-Rules:
-- Never state a confirmed diagnosis. Use words like "consistent with", "possible", "consider".
-- Restrict possible_conditions primarily to this supported list (you may include "Other / Needs further evaluation"): ${SUPPORTED.join(", ")}.
-- Provide a confidence score (0-100) per condition reflecting how well the history matches.
-- Recommended assessments should be real, named SLP/Audiology tools (e.g., REELS, CELF, GFTA-3, Khan-Lewis, SSI-4, CAPE-V, PPVT, Boston Naming, MASA, Bzoch Error Pattern, Pure-tone audiometry, OAE, ABR, etc.) when appropriate.
-- Materials should be concrete (picture cards, oromotor kit, articulation deck, AAC board, mirror, tongue depressor, audiometer, etc.).
-- Therapy goals should be measurable and SLP-appropriate (e.g., "Produce /s/ in initial position in 8/10 trials across 3 sessions").
-- Keep each list item concise (one line).`;
+function norm(s: string) {
+  return s.toLowerCase().replace(/[^a-z0-9 ]/g, " ").replace(/\s+/g, " ").trim();
+}
 
 export const analyzeCase = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -72,6 +60,16 @@ export const analyzeCase = createServerFn({ method: "POST" })
       .eq("user_id", userId)
       .single();
     if (error || !row) throw new Error("Case not found.");
+
+    // Load disorder catalog (DB is source of truth)
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: disorderRows, error: dErr } = await supabaseAdmin
+      .from("disorders")
+      .select("id, name");
+    if (dErr) throw dErr;
+    const disorderList = (disorderRows ?? []).map((d) => d.name);
+    const byNorm = new Map<string, { id: string; name: string }>();
+    for (const d of disorderRows ?? []) byNorm.set(norm(d.name), { id: d.id, name: d.name });
 
     const caseText = `
 Name: ${cap(row.name, 200)}
@@ -94,54 +92,187 @@ Additional Notes: ${cap(row.additional_notes)}
       throw new Error("Case history is too long. Please shorten the entries and try again.");
     }
 
+    const systemPrompt = `You are a clinical decision support assistant for Speech-Language Pathologists, Audiologists, and BASLP students.
+You analyze pediatric/adult case histories and produce RANKED, NON-DIAGNOSTIC suggestions only.
+
+Rules:
+- Never state a confirmed diagnosis. Use words like "consistent with", "possible", "consider".
+- For possible_conditions, ONLY use names from this authoritative clinical catalog (copy exactly):
+${disorderList.map((n) => `  - ${n}`).join("\n")}
+- Provide a confidence score (0-100) per condition reflecting how well the history matches.
+- Provide a concise rationale per condition (one or two sentences).
+- Provide differential_diagnoses (alternative conditions to rule out) and questions_to_ask_next (clarifying questions).
+- Do NOT generate assessments, materials, or therapy goals — those are retrieved automatically from the clinical database based on the conditions you select.
+- Keep each list item concise (one line).`;
+
     const gateway = createLovableAiGatewayProvider(apiKey);
 
-    const jsonInstructions = `Return ONLY a single valid JSON object matching this exact TypeScript type — no markdown, no code fences, no commentary:
+    const jsonInstructions = `Return ONLY a single valid JSON object with this shape — no markdown, no code fences:
 {
-  "possible_conditions": Array<{ "name": string, "confidence": number /* 0-100 */, "rationale": string }>, // 1-6 items
+  "possible_conditions": Array<{ "name": string, "confidence": number, "rationale": string }>, // 1-6 items, names MUST come from the catalog
   "differential_diagnoses": string[], // up to 8
-  "recommended_assessments": string[], // up to 10
-  "materials_required": string[], // up to 10
-  "therapy_goals": string[], // up to 10
   "questions_to_ask_next": string[], // up to 8
   "summary": string
 }
-Use plain numbers (e.g. 85, not "85" or 8,5). Escape any quotes inside strings. If a field has no content, use an empty array or empty string. Output JSON only.`;
+Use plain numbers (e.g. 85). Output JSON only.`;
 
+    let aiOut: {
+      possible_conditions: { name: string; confidence: number; rationale: string }[];
+      differential_diagnoses: string[];
+      questions_to_ask_next: string[];
+      summary: string;
+    };
     try {
       const { text } = await generateText({
         model: gateway("google/gemini-3-flash-preview"),
-        system: SYSTEM_PROMPT + "\n\n" + jsonInstructions,
+        system: systemPrompt + "\n\n" + jsonInstructions,
         prompt: `Analyze the following case history and produce ranked clinical suggestions as JSON.\n\nCASE HISTORY:\n${caseText}\n\nRespond with the JSON object only.`,
       });
-
-      const parsed = extractJSON(text);
-      const output = AnalysisSchema.parse(normalizeAnalysis(parsed));
-
-      const { error: upErr } = await supabase
-        .from("cases")
-        .update({ analysis: JSON.parse(JSON.stringify(output)) })
-        .eq("id", data.caseId)
-        .eq("user_id", userId);
-      if (upErr) throw upErr;
-
-      return output;
+      const parsed = extractJSON(text) as Record<string, unknown>;
+      aiOut = {
+        possible_conditions: Array.isArray(parsed.possible_conditions)
+          ? parsed.possible_conditions.map((c) => {
+              const x = (c ?? {}) as Record<string, unknown>;
+              const conf =
+                typeof x.confidence === "number" ? x.confidence : Number(x.confidence ?? 0);
+              return {
+                name: String(x.name ?? "Unspecified"),
+                confidence: Math.max(0, Math.min(100, Number.isFinite(conf) ? conf : 0)),
+                rationale: String(x.rationale ?? ""),
+              };
+            })
+          : [],
+        differential_diagnoses: asStringArray(parsed.differential_diagnoses).slice(0, 8),
+        questions_to_ask_next: asStringArray(parsed.questions_to_ask_next).slice(0, 8),
+        summary: String(parsed.summary ?? ""),
+      };
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
       if (msg.includes("429")) throw new Error("AI rate limit reached. Please try again shortly.");
       if (msg.includes("402"))
         throw new Error("AI credits exhausted. Please add credits in workspace billing.");
-      if (msg.startsWith("Case history is too long")) throw new Error(msg);
       console.error("[analyzeCase] AI error:", msg);
       throw new Error("AI analysis failed. Please try again later.");
     }
+
+    // Resolve AI's condition names to DB disorders (with fuzzy fallback)
+    const matched: { id: string; name: string; confidence: number }[] = [];
+    const unmatched: string[] = [];
+    const seenIds = new Set<string>();
+    for (const c of aiOut.possible_conditions) {
+      const key = norm(c.name);
+      let hit = byNorm.get(key);
+      if (!hit) {
+        for (const [k, v] of byNorm) {
+          if (k.includes(key) || key.includes(k)) {
+            hit = v;
+            break;
+          }
+        }
+      }
+      if (hit) {
+        if (!seenIds.has(hit.id)) {
+          seenIds.add(hit.id);
+          matched.push({ id: hit.id, name: hit.name, confidence: c.confidence });
+        }
+      } else {
+        unmatched.push(c.name);
+      }
+    }
+
+    // Pull linked DB content for matched disorders
+    let assessments: string[] = [];
+    let materials: string[] = [];
+    let therapyGoals: string[] = [];
+    let clinicalSources: AnalysisResult["clinical_sources"] = [];
+
+    if (matched.length > 0) {
+      const ids = matched.map((m) => m.id);
+      const weight = new Map(matched.map((m) => [m.id, m.confidence || 1]));
+
+      const [aRes, mRes, gRes, sRes] = await Promise.all([
+        supabaseAdmin.from("assessments").select("disorder_id, name").in("disorder_id", ids),
+        supabaseAdmin.from("materials").select("disorder_id, name").in("disorder_id", ids),
+        supabaseAdmin.from("therapy_goals").select("disorder_id, goal").in("disorder_id", ids),
+        supabaseAdmin
+          .from("clinical_sources")
+          .select("disorder_id, disorder_name, primary_source, secondary_source, verification_status, kind")
+          .in("disorder_id", ids),
+      ]);
+
+      const mergeRank = (rows: { disorder_id: string; label: string }[]) => {
+        const scores = new Map<string, { label: string; score: number }>();
+        for (const r of rows) {
+          const k = norm(r.label);
+          const w = weight.get(r.disorder_id) ?? 1;
+          const cur = scores.get(k);
+          if (cur) cur.score += w;
+          else scores.set(k, { label: r.label, score: w });
+        }
+        return [...scores.values()]
+          .sort((a, b) => b.score - a.score)
+          .map((x) => x.label);
+      };
+
+      assessments = mergeRank(
+        (aRes.data ?? []).map((r) => ({ disorder_id: r.disorder_id, label: r.name })),
+      ).slice(0, 20);
+      materials = mergeRank(
+        (mRes.data ?? []).map((r) => ({ disorder_id: r.disorder_id, label: r.name })),
+      ).slice(0, 20);
+      therapyGoals = mergeRank(
+        (gRes.data ?? []).map((r) => ({ disorder_id: r.disorder_id, label: r.goal })),
+      ).slice(0, 20);
+      clinicalSources = (sRes.data ?? []).map((r) => ({
+        disorder_name: r.disorder_name,
+        primary_source: r.primary_source,
+        secondary_source: r.secondary_source,
+        verification_status: r.verification_status,
+        kind: r.kind,
+      }));
+    }
+
+    const output = AnalysisSchema.parse({
+      possible_conditions: matched.length
+        ? matched.map((m) => ({
+            name: m.name,
+            confidence: m.confidence,
+            rationale:
+              aiOut.possible_conditions.find((c) => norm(c.name) === norm(m.name))?.rationale ||
+              aiOut.possible_conditions.find((c) => norm(m.name).includes(norm(c.name)) || norm(c.name).includes(norm(m.name)))?.rationale ||
+              "",
+          }))
+        : [
+            {
+              name: "Needs further evaluation",
+              confidence: 0,
+              rationale: "No matching condition in the clinical catalog.",
+            },
+          ],
+      differential_diagnoses: aiOut.differential_diagnoses,
+      recommended_assessments: assessments,
+      materials_required: materials,
+      therapy_goals: therapyGoals,
+      questions_to_ask_next: aiOut.questions_to_ask_next,
+      clinical_sources: clinicalSources,
+      unmatched_conditions: unmatched,
+      summary: aiOut.summary,
+    });
+
+    const { error: upErr } = await supabase
+      .from("cases")
+      .update({ analysis: JSON.parse(JSON.stringify(output)) })
+      .eq("id", data.caseId)
+      .eq("user_id", userId);
+    if (upErr) throw upErr;
+
+    return output;
   });
 
 function cap(v: unknown, max = 4000): string {
   const s = v == null ? "" : String(v);
   return s.length > max ? s.slice(0, max) + "…[truncated]" : s;
 }
-
 
 function extractJSON(raw: string): unknown {
   let s = raw.trim();
@@ -165,31 +296,4 @@ function extractJSON(raw: string): unknown {
 function asStringArray(v: unknown): string[] {
   if (!Array.isArray(v)) return [];
   return v.map((x) => (typeof x === "string" ? x : String(x ?? ""))).filter(Boolean);
-}
-
-function normalizeAnalysis(input: unknown): unknown {
-  const o = (input ?? {}) as Record<string, unknown>;
-  const rawConds = Array.isArray(o.possible_conditions) ? o.possible_conditions : [];
-  const possible_conditions = rawConds
-    .map((c) => {
-      const x = (c ?? {}) as Record<string, unknown>;
-      const conf = typeof x.confidence === "number" ? x.confidence : Number(x.confidence ?? 0);
-      return {
-        name: String(x.name ?? "Unspecified"),
-        confidence: Math.max(0, Math.min(100, Number.isFinite(conf) ? conf : 0)),
-        rationale: String(x.rationale ?? ""),
-      };
-    })
-    .filter((c) => c.name);
-  return {
-    possible_conditions: possible_conditions.length
-      ? possible_conditions.slice(0, 6)
-      : [{ name: "Needs further evaluation", confidence: 0, rationale: "Insufficient information." }],
-    differential_diagnoses: asStringArray(o.differential_diagnoses).slice(0, 8),
-    recommended_assessments: asStringArray(o.recommended_assessments).slice(0, 10),
-    materials_required: asStringArray(o.materials_required).slice(0, 10),
-    therapy_goals: asStringArray(o.therapy_goals).slice(0, 10),
-    questions_to_ask_next: asStringArray(o.questions_to_ask_next).slice(0, 8),
-    summary: String(o.summary ?? ""),
-  };
 }
