@@ -19,6 +19,7 @@ import { Route as AuthenticatedNewCaseRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedKnowledgeRouteImport } from './routes/_authenticated/knowledge'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedCasesRouteImport } from './routes/_authenticated/cases'
+import { Route as AuthenticatedAdminDebugRouteImport } from './routes/_authenticated/admin-debug'
 import { Route as AuthenticatedCaseIdRouteImport } from './routes/_authenticated/case.$id'
 import { Route as AuthenticatedCaseIdEditRouteImport } from './routes/_authenticated/case.$id.edit'
 
@@ -72,6 +73,11 @@ const AuthenticatedCasesRoute = AuthenticatedCasesRouteImport.update({
   path: '/cases',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAdminDebugRoute = AuthenticatedAdminDebugRouteImport.update({
+  id: '/admin-debug',
+  path: '/admin-debug',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedCaseIdRoute = AuthenticatedCaseIdRouteImport.update({
   id: '/case/$id',
   path: '/case/$id',
@@ -87,6 +93,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/admin-debug': typeof AuthenticatedAdminDebugRoute
   '/cases': typeof AuthenticatedCasesRoute
   '/home': typeof AuthenticatedHomeRoute
   '/knowledge': typeof AuthenticatedKnowledgeRoute
@@ -100,6 +107,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/admin-debug': typeof AuthenticatedAdminDebugRoute
   '/cases': typeof AuthenticatedCasesRoute
   '/home': typeof AuthenticatedHomeRoute
   '/knowledge': typeof AuthenticatedKnowledgeRoute
@@ -115,6 +123,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/_authenticated/admin-debug': typeof AuthenticatedAdminDebugRoute
   '/_authenticated/cases': typeof AuthenticatedCasesRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/knowledge': typeof AuthenticatedKnowledgeRoute
@@ -130,6 +139,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/reset-password'
+    | '/admin-debug'
     | '/cases'
     | '/home'
     | '/knowledge'
@@ -143,6 +153,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/reset-password'
+    | '/admin-debug'
     | '/cases'
     | '/home'
     | '/knowledge'
@@ -157,6 +168,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/reset-password'
+    | '/_authenticated/admin-debug'
     | '/_authenticated/cases'
     | '/_authenticated/home'
     | '/_authenticated/knowledge'
@@ -246,6 +258,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCasesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin-debug': {
+      id: '/_authenticated/admin-debug'
+      path: '/admin-debug'
+      fullPath: '/admin-debug'
+      preLoaderRoute: typeof AuthenticatedAdminDebugRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/case/$id': {
       id: '/_authenticated/case/$id'
       path: '/case/$id'
@@ -275,6 +294,7 @@ const AuthenticatedCaseIdRouteWithChildren =
   AuthenticatedCaseIdRoute._addFileChildren(AuthenticatedCaseIdRouteChildren)
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAdminDebugRoute: typeof AuthenticatedAdminDebugRoute
   AuthenticatedCasesRoute: typeof AuthenticatedCasesRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedKnowledgeRoute: typeof AuthenticatedKnowledgeRoute
@@ -285,6 +305,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAdminDebugRoute: AuthenticatedAdminDebugRoute,
   AuthenticatedCasesRoute: AuthenticatedCasesRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedKnowledgeRoute: AuthenticatedKnowledgeRoute,
@@ -306,13 +327,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

@@ -14,6 +14,38 @@ export type Database = {
   }
   public: {
     Tables: {
+      assessments: {
+        Row: {
+          created_at: string
+          disorder_id: string
+          id: string
+          name: string
+          source_reference: string | null
+        }
+        Insert: {
+          created_at?: string
+          disorder_id: string
+          id?: string
+          name: string
+          source_reference?: string | null
+        }
+        Update: {
+          created_at?: string
+          disorder_id?: string
+          id?: string
+          name?: string
+          source_reference?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessments_disorder_id_fkey"
+            columns: ["disorder_id"]
+            isOneToOne: false
+            referencedRelation: "disorders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cases: {
         Row: {
           additional_notes: string | null
@@ -80,6 +112,112 @@ export type Database = {
         }
         Relationships: []
       }
+      clinical_sources: {
+        Row: {
+          created_at: string
+          disorder_id: string | null
+          disorder_name: string
+          id: string
+          kind: string
+          primary_source: string | null
+          secondary_source: string | null
+          verification_status: string | null
+        }
+        Insert: {
+          created_at?: string
+          disorder_id?: string | null
+          disorder_name: string
+          id?: string
+          kind: string
+          primary_source?: string | null
+          secondary_source?: string | null
+          verification_status?: string | null
+        }
+        Update: {
+          created_at?: string
+          disorder_id?: string | null
+          disorder_name?: string
+          id?: string
+          kind?: string
+          primary_source?: string | null
+          secondary_source?: string | null
+          verification_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clinical_sources_disorder_id_fkey"
+            columns: ["disorder_id"]
+            isOneToOne: false
+            referencedRelation: "disorders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      disorders: {
+        Row: {
+          category: string | null
+          created_at: string
+          id: string
+          name: string
+          red_flags: string | null
+          source_reference: string | null
+          symptoms: string | null
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          red_flags?: string | null
+          source_reference?: string | null
+          symptoms?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          red_flags?: string | null
+          source_reference?: string | null
+          symptoms?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      materials: {
+        Row: {
+          created_at: string
+          disorder_id: string
+          id: string
+          name: string
+          source_reference: string | null
+        }
+        Insert: {
+          created_at?: string
+          disorder_id: string
+          id?: string
+          name: string
+          source_reference?: string | null
+        }
+        Update: {
+          created_at?: string
+          disorder_id?: string
+          id?: string
+          name?: string
+          source_reference?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "materials_disorder_id_fkey"
+            columns: ["disorder_id"]
+            isOneToOne: false
+            referencedRelation: "disorders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -109,6 +247,38 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      therapy_goals: {
+        Row: {
+          created_at: string
+          disorder_id: string
+          goal: string
+          id: string
+          source_reference: string | null
+        }
+        Insert: {
+          created_at?: string
+          disorder_id: string
+          goal: string
+          id?: string
+          source_reference?: string | null
+        }
+        Update: {
+          created_at?: string
+          disorder_id?: string
+          goal?: string
+          id?: string
+          source_reference?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "therapy_goals_disorder_id_fkey"
+            columns: ["disorder_id"]
+            isOneToOne: false
+            referencedRelation: "disorders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
