@@ -142,7 +142,7 @@ function KnowledgePage() {
                   )}
                   {d.therapy_goals.length > 0 && (
                     <Section label={`Therapy Goals (${d.therapy_goals.length})`}>
-                      <ItemList items={d.therapy_goals.map((g) => g.name)} />
+                      <ItemList items={d.therapy_goals.map((g) => g.goal)} />
                     </Section>
                   )}
                   {d.clinical_sources.length > 0 && (
