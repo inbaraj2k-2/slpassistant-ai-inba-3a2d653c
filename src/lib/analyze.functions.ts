@@ -65,11 +65,16 @@ export const analyzeCase = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: disorderRows, error: dErr } = await supabaseAdmin
       .from("disorders")
-      .select("id, name");
+      .select("id, name, parent_id");
     if (dErr) throw dErr;
     const disorderList = (disorderRows ?? []).map((d) => d.name);
-    const byNorm = new Map<string, { id: string; name: string }>();
-    for (const d of disorderRows ?? []) byNorm.set(norm(d.name), { id: d.id, name: d.name });
+    const byNorm = new Map<string, { id: string; name: string; parent_id: string | null }>();
+    const byId = new Map<string, { id: string; name: string; parent_id: string | null }>();
+    for (const d of disorderRows ?? []) {
+      const rec = { id: d.id, name: d.name, parent_id: d.parent_id ?? null };
+      byNorm.set(norm(d.name), rec);
+      byId.set(d.id, rec);
+    }
 
     const caseText = `
 Name: ${cap(row.name, 200)}
