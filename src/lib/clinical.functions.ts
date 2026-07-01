@@ -67,6 +67,14 @@ export const getClinicalContentByDisorders = createServerFn({ method: "POST" })
       return { matched, unmatched, assessments: [], materials: [], therapy_goals: [], clinical_sources: [] };
     }
 
+    // Expand any parent disorders to include their children, so aggregated
+    // content surfaces automatically when the umbrella term is selected.
+    const { data: childRows } = await supabaseAdmin
+      .from("disorders")
+      .select("id, parent_id")
+      .in("parent_id", ids);
+    const expandedIds = [...new Set([...ids, ...(childRows ?? []).map((c) => c.id)])];
+
     const [aRes, mRes, gRes, sRes] = await Promise.all([
       supabaseAdmin.from("assessments").select("name, source_reference").in("disorder_id", ids),
       supabaseAdmin.from("materials").select("name, source_reference").in("disorder_id", ids),
