@@ -65,11 +65,16 @@ export const analyzeCase = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: disorderRows, error: dErr } = await supabaseAdmin
       .from("disorders")
-      .select("id, name");
+      .select("id, name, parent_id");
     if (dErr) throw dErr;
     const disorderList = (disorderRows ?? []).map((d) => d.name);
-    const byNorm = new Map<string, { id: string; name: string }>();
-    for (const d of disorderRows ?? []) byNorm.set(norm(d.name), { id: d.id, name: d.name });
+    const byNorm = new Map<string, { id: string; name: string; parent_id: string | null }>();
+    const byId = new Map<string, { id: string; name: string; parent_id: string | null }>();
+    for (const d of disorderRows ?? []) {
+      const rec = { id: d.id, name: d.name, parent_id: d.parent_id ?? null };
+      byNorm.set(norm(d.name), rec);
+      byId.set(d.id, rec);
+    }
 
     const caseText = `
 Name: ${cap(row.name, 200)}
@@ -180,6 +185,24 @@ Use plain numbers (e.g. 85). Output JSON only.`;
       }
     }
 
+    // Surface parent umbrella disorders when any child matched (e.g. "Apraxia of Speech").
+    const parentIdsToAdd = new Set<string>();
+    for (const m of matched) {
+      const rec = byId.get(m.id);
+      if (rec?.parent_id && !seenIds.has(rec.parent_id)) parentIdsToAdd.add(rec.parent_id);
+    }
+    for (const pid of parentIdsToAdd) {
+      const parent = byId.get(pid);
+      if (!parent) continue;
+      // Confidence = max child confidence for this parent
+      const childConfs = matched
+        .filter((m) => byId.get(m.id)?.parent_id === pid)
+        .map((m) => m.confidence);
+      const conf = childConfs.length ? Math.max(...childConfs) : 0;
+      seenIds.add(pid);
+      matched.push({ id: pid, name: parent.name, confidence: conf });
+    }
+
     // Pull linked DB content for matched disorders
     let assessments: string[] = [];
     let materials: string[] = [];
@@ -187,8 +210,20 @@ Use plain numbers (e.g. 85). Output JSON only.`;
     let clinicalSources: AnalysisResult["clinical_sources"] = [];
 
     if (matched.length > 0) {
-      const ids = matched.map((m) => m.id);
-      const weight = new Map(matched.map((m) => [m.id, m.confidence || 1]));
+      // Expand any parent matches to their children so aggregated content surfaces.
+      const baseIds = matched.map((m) => m.id);
+      const { data: childRows } = await supabaseAdmin
+        .from("disorders")
+        .select("id, parent_id")
+        .in("parent_id", baseIds);
+      const childIds = (childRows ?? []).map((c) => c.id);
+      const ids = [...new Set([...baseIds, ...childIds])];
+      const weight = new Map<string, number>();
+      for (const m of matched) weight.set(m.id, m.confidence || 1);
+      // Inherit parent weight for expanded children
+      for (const c of childRows ?? []) {
+        if (!weight.has(c.id)) weight.set(c.id, weight.get(c.parent_id!) ?? 1);
+      }
 
       const [aRes, mRes, gRes, sRes] = await Promise.all([
         supabaseAdmin.from("assessments").select("disorder_id, name").in("disorder_id", ids),

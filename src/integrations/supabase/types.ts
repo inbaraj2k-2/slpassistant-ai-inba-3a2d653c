@@ -159,6 +159,7 @@ export type Database = {
           created_at: string
           id: string
           name: string
+          parent_id: string | null
           red_flags: string | null
           source_reference: string | null
           symptoms: string | null
@@ -169,6 +170,7 @@ export type Database = {
           created_at?: string
           id?: string
           name: string
+          parent_id?: string | null
           red_flags?: string | null
           source_reference?: string | null
           symptoms?: string | null
@@ -179,12 +181,21 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
+          parent_id?: string | null
           red_flags?: string | null
           source_reference?: string | null
           symptoms?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "disorders_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "disorders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       materials: {
         Row: {
