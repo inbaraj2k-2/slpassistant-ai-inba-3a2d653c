@@ -76,13 +76,13 @@ export const getClinicalContentByDisorders = createServerFn({ method: "POST" })
     const expandedIds = [...new Set([...ids, ...(childRows ?? []).map((c) => c.id)])];
 
     const [aRes, mRes, gRes, sRes] = await Promise.all([
-      supabaseAdmin.from("assessments").select("name, source_reference").in("disorder_id", ids),
-      supabaseAdmin.from("materials").select("name, source_reference").in("disorder_id", ids),
-      supabaseAdmin.from("therapy_goals").select("goal, source_reference").in("disorder_id", ids),
+      supabaseAdmin.from("assessments").select("name, source_reference").in("disorder_id", expandedIds),
+      supabaseAdmin.from("materials").select("name, source_reference").in("disorder_id", expandedIds),
+      supabaseAdmin.from("therapy_goals").select("goal, source_reference").in("disorder_id", expandedIds),
       supabaseAdmin
         .from("clinical_sources")
         .select("disorder_name, primary_source, secondary_source, verification_status, kind")
-        .in("disorder_id", ids),
+        .in("disorder_id", expandedIds),
     ]);
 
     const dedupe = <T extends { name: string }>(rows: T[]): T[] => {
