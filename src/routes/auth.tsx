@@ -29,7 +29,8 @@ function AuthPage() {
         try {
           await ensureUserProfile(data.user);
         } catch (e) {
-          setError(`Google signed in, but the profile could not be saved: ${e instanceof Error ? e.message : String(e)}`);
+          console.error("[auth] ensureUserProfile failed", e);
+          setError("Google signed in, but your profile could not be saved. Please try again.");
           return;
         }
         navigate({ to: "/home", replace: true });
