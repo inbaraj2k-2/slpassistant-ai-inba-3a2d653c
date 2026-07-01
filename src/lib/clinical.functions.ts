@@ -106,7 +106,9 @@ export const getClinicalContentByDisorders = createServerFn({ method: "POST" })
     };
   });
 
-export const getKbStats = createServerFn({ method: "GET" }).handler(async () => {
+export const getKbStats = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async () => {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const tables = ["disorders", "assessments", "materials", "therapy_goals", "clinical_sources"] as const;
   const counts: Record<string, number> = {};
