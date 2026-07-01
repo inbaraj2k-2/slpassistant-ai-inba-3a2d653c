@@ -36,7 +36,7 @@ function AdminDebugPage() {
       )}
       {error && (
         <p className="rounded-2xl border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive">
-          Failed to load stats: {String((error as Error).message)}
+          Failed to load stats. Please try refreshing.
         </p>
       )}
 
