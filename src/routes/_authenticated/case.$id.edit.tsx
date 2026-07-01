@@ -45,7 +45,8 @@ function EditCasePage() {
     (async () => {
       const { data, error } = await supabase.from("cases").select("*").eq("id", id).single();
       if (error || !data) {
-        setError(error?.message ?? "Case not found");
+        if (error) console.error("[case.edit] load failed", error);
+        setError("Case could not be loaded. Please try again.");
       } else {
         const next = { ...empty };
         for (const k of Object.keys(empty) as (keyof Fields)[]) {
