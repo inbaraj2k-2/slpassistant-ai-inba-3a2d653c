@@ -74,6 +74,12 @@ function HomePage() {
           desc="Disorders &amp; tools"
         />
         <TileLink
+          to="/games"
+          icon={<Gamepad2 className="h-5 w-5" />}
+          label="Games"
+          desc="Therapeutic &amp; fun activities"
+        />
+        <TileLink
           to="/settings"
           icon={<Settings className="h-5 w-5" />}
           label="Settings"
