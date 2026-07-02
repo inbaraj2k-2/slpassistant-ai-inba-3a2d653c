@@ -24,6 +24,7 @@ import { Route as AuthenticatedCasesRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedAdminDebugRouteImport } from './routes/_authenticated/admin-debug'
 import { Route as AuthenticatedLibraryIndexRouteImport } from './routes/_authenticated/library.index'
 import { Route as AuthenticatedLibraryResearchRouteImport } from './routes/_authenticated/library.research'
+import { Route as AuthenticatedLibraryDownloadsRouteImport } from './routes/_authenticated/library.downloads'
 import { Route as AuthenticatedLibraryCommunityRouteImport } from './routes/_authenticated/library.community'
 import { Route as AuthenticatedLibraryCaseHistoryRouteImport } from './routes/_authenticated/library.case-history'
 import { Route as AuthenticatedLibraryBooksRouteImport } from './routes/_authenticated/library.books'
@@ -107,6 +108,12 @@ const AuthenticatedLibraryResearchRoute =
     path: '/research',
     getParentRoute: () => AuthenticatedLibraryRoute,
   } as any)
+const AuthenticatedLibraryDownloadsRoute =
+  AuthenticatedLibraryDownloadsRouteImport.update({
+    id: '/downloads',
+    path: '/downloads',
+    getParentRoute: () => AuthenticatedLibraryRoute,
+  } as any)
 const AuthenticatedLibraryCommunityRoute =
   AuthenticatedLibraryCommunityRouteImport.update({
     id: '/community',
@@ -153,6 +160,7 @@ export interface FileRoutesByFullPath {
   '/library/books': typeof AuthenticatedLibraryBooksRoute
   '/library/case-history': typeof AuthenticatedLibraryCaseHistoryRoute
   '/library/community': typeof AuthenticatedLibraryCommunityRoute
+  '/library/downloads': typeof AuthenticatedLibraryDownloadsRoute
   '/library/research': typeof AuthenticatedLibraryResearchRoute
   '/library/': typeof AuthenticatedLibraryIndexRoute
   '/case/$id/edit': typeof AuthenticatedCaseIdEditRoute
@@ -173,6 +181,7 @@ export interface FileRoutesByTo {
   '/library/books': typeof AuthenticatedLibraryBooksRoute
   '/library/case-history': typeof AuthenticatedLibraryCaseHistoryRoute
   '/library/community': typeof AuthenticatedLibraryCommunityRoute
+  '/library/downloads': typeof AuthenticatedLibraryDownloadsRoute
   '/library/research': typeof AuthenticatedLibraryResearchRoute
   '/library': typeof AuthenticatedLibraryIndexRoute
   '/case/$id/edit': typeof AuthenticatedCaseIdEditRoute
@@ -196,6 +205,7 @@ export interface FileRoutesById {
   '/_authenticated/library/books': typeof AuthenticatedLibraryBooksRoute
   '/_authenticated/library/case-history': typeof AuthenticatedLibraryCaseHistoryRoute
   '/_authenticated/library/community': typeof AuthenticatedLibraryCommunityRoute
+  '/_authenticated/library/downloads': typeof AuthenticatedLibraryDownloadsRoute
   '/_authenticated/library/research': typeof AuthenticatedLibraryResearchRoute
   '/_authenticated/library/': typeof AuthenticatedLibraryIndexRoute
   '/_authenticated/case/$id/edit': typeof AuthenticatedCaseIdEditRoute
@@ -219,6 +229,7 @@ export interface FileRouteTypes {
     | '/library/books'
     | '/library/case-history'
     | '/library/community'
+    | '/library/downloads'
     | '/library/research'
     | '/library/'
     | '/case/$id/edit'
@@ -239,6 +250,7 @@ export interface FileRouteTypes {
     | '/library/books'
     | '/library/case-history'
     | '/library/community'
+    | '/library/downloads'
     | '/library/research'
     | '/library'
     | '/case/$id/edit'
@@ -261,6 +273,7 @@ export interface FileRouteTypes {
     | '/_authenticated/library/books'
     | '/_authenticated/library/case-history'
     | '/_authenticated/library/community'
+    | '/_authenticated/library/downloads'
     | '/_authenticated/library/research'
     | '/_authenticated/library/'
     | '/_authenticated/case/$id/edit'
@@ -380,6 +393,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLibraryResearchRouteImport
       parentRoute: typeof AuthenticatedLibraryRoute
     }
+    '/_authenticated/library/downloads': {
+      id: '/_authenticated/library/downloads'
+      path: '/downloads'
+      fullPath: '/library/downloads'
+      preLoaderRoute: typeof AuthenticatedLibraryDownloadsRouteImport
+      parentRoute: typeof AuthenticatedLibraryRoute
+    }
     '/_authenticated/library/community': {
       id: '/_authenticated/library/community'
       path: '/community'
@@ -422,6 +442,7 @@ interface AuthenticatedLibraryRouteChildren {
   AuthenticatedLibraryBooksRoute: typeof AuthenticatedLibraryBooksRoute
   AuthenticatedLibraryCaseHistoryRoute: typeof AuthenticatedLibraryCaseHistoryRoute
   AuthenticatedLibraryCommunityRoute: typeof AuthenticatedLibraryCommunityRoute
+  AuthenticatedLibraryDownloadsRoute: typeof AuthenticatedLibraryDownloadsRoute
   AuthenticatedLibraryResearchRoute: typeof AuthenticatedLibraryResearchRoute
   AuthenticatedLibraryIndexRoute: typeof AuthenticatedLibraryIndexRoute
 }
@@ -430,6 +451,7 @@ const AuthenticatedLibraryRouteChildren: AuthenticatedLibraryRouteChildren = {
   AuthenticatedLibraryBooksRoute: AuthenticatedLibraryBooksRoute,
   AuthenticatedLibraryCaseHistoryRoute: AuthenticatedLibraryCaseHistoryRoute,
   AuthenticatedLibraryCommunityRoute: AuthenticatedLibraryCommunityRoute,
+  AuthenticatedLibraryDownloadsRoute: AuthenticatedLibraryDownloadsRoute,
   AuthenticatedLibraryResearchRoute: AuthenticatedLibraryResearchRoute,
   AuthenticatedLibraryIndexRoute: AuthenticatedLibraryIndexRoute,
 }
