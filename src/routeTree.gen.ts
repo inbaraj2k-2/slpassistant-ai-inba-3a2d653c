@@ -24,6 +24,7 @@ import { Route as AuthenticatedCasesRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedAdminDebugRouteImport } from './routes/_authenticated/admin-debug'
 import { Route as AuthenticatedLibraryIndexRouteImport } from './routes/_authenticated/library.index'
 import { Route as AuthenticatedLibraryCaseHistoryRouteImport } from './routes/_authenticated/library.case-history'
+import { Route as AuthenticatedLibraryBooksRouteImport } from './routes/_authenticated/library.books'
 import { Route as AuthenticatedCaseIdRouteImport } from './routes/_authenticated/case.$id'
 import { Route as AuthenticatedCaseIdEditRouteImport } from './routes/_authenticated/case.$id.edit'
 
@@ -104,6 +105,12 @@ const AuthenticatedLibraryCaseHistoryRoute =
     path: '/case-history',
     getParentRoute: () => AuthenticatedLibraryRoute,
   } as any)
+const AuthenticatedLibraryBooksRoute =
+  AuthenticatedLibraryBooksRouteImport.update({
+    id: '/books',
+    path: '/books',
+    getParentRoute: () => AuthenticatedLibraryRoute,
+  } as any)
 const AuthenticatedCaseIdRoute = AuthenticatedCaseIdRouteImport.update({
   id: '/case/$id',
   path: '/case/$id',
@@ -129,6 +136,7 @@ export interface FileRoutesByFullPath {
   '/saved-reports': typeof AuthenticatedSavedReportsRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/case/$id': typeof AuthenticatedCaseIdRouteWithChildren
+  '/library/books': typeof AuthenticatedLibraryBooksRoute
   '/library/case-history': typeof AuthenticatedLibraryCaseHistoryRoute
   '/library/': typeof AuthenticatedLibraryIndexRoute
   '/case/$id/edit': typeof AuthenticatedCaseIdEditRoute
@@ -146,6 +154,7 @@ export interface FileRoutesByTo {
   '/saved-reports': typeof AuthenticatedSavedReportsRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/case/$id': typeof AuthenticatedCaseIdRouteWithChildren
+  '/library/books': typeof AuthenticatedLibraryBooksRoute
   '/library/case-history': typeof AuthenticatedLibraryCaseHistoryRoute
   '/library': typeof AuthenticatedLibraryIndexRoute
   '/case/$id/edit': typeof AuthenticatedCaseIdEditRoute
@@ -166,6 +175,7 @@ export interface FileRoutesById {
   '/_authenticated/saved-reports': typeof AuthenticatedSavedReportsRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/case/$id': typeof AuthenticatedCaseIdRouteWithChildren
+  '/_authenticated/library/books': typeof AuthenticatedLibraryBooksRoute
   '/_authenticated/library/case-history': typeof AuthenticatedLibraryCaseHistoryRoute
   '/_authenticated/library/': typeof AuthenticatedLibraryIndexRoute
   '/_authenticated/case/$id/edit': typeof AuthenticatedCaseIdEditRoute
@@ -186,6 +196,7 @@ export interface FileRouteTypes {
     | '/saved-reports'
     | '/settings'
     | '/case/$id'
+    | '/library/books'
     | '/library/case-history'
     | '/library/'
     | '/case/$id/edit'
@@ -203,6 +214,7 @@ export interface FileRouteTypes {
     | '/saved-reports'
     | '/settings'
     | '/case/$id'
+    | '/library/books'
     | '/library/case-history'
     | '/library'
     | '/case/$id/edit'
@@ -222,6 +234,7 @@ export interface FileRouteTypes {
     | '/_authenticated/saved-reports'
     | '/_authenticated/settings'
     | '/_authenticated/case/$id'
+    | '/_authenticated/library/books'
     | '/_authenticated/library/case-history'
     | '/_authenticated/library/'
     | '/_authenticated/case/$id/edit'
@@ -341,6 +354,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLibraryCaseHistoryRouteImport
       parentRoute: typeof AuthenticatedLibraryRoute
     }
+    '/_authenticated/library/books': {
+      id: '/_authenticated/library/books'
+      path: '/books'
+      fullPath: '/library/books'
+      preLoaderRoute: typeof AuthenticatedLibraryBooksRouteImport
+      parentRoute: typeof AuthenticatedLibraryRoute
+    }
     '/_authenticated/case/$id': {
       id: '/_authenticated/case/$id'
       path: '/case/$id'
@@ -359,11 +379,13 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedLibraryRouteChildren {
+  AuthenticatedLibraryBooksRoute: typeof AuthenticatedLibraryBooksRoute
   AuthenticatedLibraryCaseHistoryRoute: typeof AuthenticatedLibraryCaseHistoryRoute
   AuthenticatedLibraryIndexRoute: typeof AuthenticatedLibraryIndexRoute
 }
 
 const AuthenticatedLibraryRouteChildren: AuthenticatedLibraryRouteChildren = {
+  AuthenticatedLibraryBooksRoute: AuthenticatedLibraryBooksRoute,
   AuthenticatedLibraryCaseHistoryRoute: AuthenticatedLibraryCaseHistoryRoute,
   AuthenticatedLibraryIndexRoute: AuthenticatedLibraryIndexRoute,
 }
