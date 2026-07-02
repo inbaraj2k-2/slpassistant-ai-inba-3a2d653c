@@ -18,6 +18,7 @@ import { Route as AuthenticatedSavedReportsRouteImport } from './routes/_authent
 import { Route as AuthenticatedNewCaseRouteImport } from './routes/_authenticated/new-case'
 import { Route as AuthenticatedKnowledgeRouteImport } from './routes/_authenticated/knowledge'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
+import { Route as AuthenticatedGamesRouteImport } from './routes/_authenticated/games'
 import { Route as AuthenticatedCasesRouteImport } from './routes/_authenticated/cases'
 import { Route as AuthenticatedAdminDebugRouteImport } from './routes/_authenticated/admin-debug'
 import { Route as AuthenticatedCaseIdRouteImport } from './routes/_authenticated/case.$id'
@@ -68,6 +69,11 @@ const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
   path: '/home',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedGamesRoute = AuthenticatedGamesRouteImport.update({
+  id: '/games',
+  path: '/games',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedCasesRoute = AuthenticatedCasesRouteImport.update({
   id: '/cases',
   path: '/cases',
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/admin-debug': typeof AuthenticatedAdminDebugRoute
   '/cases': typeof AuthenticatedCasesRoute
+  '/games': typeof AuthenticatedGamesRoute
   '/home': typeof AuthenticatedHomeRoute
   '/knowledge': typeof AuthenticatedKnowledgeRoute
   '/new-case': typeof AuthenticatedNewCaseRoute
@@ -109,6 +116,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/admin-debug': typeof AuthenticatedAdminDebugRoute
   '/cases': typeof AuthenticatedCasesRoute
+  '/games': typeof AuthenticatedGamesRoute
   '/home': typeof AuthenticatedHomeRoute
   '/knowledge': typeof AuthenticatedKnowledgeRoute
   '/new-case': typeof AuthenticatedNewCaseRoute
@@ -125,6 +133,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/admin-debug': typeof AuthenticatedAdminDebugRoute
   '/_authenticated/cases': typeof AuthenticatedCasesRoute
+  '/_authenticated/games': typeof AuthenticatedGamesRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/knowledge': typeof AuthenticatedKnowledgeRoute
   '/_authenticated/new-case': typeof AuthenticatedNewCaseRoute
@@ -141,6 +150,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/admin-debug'
     | '/cases'
+    | '/games'
     | '/home'
     | '/knowledge'
     | '/new-case'
@@ -155,6 +165,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/admin-debug'
     | '/cases'
+    | '/games'
     | '/home'
     | '/knowledge'
     | '/new-case'
@@ -170,6 +181,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/_authenticated/admin-debug'
     | '/_authenticated/cases'
+    | '/_authenticated/games'
     | '/_authenticated/home'
     | '/_authenticated/knowledge'
     | '/_authenticated/new-case'
@@ -251,6 +263,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedHomeRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/games': {
+      id: '/_authenticated/games'
+      path: '/games'
+      fullPath: '/games'
+      preLoaderRoute: typeof AuthenticatedGamesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/cases': {
       id: '/_authenticated/cases'
       path: '/cases'
@@ -296,6 +315,7 @@ const AuthenticatedCaseIdRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminDebugRoute: typeof AuthenticatedAdminDebugRoute
   AuthenticatedCasesRoute: typeof AuthenticatedCasesRoute
+  AuthenticatedGamesRoute: typeof AuthenticatedGamesRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedKnowledgeRoute: typeof AuthenticatedKnowledgeRoute
   AuthenticatedNewCaseRoute: typeof AuthenticatedNewCaseRoute
@@ -307,6 +327,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminDebugRoute: AuthenticatedAdminDebugRoute,
   AuthenticatedCasesRoute: AuthenticatedCasesRoute,
+  AuthenticatedGamesRoute: AuthenticatedGamesRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedKnowledgeRoute: AuthenticatedKnowledgeRoute,
   AuthenticatedNewCaseRoute: AuthenticatedNewCaseRoute,
