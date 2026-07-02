@@ -22,6 +22,7 @@ import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/h
 import { Route as AuthenticatedGamesRouteImport } from './routes/_authenticated/games'
 import { Route as AuthenticatedCasesRouteImport } from './routes/_authenticated/cases'
 import { Route as AuthenticatedAdminDebugRouteImport } from './routes/_authenticated/admin-debug'
+import { Route as AuthenticatedLibraryIndexRouteImport } from './routes/_authenticated/library.index'
 import { Route as AuthenticatedCaseIdRouteImport } from './routes/_authenticated/case.$id'
 import { Route as AuthenticatedCaseIdEditRouteImport } from './routes/_authenticated/case.$id.edit'
 
@@ -90,6 +91,12 @@ const AuthenticatedAdminDebugRoute = AuthenticatedAdminDebugRouteImport.update({
   path: '/admin-debug',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedLibraryIndexRoute =
+  AuthenticatedLibraryIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedLibraryRoute,
+  } as any)
 const AuthenticatedCaseIdRoute = AuthenticatedCaseIdRouteImport.update({
   id: '/case/$id',
   path: '/case/$id',
@@ -110,11 +117,12 @@ export interface FileRoutesByFullPath {
   '/games': typeof AuthenticatedGamesRoute
   '/home': typeof AuthenticatedHomeRoute
   '/knowledge': typeof AuthenticatedKnowledgeRoute
-  '/library': typeof AuthenticatedLibraryRoute
+  '/library': typeof AuthenticatedLibraryRouteWithChildren
   '/new-case': typeof AuthenticatedNewCaseRoute
   '/saved-reports': typeof AuthenticatedSavedReportsRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/case/$id': typeof AuthenticatedCaseIdRouteWithChildren
+  '/library/': typeof AuthenticatedLibraryIndexRoute
   '/case/$id/edit': typeof AuthenticatedCaseIdEditRoute
 }
 export interface FileRoutesByTo {
@@ -126,11 +134,11 @@ export interface FileRoutesByTo {
   '/games': typeof AuthenticatedGamesRoute
   '/home': typeof AuthenticatedHomeRoute
   '/knowledge': typeof AuthenticatedKnowledgeRoute
-  '/library': typeof AuthenticatedLibraryRoute
   '/new-case': typeof AuthenticatedNewCaseRoute
   '/saved-reports': typeof AuthenticatedSavedReportsRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/case/$id': typeof AuthenticatedCaseIdRouteWithChildren
+  '/library': typeof AuthenticatedLibraryIndexRoute
   '/case/$id/edit': typeof AuthenticatedCaseIdEditRoute
 }
 export interface FileRoutesById {
@@ -144,11 +152,12 @@ export interface FileRoutesById {
   '/_authenticated/games': typeof AuthenticatedGamesRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/knowledge': typeof AuthenticatedKnowledgeRoute
-  '/_authenticated/library': typeof AuthenticatedLibraryRoute
+  '/_authenticated/library': typeof AuthenticatedLibraryRouteWithChildren
   '/_authenticated/new-case': typeof AuthenticatedNewCaseRoute
   '/_authenticated/saved-reports': typeof AuthenticatedSavedReportsRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/case/$id': typeof AuthenticatedCaseIdRouteWithChildren
+  '/_authenticated/library/': typeof AuthenticatedLibraryIndexRoute
   '/_authenticated/case/$id/edit': typeof AuthenticatedCaseIdEditRoute
 }
 export interface FileRouteTypes {
@@ -167,6 +176,7 @@ export interface FileRouteTypes {
     | '/saved-reports'
     | '/settings'
     | '/case/$id'
+    | '/library/'
     | '/case/$id/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -178,11 +188,11 @@ export interface FileRouteTypes {
     | '/games'
     | '/home'
     | '/knowledge'
-    | '/library'
     | '/new-case'
     | '/saved-reports'
     | '/settings'
     | '/case/$id'
+    | '/library'
     | '/case/$id/edit'
   id:
     | '__root__'
@@ -200,6 +210,7 @@ export interface FileRouteTypes {
     | '/_authenticated/saved-reports'
     | '/_authenticated/settings'
     | '/_authenticated/case/$id'
+    | '/_authenticated/library/'
     | '/_authenticated/case/$id/edit'
   fileRoutesById: FileRoutesById
 }
@@ -303,6 +314,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminDebugRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/library/': {
+      id: '/_authenticated/library/'
+      path: '/'
+      fullPath: '/library/'
+      preLoaderRoute: typeof AuthenticatedLibraryIndexRouteImport
+      parentRoute: typeof AuthenticatedLibraryRoute
+    }
     '/_authenticated/case/$id': {
       id: '/_authenticated/case/$id'
       path: '/case/$id'
@@ -319,6 +337,17 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface AuthenticatedLibraryRouteChildren {
+  AuthenticatedLibraryIndexRoute: typeof AuthenticatedLibraryIndexRoute
+}
+
+const AuthenticatedLibraryRouteChildren: AuthenticatedLibraryRouteChildren = {
+  AuthenticatedLibraryIndexRoute: AuthenticatedLibraryIndexRoute,
+}
+
+const AuthenticatedLibraryRouteWithChildren =
+  AuthenticatedLibraryRoute._addFileChildren(AuthenticatedLibraryRouteChildren)
 
 interface AuthenticatedCaseIdRouteChildren {
   AuthenticatedCaseIdEditRoute: typeof AuthenticatedCaseIdEditRoute
@@ -337,7 +366,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGamesRoute: typeof AuthenticatedGamesRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedKnowledgeRoute: typeof AuthenticatedKnowledgeRoute
-  AuthenticatedLibraryRoute: typeof AuthenticatedLibraryRoute
+  AuthenticatedLibraryRoute: typeof AuthenticatedLibraryRouteWithChildren
   AuthenticatedNewCaseRoute: typeof AuthenticatedNewCaseRoute
   AuthenticatedSavedReportsRoute: typeof AuthenticatedSavedReportsRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
@@ -350,7 +379,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedGamesRoute: AuthenticatedGamesRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedKnowledgeRoute: AuthenticatedKnowledgeRoute,
-  AuthenticatedLibraryRoute: AuthenticatedLibraryRoute,
+  AuthenticatedLibraryRoute: AuthenticatedLibraryRouteWithChildren,
   AuthenticatedNewCaseRoute: AuthenticatedNewCaseRoute,
   AuthenticatedSavedReportsRoute: AuthenticatedSavedReportsRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
