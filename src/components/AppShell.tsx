@@ -48,7 +48,7 @@ export function AppShell({ title, subtitle, back, right, children, hideNav }: Pr
           <div className="mx-auto flex max-w-md items-center justify-around px-2 py-2">
             <NavItem to="/home" icon={<Home className="h-5 w-5" />} label="Home" />
             <NavItem to="/cases" icon={<FolderClock className="h-5 w-5" />} label="Cases" />
-            <NavItem to="/knowledge" icon={<BookOpen className="h-5 w-5" />} label="Library" />
+            <NavItem to="/library" icon={<BookOpen className="h-5 w-5" />} label="Library" />
             <NavItem to="/settings" icon={<Settings className="h-5 w-5" />} label="Settings" />
           </div>
         </nav>
