@@ -16,10 +16,20 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedSavedReportsRouteImport } from './routes/_authenticated/saved-reports'
 import { Route as AuthenticatedNewCaseRouteImport } from './routes/_authenticated/new-case'
+import { Route as AuthenticatedLibraryRouteImport } from './routes/_authenticated/library'
 import { Route as AuthenticatedKnowledgeRouteImport } from './routes/_authenticated/knowledge'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
+import { Route as AuthenticatedGamesRouteImport } from './routes/_authenticated/games'
 import { Route as AuthenticatedCasesRouteImport } from './routes/_authenticated/cases'
 import { Route as AuthenticatedAdminDebugRouteImport } from './routes/_authenticated/admin-debug'
+import { Route as AuthenticatedLibraryIndexRouteImport } from './routes/_authenticated/library.index'
+import { Route as AuthenticatedLibraryUploadsRouteImport } from './routes/_authenticated/library.uploads'
+import { Route as AuthenticatedLibraryResearchRouteImport } from './routes/_authenticated/library.research'
+import { Route as AuthenticatedLibraryDownloadsRouteImport } from './routes/_authenticated/library.downloads'
+import { Route as AuthenticatedLibraryCommunityRouteImport } from './routes/_authenticated/library.community'
+import { Route as AuthenticatedLibraryCaseHistoryRouteImport } from './routes/_authenticated/library.case-history'
+import { Route as AuthenticatedLibraryBooksRouteImport } from './routes/_authenticated/library.books'
+import { Route as AuthenticatedLibraryAppReferenceRouteImport } from './routes/_authenticated/library.app-reference'
 import { Route as AuthenticatedCaseIdRouteImport } from './routes/_authenticated/case.$id'
 import { Route as AuthenticatedCaseIdEditRouteImport } from './routes/_authenticated/case.$id.edit'
 
@@ -58,6 +68,11 @@ const AuthenticatedNewCaseRoute = AuthenticatedNewCaseRouteImport.update({
   path: '/new-case',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedLibraryRoute = AuthenticatedLibraryRouteImport.update({
+  id: '/library',
+  path: '/library',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedKnowledgeRoute = AuthenticatedKnowledgeRouteImport.update({
   id: '/knowledge',
   path: '/knowledge',
@@ -66,6 +81,11 @@ const AuthenticatedKnowledgeRoute = AuthenticatedKnowledgeRouteImport.update({
 const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
   id: '/home',
   path: '/home',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedGamesRoute = AuthenticatedGamesRouteImport.update({
+  id: '/games',
+  path: '/games',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedCasesRoute = AuthenticatedCasesRouteImport.update({
@@ -78,6 +98,54 @@ const AuthenticatedAdminDebugRoute = AuthenticatedAdminDebugRouteImport.update({
   path: '/admin-debug',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedLibraryIndexRoute =
+  AuthenticatedLibraryIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedLibraryRoute,
+  } as any)
+const AuthenticatedLibraryUploadsRoute =
+  AuthenticatedLibraryUploadsRouteImport.update({
+    id: '/uploads',
+    path: '/uploads',
+    getParentRoute: () => AuthenticatedLibraryRoute,
+  } as any)
+const AuthenticatedLibraryResearchRoute =
+  AuthenticatedLibraryResearchRouteImport.update({
+    id: '/research',
+    path: '/research',
+    getParentRoute: () => AuthenticatedLibraryRoute,
+  } as any)
+const AuthenticatedLibraryDownloadsRoute =
+  AuthenticatedLibraryDownloadsRouteImport.update({
+    id: '/downloads',
+    path: '/downloads',
+    getParentRoute: () => AuthenticatedLibraryRoute,
+  } as any)
+const AuthenticatedLibraryCommunityRoute =
+  AuthenticatedLibraryCommunityRouteImport.update({
+    id: '/community',
+    path: '/community',
+    getParentRoute: () => AuthenticatedLibraryRoute,
+  } as any)
+const AuthenticatedLibraryCaseHistoryRoute =
+  AuthenticatedLibraryCaseHistoryRouteImport.update({
+    id: '/case-history',
+    path: '/case-history',
+    getParentRoute: () => AuthenticatedLibraryRoute,
+  } as any)
+const AuthenticatedLibraryBooksRoute =
+  AuthenticatedLibraryBooksRouteImport.update({
+    id: '/books',
+    path: '/books',
+    getParentRoute: () => AuthenticatedLibraryRoute,
+  } as any)
+const AuthenticatedLibraryAppReferenceRoute =
+  AuthenticatedLibraryAppReferenceRouteImport.update({
+    id: '/app-reference',
+    path: '/app-reference',
+    getParentRoute: () => AuthenticatedLibraryRoute,
+  } as any)
 const AuthenticatedCaseIdRoute = AuthenticatedCaseIdRouteImport.update({
   id: '/case/$id',
   path: '/case/$id',
@@ -95,12 +163,22 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/admin-debug': typeof AuthenticatedAdminDebugRoute
   '/cases': typeof AuthenticatedCasesRoute
+  '/games': typeof AuthenticatedGamesRoute
   '/home': typeof AuthenticatedHomeRoute
   '/knowledge': typeof AuthenticatedKnowledgeRoute
+  '/library': typeof AuthenticatedLibraryRouteWithChildren
   '/new-case': typeof AuthenticatedNewCaseRoute
   '/saved-reports': typeof AuthenticatedSavedReportsRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/case/$id': typeof AuthenticatedCaseIdRouteWithChildren
+  '/library/app-reference': typeof AuthenticatedLibraryAppReferenceRoute
+  '/library/books': typeof AuthenticatedLibraryBooksRoute
+  '/library/case-history': typeof AuthenticatedLibraryCaseHistoryRoute
+  '/library/community': typeof AuthenticatedLibraryCommunityRoute
+  '/library/downloads': typeof AuthenticatedLibraryDownloadsRoute
+  '/library/research': typeof AuthenticatedLibraryResearchRoute
+  '/library/uploads': typeof AuthenticatedLibraryUploadsRoute
+  '/library/': typeof AuthenticatedLibraryIndexRoute
   '/case/$id/edit': typeof AuthenticatedCaseIdEditRoute
 }
 export interface FileRoutesByTo {
@@ -109,12 +187,21 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/admin-debug': typeof AuthenticatedAdminDebugRoute
   '/cases': typeof AuthenticatedCasesRoute
+  '/games': typeof AuthenticatedGamesRoute
   '/home': typeof AuthenticatedHomeRoute
   '/knowledge': typeof AuthenticatedKnowledgeRoute
   '/new-case': typeof AuthenticatedNewCaseRoute
   '/saved-reports': typeof AuthenticatedSavedReportsRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/case/$id': typeof AuthenticatedCaseIdRouteWithChildren
+  '/library/app-reference': typeof AuthenticatedLibraryAppReferenceRoute
+  '/library/books': typeof AuthenticatedLibraryBooksRoute
+  '/library/case-history': typeof AuthenticatedLibraryCaseHistoryRoute
+  '/library/community': typeof AuthenticatedLibraryCommunityRoute
+  '/library/downloads': typeof AuthenticatedLibraryDownloadsRoute
+  '/library/research': typeof AuthenticatedLibraryResearchRoute
+  '/library/uploads': typeof AuthenticatedLibraryUploadsRoute
+  '/library': typeof AuthenticatedLibraryIndexRoute
   '/case/$id/edit': typeof AuthenticatedCaseIdEditRoute
 }
 export interface FileRoutesById {
@@ -125,12 +212,22 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/admin-debug': typeof AuthenticatedAdminDebugRoute
   '/_authenticated/cases': typeof AuthenticatedCasesRoute
+  '/_authenticated/games': typeof AuthenticatedGamesRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/knowledge': typeof AuthenticatedKnowledgeRoute
+  '/_authenticated/library': typeof AuthenticatedLibraryRouteWithChildren
   '/_authenticated/new-case': typeof AuthenticatedNewCaseRoute
   '/_authenticated/saved-reports': typeof AuthenticatedSavedReportsRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/case/$id': typeof AuthenticatedCaseIdRouteWithChildren
+  '/_authenticated/library/app-reference': typeof AuthenticatedLibraryAppReferenceRoute
+  '/_authenticated/library/books': typeof AuthenticatedLibraryBooksRoute
+  '/_authenticated/library/case-history': typeof AuthenticatedLibraryCaseHistoryRoute
+  '/_authenticated/library/community': typeof AuthenticatedLibraryCommunityRoute
+  '/_authenticated/library/downloads': typeof AuthenticatedLibraryDownloadsRoute
+  '/_authenticated/library/research': typeof AuthenticatedLibraryResearchRoute
+  '/_authenticated/library/uploads': typeof AuthenticatedLibraryUploadsRoute
+  '/_authenticated/library/': typeof AuthenticatedLibraryIndexRoute
   '/_authenticated/case/$id/edit': typeof AuthenticatedCaseIdEditRoute
 }
 export interface FileRouteTypes {
@@ -141,12 +238,22 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/admin-debug'
     | '/cases'
+    | '/games'
     | '/home'
     | '/knowledge'
+    | '/library'
     | '/new-case'
     | '/saved-reports'
     | '/settings'
     | '/case/$id'
+    | '/library/app-reference'
+    | '/library/books'
+    | '/library/case-history'
+    | '/library/community'
+    | '/library/downloads'
+    | '/library/research'
+    | '/library/uploads'
+    | '/library/'
     | '/case/$id/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -155,12 +262,21 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/admin-debug'
     | '/cases'
+    | '/games'
     | '/home'
     | '/knowledge'
     | '/new-case'
     | '/saved-reports'
     | '/settings'
     | '/case/$id'
+    | '/library/app-reference'
+    | '/library/books'
+    | '/library/case-history'
+    | '/library/community'
+    | '/library/downloads'
+    | '/library/research'
+    | '/library/uploads'
+    | '/library'
     | '/case/$id/edit'
   id:
     | '__root__'
@@ -170,12 +286,22 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/_authenticated/admin-debug'
     | '/_authenticated/cases'
+    | '/_authenticated/games'
     | '/_authenticated/home'
     | '/_authenticated/knowledge'
+    | '/_authenticated/library'
     | '/_authenticated/new-case'
     | '/_authenticated/saved-reports'
     | '/_authenticated/settings'
     | '/_authenticated/case/$id'
+    | '/_authenticated/library/app-reference'
+    | '/_authenticated/library/books'
+    | '/_authenticated/library/case-history'
+    | '/_authenticated/library/community'
+    | '/_authenticated/library/downloads'
+    | '/_authenticated/library/research'
+    | '/_authenticated/library/uploads'
+    | '/_authenticated/library/'
     | '/_authenticated/case/$id/edit'
   fileRoutesById: FileRoutesById
 }
@@ -237,6 +363,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedNewCaseRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/library': {
+      id: '/_authenticated/library'
+      path: '/library'
+      fullPath: '/library'
+      preLoaderRoute: typeof AuthenticatedLibraryRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/knowledge': {
       id: '/_authenticated/knowledge'
       path: '/knowledge'
@@ -249,6 +382,13 @@ declare module '@tanstack/react-router' {
       path: '/home'
       fullPath: '/home'
       preLoaderRoute: typeof AuthenticatedHomeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/games': {
+      id: '/_authenticated/games'
+      path: '/games'
+      fullPath: '/games'
+      preLoaderRoute: typeof AuthenticatedGamesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/cases': {
@@ -264,6 +404,62 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin-debug'
       preLoaderRoute: typeof AuthenticatedAdminDebugRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/library/': {
+      id: '/_authenticated/library/'
+      path: '/'
+      fullPath: '/library/'
+      preLoaderRoute: typeof AuthenticatedLibraryIndexRouteImport
+      parentRoute: typeof AuthenticatedLibraryRoute
+    }
+    '/_authenticated/library/uploads': {
+      id: '/_authenticated/library/uploads'
+      path: '/uploads'
+      fullPath: '/library/uploads'
+      preLoaderRoute: typeof AuthenticatedLibraryUploadsRouteImport
+      parentRoute: typeof AuthenticatedLibraryRoute
+    }
+    '/_authenticated/library/research': {
+      id: '/_authenticated/library/research'
+      path: '/research'
+      fullPath: '/library/research'
+      preLoaderRoute: typeof AuthenticatedLibraryResearchRouteImport
+      parentRoute: typeof AuthenticatedLibraryRoute
+    }
+    '/_authenticated/library/downloads': {
+      id: '/_authenticated/library/downloads'
+      path: '/downloads'
+      fullPath: '/library/downloads'
+      preLoaderRoute: typeof AuthenticatedLibraryDownloadsRouteImport
+      parentRoute: typeof AuthenticatedLibraryRoute
+    }
+    '/_authenticated/library/community': {
+      id: '/_authenticated/library/community'
+      path: '/community'
+      fullPath: '/library/community'
+      preLoaderRoute: typeof AuthenticatedLibraryCommunityRouteImport
+      parentRoute: typeof AuthenticatedLibraryRoute
+    }
+    '/_authenticated/library/case-history': {
+      id: '/_authenticated/library/case-history'
+      path: '/case-history'
+      fullPath: '/library/case-history'
+      preLoaderRoute: typeof AuthenticatedLibraryCaseHistoryRouteImport
+      parentRoute: typeof AuthenticatedLibraryRoute
+    }
+    '/_authenticated/library/books': {
+      id: '/_authenticated/library/books'
+      path: '/books'
+      fullPath: '/library/books'
+      preLoaderRoute: typeof AuthenticatedLibraryBooksRouteImport
+      parentRoute: typeof AuthenticatedLibraryRoute
+    }
+    '/_authenticated/library/app-reference': {
+      id: '/_authenticated/library/app-reference'
+      path: '/app-reference'
+      fullPath: '/library/app-reference'
+      preLoaderRoute: typeof AuthenticatedLibraryAppReferenceRouteImport
+      parentRoute: typeof AuthenticatedLibraryRoute
     }
     '/_authenticated/case/$id': {
       id: '/_authenticated/case/$id'
@@ -282,6 +478,31 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedLibraryRouteChildren {
+  AuthenticatedLibraryAppReferenceRoute: typeof AuthenticatedLibraryAppReferenceRoute
+  AuthenticatedLibraryBooksRoute: typeof AuthenticatedLibraryBooksRoute
+  AuthenticatedLibraryCaseHistoryRoute: typeof AuthenticatedLibraryCaseHistoryRoute
+  AuthenticatedLibraryCommunityRoute: typeof AuthenticatedLibraryCommunityRoute
+  AuthenticatedLibraryDownloadsRoute: typeof AuthenticatedLibraryDownloadsRoute
+  AuthenticatedLibraryResearchRoute: typeof AuthenticatedLibraryResearchRoute
+  AuthenticatedLibraryUploadsRoute: typeof AuthenticatedLibraryUploadsRoute
+  AuthenticatedLibraryIndexRoute: typeof AuthenticatedLibraryIndexRoute
+}
+
+const AuthenticatedLibraryRouteChildren: AuthenticatedLibraryRouteChildren = {
+  AuthenticatedLibraryAppReferenceRoute: AuthenticatedLibraryAppReferenceRoute,
+  AuthenticatedLibraryBooksRoute: AuthenticatedLibraryBooksRoute,
+  AuthenticatedLibraryCaseHistoryRoute: AuthenticatedLibraryCaseHistoryRoute,
+  AuthenticatedLibraryCommunityRoute: AuthenticatedLibraryCommunityRoute,
+  AuthenticatedLibraryDownloadsRoute: AuthenticatedLibraryDownloadsRoute,
+  AuthenticatedLibraryResearchRoute: AuthenticatedLibraryResearchRoute,
+  AuthenticatedLibraryUploadsRoute: AuthenticatedLibraryUploadsRoute,
+  AuthenticatedLibraryIndexRoute: AuthenticatedLibraryIndexRoute,
+}
+
+const AuthenticatedLibraryRouteWithChildren =
+  AuthenticatedLibraryRoute._addFileChildren(AuthenticatedLibraryRouteChildren)
+
 interface AuthenticatedCaseIdRouteChildren {
   AuthenticatedCaseIdEditRoute: typeof AuthenticatedCaseIdEditRoute
 }
@@ -296,8 +517,10 @@ const AuthenticatedCaseIdRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminDebugRoute: typeof AuthenticatedAdminDebugRoute
   AuthenticatedCasesRoute: typeof AuthenticatedCasesRoute
+  AuthenticatedGamesRoute: typeof AuthenticatedGamesRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedKnowledgeRoute: typeof AuthenticatedKnowledgeRoute
+  AuthenticatedLibraryRoute: typeof AuthenticatedLibraryRouteWithChildren
   AuthenticatedNewCaseRoute: typeof AuthenticatedNewCaseRoute
   AuthenticatedSavedReportsRoute: typeof AuthenticatedSavedReportsRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
@@ -307,8 +530,10 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminDebugRoute: AuthenticatedAdminDebugRoute,
   AuthenticatedCasesRoute: AuthenticatedCasesRoute,
+  AuthenticatedGamesRoute: AuthenticatedGamesRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedKnowledgeRoute: AuthenticatedKnowledgeRoute,
+  AuthenticatedLibraryRoute: AuthenticatedLibraryRouteWithChildren,
   AuthenticatedNewCaseRoute: AuthenticatedNewCaseRoute,
   AuthenticatedSavedReportsRoute: AuthenticatedSavedReportsRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
@@ -327,13 +552,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
