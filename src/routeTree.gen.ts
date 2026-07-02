@@ -28,6 +28,7 @@ import { Route as AuthenticatedLibraryDownloadsRouteImport } from './routes/_aut
 import { Route as AuthenticatedLibraryCommunityRouteImport } from './routes/_authenticated/library.community'
 import { Route as AuthenticatedLibraryCaseHistoryRouteImport } from './routes/_authenticated/library.case-history'
 import { Route as AuthenticatedLibraryBooksRouteImport } from './routes/_authenticated/library.books'
+import { Route as AuthenticatedLibraryAppReferenceRouteImport } from './routes/_authenticated/library.app-reference'
 import { Route as AuthenticatedCaseIdRouteImport } from './routes/_authenticated/case.$id'
 import { Route as AuthenticatedCaseIdEditRouteImport } from './routes/_authenticated/case.$id.edit'
 
@@ -132,6 +133,12 @@ const AuthenticatedLibraryBooksRoute =
     path: '/books',
     getParentRoute: () => AuthenticatedLibraryRoute,
   } as any)
+const AuthenticatedLibraryAppReferenceRoute =
+  AuthenticatedLibraryAppReferenceRouteImport.update({
+    id: '/app-reference',
+    path: '/app-reference',
+    getParentRoute: () => AuthenticatedLibraryRoute,
+  } as any)
 const AuthenticatedCaseIdRoute = AuthenticatedCaseIdRouteImport.update({
   id: '/case/$id',
   path: '/case/$id',
@@ -157,6 +164,7 @@ export interface FileRoutesByFullPath {
   '/saved-reports': typeof AuthenticatedSavedReportsRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/case/$id': typeof AuthenticatedCaseIdRouteWithChildren
+  '/library/app-reference': typeof AuthenticatedLibraryAppReferenceRoute
   '/library/books': typeof AuthenticatedLibraryBooksRoute
   '/library/case-history': typeof AuthenticatedLibraryCaseHistoryRoute
   '/library/community': typeof AuthenticatedLibraryCommunityRoute
@@ -178,6 +186,7 @@ export interface FileRoutesByTo {
   '/saved-reports': typeof AuthenticatedSavedReportsRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/case/$id': typeof AuthenticatedCaseIdRouteWithChildren
+  '/library/app-reference': typeof AuthenticatedLibraryAppReferenceRoute
   '/library/books': typeof AuthenticatedLibraryBooksRoute
   '/library/case-history': typeof AuthenticatedLibraryCaseHistoryRoute
   '/library/community': typeof AuthenticatedLibraryCommunityRoute
@@ -202,6 +211,7 @@ export interface FileRoutesById {
   '/_authenticated/saved-reports': typeof AuthenticatedSavedReportsRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/case/$id': typeof AuthenticatedCaseIdRouteWithChildren
+  '/_authenticated/library/app-reference': typeof AuthenticatedLibraryAppReferenceRoute
   '/_authenticated/library/books': typeof AuthenticatedLibraryBooksRoute
   '/_authenticated/library/case-history': typeof AuthenticatedLibraryCaseHistoryRoute
   '/_authenticated/library/community': typeof AuthenticatedLibraryCommunityRoute
@@ -226,6 +236,7 @@ export interface FileRouteTypes {
     | '/saved-reports'
     | '/settings'
     | '/case/$id'
+    | '/library/app-reference'
     | '/library/books'
     | '/library/case-history'
     | '/library/community'
@@ -247,6 +258,7 @@ export interface FileRouteTypes {
     | '/saved-reports'
     | '/settings'
     | '/case/$id'
+    | '/library/app-reference'
     | '/library/books'
     | '/library/case-history'
     | '/library/community'
@@ -270,6 +282,7 @@ export interface FileRouteTypes {
     | '/_authenticated/saved-reports'
     | '/_authenticated/settings'
     | '/_authenticated/case/$id'
+    | '/_authenticated/library/app-reference'
     | '/_authenticated/library/books'
     | '/_authenticated/library/case-history'
     | '/_authenticated/library/community'
@@ -421,6 +434,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLibraryBooksRouteImport
       parentRoute: typeof AuthenticatedLibraryRoute
     }
+    '/_authenticated/library/app-reference': {
+      id: '/_authenticated/library/app-reference'
+      path: '/app-reference'
+      fullPath: '/library/app-reference'
+      preLoaderRoute: typeof AuthenticatedLibraryAppReferenceRouteImport
+      parentRoute: typeof AuthenticatedLibraryRoute
+    }
     '/_authenticated/case/$id': {
       id: '/_authenticated/case/$id'
       path: '/case/$id'
@@ -439,6 +459,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedLibraryRouteChildren {
+  AuthenticatedLibraryAppReferenceRoute: typeof AuthenticatedLibraryAppReferenceRoute
   AuthenticatedLibraryBooksRoute: typeof AuthenticatedLibraryBooksRoute
   AuthenticatedLibraryCaseHistoryRoute: typeof AuthenticatedLibraryCaseHistoryRoute
   AuthenticatedLibraryCommunityRoute: typeof AuthenticatedLibraryCommunityRoute
@@ -448,6 +469,7 @@ interface AuthenticatedLibraryRouteChildren {
 }
 
 const AuthenticatedLibraryRouteChildren: AuthenticatedLibraryRouteChildren = {
+  AuthenticatedLibraryAppReferenceRoute: AuthenticatedLibraryAppReferenceRoute,
   AuthenticatedLibraryBooksRoute: AuthenticatedLibraryBooksRoute,
   AuthenticatedLibraryCaseHistoryRoute: AuthenticatedLibraryCaseHistoryRoute,
   AuthenticatedLibraryCommunityRoute: AuthenticatedLibraryCommunityRoute,
