@@ -49,6 +49,12 @@ function UploadsPage() {
   const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Share-to-community form state
+  const [shareToCommunity, setShareToCommunity] = useState(false);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [category, setCategory] = useState<string>("Other");
+
   const load = async () => {
     setLoading(true);
     const { data, error } = await (supabase as any)
@@ -64,7 +70,13 @@ function UploadsPage() {
     load();
   }, []);
 
-  const onPick = () => inputRef.current?.click();
+  const onPick = () => {
+    if (shareToCommunity && !title.trim()) {
+      toast.error("Please add a title before sharing to the community.");
+      return;
+    }
+    inputRef.current?.click();
+  };
 
   const onFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -83,21 +95,46 @@ function UploadsPage() {
       const { data: userData } = await supabase.auth.getUser();
       const uid = userData.user?.id;
       if (!uid) throw new Error("Not signed in");
-      const path = `${uid}/${Date.now()}-${file.name.replace(/[^\w.\-]+/g, "_")}`;
+      const safeName = file.name.replace(/[^\w.\-]+/g, "_");
+      const path = shareToCommunity
+        ? `community/${uid}/${Date.now()}-${safeName}`
+        : `${uid}/${Date.now()}-${safeName}`;
       const { error: upErr } = await supabase.storage
         .from("uploads")
         .upload(path, file, { contentType: file.type, upsert: false });
       if (upErr) throw upErr;
-      const { error: insErr } = await (supabase as any).from("user_uploads").insert({
-        user_id: uid,
-        file_name: file.name,
-        file_url: path,
-        file_path: path,
-        file_type: ext,
-        file_size: file.size,
-      });
-      if (insErr) throw insErr;
-      toast.success("File uploaded.");
+
+      if (shareToCommunity) {
+        const { error: cErr } = await (supabase as any).from("community_uploads").insert({
+          user_id: uid,
+          file_name: file.name,
+          file_url: path,
+          file_path: path,
+          file_type: ext,
+          file_size: file.size,
+          title: title.trim(),
+          description: description.trim() || null,
+          category,
+          is_public: true,
+        });
+        if (cErr) throw cErr;
+        toast.success("Shared to Community Library.");
+        setTitle("");
+        setDescription("");
+        setCategory("Other");
+        setShareToCommunity(false);
+      } else {
+        const { error: insErr } = await (supabase as any).from("user_uploads").insert({
+          user_id: uid,
+          file_name: file.name,
+          file_url: path,
+          file_path: path,
+          file_type: ext,
+          file_size: file.size,
+        });
+        if (insErr) throw insErr;
+        toast.success("File uploaded.");
+      }
       if (inputRef.current) inputRef.current.value = "";
       await load();
     } catch (e: any) {
@@ -130,20 +167,71 @@ function UploadsPage() {
 
   return (
     <AppShell title="My Uploads" subtitle="Manage your uploaded content" back>
-      <div className="mb-4 flex items-center gap-2">
-        <input
-          ref={inputRef}
-          type="file"
-          accept=".pdf,.docx,.jpg,.jpeg,.png"
-          className="hidden"
-          onChange={(e) => onFiles(e.target.files)}
-        />
-        <Button onClick={onPick} disabled={uploading} className="rounded-xl">
-          {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <UploadCloud className="h-4 w-4" />}
-          {uploading ? "Uploading…" : "Upload file"}
-        </Button>
-        <p className="text-xs text-muted-foreground">PDF, DOCX, JPG, PNG · up to 999MB</p>
+      <div className="mb-4 space-y-3 rounded-2xl border border-border bg-card p-3 shadow-card">
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <Label htmlFor="share-toggle" className="text-sm font-semibold">
+              Share to Community Library
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              Make this file visible to all users.
+            </p>
+          </div>
+          <Switch
+            id="share-toggle"
+            checked={shareToCommunity}
+            onCheckedChange={setShareToCommunity}
+          />
+        </div>
+
+        {shareToCommunity && (
+          <div className="space-y-2">
+            <Input
+              placeholder="Title *"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+            <Textarea
+              placeholder="Description (optional)"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={2}
+            />
+            <Select value={category} onValueChange={setCategory}>
+              <SelectTrigger>
+                <SelectValue placeholder="Category" />
+              </SelectTrigger>
+              <SelectContent>
+                {CATEGORIES.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {c}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        <div className="flex items-center gap-2">
+          <input
+            ref={inputRef}
+            type="file"
+            accept=".pdf,.docx,.jpg,.jpeg,.png"
+            className="hidden"
+            onChange={(e) => onFiles(e.target.files)}
+          />
+          <Button onClick={onPick} disabled={uploading} className="rounded-xl">
+            {uploading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <UploadCloud className="h-4 w-4" />
+            )}
+            {uploading ? "Uploading…" : shareToCommunity ? "Share file" : "Upload file"}
+          </Button>
+          <p className="text-xs text-muted-foreground">PDF, DOCX, JPG, PNG · up to 999MB</p>
+        </div>
       </div>
+
 
       {loading ? (
         <div className="grid place-items-center py-10 text-muted-foreground">
