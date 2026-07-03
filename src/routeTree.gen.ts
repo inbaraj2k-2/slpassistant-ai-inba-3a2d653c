@@ -30,6 +30,7 @@ import { Route as AuthenticatedLibraryCommunityRouteImport } from './routes/_aut
 import { Route as AuthenticatedLibraryCaseHistoryRouteImport } from './routes/_authenticated/library.case-history'
 import { Route as AuthenticatedLibraryBooksRouteImport } from './routes/_authenticated/library.books'
 import { Route as AuthenticatedLibraryAppReferenceRouteImport } from './routes/_authenticated/library.app-reference'
+import { Route as AuthenticatedLegalTermsRouteImport } from './routes/_authenticated/legal.terms'
 import { Route as AuthenticatedLegalPrivacyRouteImport } from './routes/_authenticated/legal.privacy'
 import { Route as AuthenticatedCaseIdRouteImport } from './routes/_authenticated/case.$id'
 import { Route as AuthenticatedCaseIdEditRouteImport } from './routes/_authenticated/case.$id.edit'
@@ -147,6 +148,11 @@ const AuthenticatedLibraryAppReferenceRoute =
     path: '/app-reference',
     getParentRoute: () => AuthenticatedLibraryRoute,
   } as any)
+const AuthenticatedLegalTermsRoute = AuthenticatedLegalTermsRouteImport.update({
+  id: '/legal/terms',
+  path: '/legal/terms',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedLegalPrivacyRoute =
   AuthenticatedLegalPrivacyRouteImport.update({
     id: '/legal/privacy',
@@ -179,6 +185,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AuthenticatedSettingsRoute
   '/case/$id': typeof AuthenticatedCaseIdRouteWithChildren
   '/legal/privacy': typeof AuthenticatedLegalPrivacyRoute
+  '/legal/terms': typeof AuthenticatedLegalTermsRoute
   '/library/app-reference': typeof AuthenticatedLibraryAppReferenceRoute
   '/library/books': typeof AuthenticatedLibraryBooksRoute
   '/library/case-history': typeof AuthenticatedLibraryCaseHistoryRoute
@@ -203,6 +210,7 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsRoute
   '/case/$id': typeof AuthenticatedCaseIdRouteWithChildren
   '/legal/privacy': typeof AuthenticatedLegalPrivacyRoute
+  '/legal/terms': typeof AuthenticatedLegalTermsRoute
   '/library/app-reference': typeof AuthenticatedLibraryAppReferenceRoute
   '/library/books': typeof AuthenticatedLibraryBooksRoute
   '/library/case-history': typeof AuthenticatedLibraryCaseHistoryRoute
@@ -230,6 +238,7 @@ export interface FileRoutesById {
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/case/$id': typeof AuthenticatedCaseIdRouteWithChildren
   '/_authenticated/legal/privacy': typeof AuthenticatedLegalPrivacyRoute
+  '/_authenticated/legal/terms': typeof AuthenticatedLegalTermsRoute
   '/_authenticated/library/app-reference': typeof AuthenticatedLibraryAppReferenceRoute
   '/_authenticated/library/books': typeof AuthenticatedLibraryBooksRoute
   '/_authenticated/library/case-history': typeof AuthenticatedLibraryCaseHistoryRoute
@@ -257,6 +266,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/case/$id'
     | '/legal/privacy'
+    | '/legal/terms'
     | '/library/app-reference'
     | '/library/books'
     | '/library/case-history'
@@ -281,6 +291,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/case/$id'
     | '/legal/privacy'
+    | '/legal/terms'
     | '/library/app-reference'
     | '/library/books'
     | '/library/case-history'
@@ -307,6 +318,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings'
     | '/_authenticated/case/$id'
     | '/_authenticated/legal/privacy'
+    | '/_authenticated/legal/terms'
     | '/_authenticated/library/app-reference'
     | '/_authenticated/library/books'
     | '/_authenticated/library/case-history'
@@ -474,6 +486,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLibraryAppReferenceRouteImport
       parentRoute: typeof AuthenticatedLibraryRoute
     }
+    '/_authenticated/legal/terms': {
+      id: '/_authenticated/legal/terms'
+      path: '/legal/terms'
+      fullPath: '/legal/terms'
+      preLoaderRoute: typeof AuthenticatedLegalTermsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/legal/privacy': {
       id: '/_authenticated/legal/privacy'
       path: '/legal/privacy'
@@ -546,6 +565,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedCaseIdRoute: typeof AuthenticatedCaseIdRouteWithChildren
   AuthenticatedLegalPrivacyRoute: typeof AuthenticatedLegalPrivacyRoute
+  AuthenticatedLegalTermsRoute: typeof AuthenticatedLegalTermsRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -560,6 +580,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedCaseIdRoute: AuthenticatedCaseIdRouteWithChildren,
   AuthenticatedLegalPrivacyRoute: AuthenticatedLegalPrivacyRoute,
+  AuthenticatedLegalTermsRoute: AuthenticatedLegalTermsRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
