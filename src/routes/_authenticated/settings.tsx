@@ -1,10 +1,21 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { Disclaimer } from "@/components/Disclaimer";
 import { BrandMark } from "@/components/BrandMark";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Info, LogOut, Mail, ShieldCheck } from "lucide-react";
+import {
+  ChevronRight,
+  FileText,
+  Info,
+  LogOut,
+  Mail,
+  ScrollText,
+  ShieldAlert,
+  ShieldCheck,
+  Stethoscope,
+  Trash2,
+} from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({ meta: [{ title: "Settings — SLP Assist AI" }] }),
@@ -75,6 +86,51 @@ function SettingsPage() {
         </ul>
       </Section>
 
+      <Section title="Legal & Information">
+        <LinkRow
+          to="/legal/privacy"
+          icon={<ShieldCheck className="h-4 w-4" />}
+          label="Privacy Policy"
+        />
+        <LinkRow
+          to="/legal/terms"
+          icon={<ScrollText className="h-4 w-4" />}
+          label="Terms & Conditions"
+        />
+        <LinkRow
+          to="/legal/disclaimer"
+          icon={<Stethoscope className="h-4 w-4" />}
+          label="Professional Disclaimer"
+        />
+        <LinkRow
+          to="/legal/account-deletion"
+          icon={<Trash2 className="h-4 w-4 text-destructive" />}
+          label="Account Deletion"
+          destructive
+        />
+      </Section>
+
+      <Section title="About SLP Assist AI">
+        <p className="text-sm leading-relaxed text-foreground/85">
+          AI-powered clinical decision support for Speech-Language Pathologists,
+          Audiologists, BASLP students, and interns. Includes AI case analysis,
+          differential diagnosis, therapy goals, assessment recommendations,
+          clinical references, PDF reports, saved cases, knowledge base, and
+          offline therapeutic games.
+        </p>
+        <p className="mt-2 flex items-start gap-2 text-xs text-muted-foreground">
+          <ShieldAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          This application does not replace professional clinical judgement or diagnosis.
+        </p>
+        <a
+          href="mailto:slpassistai@gmail.com"
+          className="mt-3 flex items-center gap-2 text-xs font-medium text-primary"
+        >
+          <Mail className="h-3.5 w-3.5" />
+          slpassistai@gmail.com
+        </a>
+      </Section>
+
       <Disclaimer />
 
       <button
@@ -108,5 +164,30 @@ function Row({ icon, label, value }: { icon: React.ReactNode; label: string; val
       </span>
       <span className="text-foreground">{value}</span>
     </div>
+  );
+}
+
+function LinkRow({
+  to,
+  icon,
+  label,
+  destructive,
+}: {
+  to: string;
+  icon: React.ReactNode;
+  label: string;
+  destructive?: boolean;
+}) {
+  return (
+    <Link
+      to={to}
+      className="flex items-center justify-between border-b border-border/60 py-2.5 text-sm last:border-0"
+    >
+      <span className={`flex items-center gap-2 ${destructive ? "text-destructive" : "text-foreground"}`}>
+        {icon}
+        {label}
+      </span>
+      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+    </Link>
   );
 }
