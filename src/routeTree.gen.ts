@@ -32,6 +32,7 @@ import { Route as AuthenticatedLibraryBooksRouteImport } from './routes/_authent
 import { Route as AuthenticatedLibraryAppReferenceRouteImport } from './routes/_authenticated/library.app-reference'
 import { Route as AuthenticatedLegalTermsRouteImport } from './routes/_authenticated/legal.terms'
 import { Route as AuthenticatedLegalPrivacyRouteImport } from './routes/_authenticated/legal.privacy'
+import { Route as AuthenticatedLegalDisclaimerRouteImport } from './routes/_authenticated/legal.disclaimer'
 import { Route as AuthenticatedCaseIdRouteImport } from './routes/_authenticated/case.$id'
 import { Route as AuthenticatedCaseIdEditRouteImport } from './routes/_authenticated/case.$id.edit'
 
@@ -159,6 +160,12 @@ const AuthenticatedLegalPrivacyRoute =
     path: '/legal/privacy',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedLegalDisclaimerRoute =
+  AuthenticatedLegalDisclaimerRouteImport.update({
+    id: '/legal/disclaimer',
+    path: '/legal/disclaimer',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCaseIdRoute = AuthenticatedCaseIdRouteImport.update({
   id: '/case/$id',
   path: '/case/$id',
@@ -184,6 +191,7 @@ export interface FileRoutesByFullPath {
   '/saved-reports': typeof AuthenticatedSavedReportsRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/case/$id': typeof AuthenticatedCaseIdRouteWithChildren
+  '/legal/disclaimer': typeof AuthenticatedLegalDisclaimerRoute
   '/legal/privacy': typeof AuthenticatedLegalPrivacyRoute
   '/legal/terms': typeof AuthenticatedLegalTermsRoute
   '/library/app-reference': typeof AuthenticatedLibraryAppReferenceRoute
@@ -209,6 +217,7 @@ export interface FileRoutesByTo {
   '/saved-reports': typeof AuthenticatedSavedReportsRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/case/$id': typeof AuthenticatedCaseIdRouteWithChildren
+  '/legal/disclaimer': typeof AuthenticatedLegalDisclaimerRoute
   '/legal/privacy': typeof AuthenticatedLegalPrivacyRoute
   '/legal/terms': typeof AuthenticatedLegalTermsRoute
   '/library/app-reference': typeof AuthenticatedLibraryAppReferenceRoute
@@ -237,6 +246,7 @@ export interface FileRoutesById {
   '/_authenticated/saved-reports': typeof AuthenticatedSavedReportsRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/case/$id': typeof AuthenticatedCaseIdRouteWithChildren
+  '/_authenticated/legal/disclaimer': typeof AuthenticatedLegalDisclaimerRoute
   '/_authenticated/legal/privacy': typeof AuthenticatedLegalPrivacyRoute
   '/_authenticated/legal/terms': typeof AuthenticatedLegalTermsRoute
   '/_authenticated/library/app-reference': typeof AuthenticatedLibraryAppReferenceRoute
@@ -265,6 +275,7 @@ export interface FileRouteTypes {
     | '/saved-reports'
     | '/settings'
     | '/case/$id'
+    | '/legal/disclaimer'
     | '/legal/privacy'
     | '/legal/terms'
     | '/library/app-reference'
@@ -290,6 +301,7 @@ export interface FileRouteTypes {
     | '/saved-reports'
     | '/settings'
     | '/case/$id'
+    | '/legal/disclaimer'
     | '/legal/privacy'
     | '/legal/terms'
     | '/library/app-reference'
@@ -317,6 +329,7 @@ export interface FileRouteTypes {
     | '/_authenticated/saved-reports'
     | '/_authenticated/settings'
     | '/_authenticated/case/$id'
+    | '/_authenticated/legal/disclaimer'
     | '/_authenticated/legal/privacy'
     | '/_authenticated/legal/terms'
     | '/_authenticated/library/app-reference'
@@ -500,6 +513,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLegalPrivacyRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/legal/disclaimer': {
+      id: '/_authenticated/legal/disclaimer'
+      path: '/legal/disclaimer'
+      fullPath: '/legal/disclaimer'
+      preLoaderRoute: typeof AuthenticatedLegalDisclaimerRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/case/$id': {
       id: '/_authenticated/case/$id'
       path: '/case/$id'
@@ -564,6 +584,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSavedReportsRoute: typeof AuthenticatedSavedReportsRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedCaseIdRoute: typeof AuthenticatedCaseIdRouteWithChildren
+  AuthenticatedLegalDisclaimerRoute: typeof AuthenticatedLegalDisclaimerRoute
   AuthenticatedLegalPrivacyRoute: typeof AuthenticatedLegalPrivacyRoute
   AuthenticatedLegalTermsRoute: typeof AuthenticatedLegalTermsRoute
 }
@@ -579,6 +600,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSavedReportsRoute: AuthenticatedSavedReportsRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedCaseIdRoute: AuthenticatedCaseIdRouteWithChildren,
+  AuthenticatedLegalDisclaimerRoute: AuthenticatedLegalDisclaimerRoute,
   AuthenticatedLegalPrivacyRoute: AuthenticatedLegalPrivacyRoute,
   AuthenticatedLegalTermsRoute: AuthenticatedLegalTermsRoute,
 }
