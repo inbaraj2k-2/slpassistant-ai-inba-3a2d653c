@@ -166,3 +166,28 @@ function Row({ icon, label, value }: { icon: React.ReactNode; label: string; val
     </div>
   );
 }
+
+function LinkRow({
+  to,
+  icon,
+  label,
+  destructive,
+}: {
+  to: string;
+  icon: React.ReactNode;
+  label: string;
+  destructive?: boolean;
+}) {
+  return (
+    <Link
+      to={to}
+      className="flex items-center justify-between border-b border-border/60 py-2.5 text-sm last:border-0"
+    >
+      <span className={`flex items-center gap-2 ${destructive ? "text-destructive" : "text-foreground"}`}>
+        {icon}
+        {label}
+      </span>
+      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+    </Link>
+  );
+}
