@@ -86,6 +86,51 @@ function SettingsPage() {
         </ul>
       </Section>
 
+      <Section title="Legal & Information">
+        <LinkRow
+          to="/legal/privacy"
+          icon={<ShieldCheck className="h-4 w-4" />}
+          label="Privacy Policy"
+        />
+        <LinkRow
+          to="/legal/terms"
+          icon={<ScrollText className="h-4 w-4" />}
+          label="Terms & Conditions"
+        />
+        <LinkRow
+          to="/legal/disclaimer"
+          icon={<Stethoscope className="h-4 w-4" />}
+          label="Professional Disclaimer"
+        />
+        <LinkRow
+          to="/legal/account-deletion"
+          icon={<Trash2 className="h-4 w-4 text-destructive" />}
+          label="Account Deletion"
+          destructive
+        />
+      </Section>
+
+      <Section title="About SLP Assist AI">
+        <p className="text-sm leading-relaxed text-foreground/85">
+          AI-powered clinical decision support for Speech-Language Pathologists,
+          Audiologists, BASLP students, and interns. Includes AI case analysis,
+          differential diagnosis, therapy goals, assessment recommendations,
+          clinical references, PDF reports, saved cases, knowledge base, and
+          offline therapeutic games.
+        </p>
+        <p className="mt-2 flex items-start gap-2 text-xs text-muted-foreground">
+          <ShieldAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          This application does not replace professional clinical judgement or diagnosis.
+        </p>
+        <a
+          href="mailto:slpassistai@gmail.com"
+          className="mt-3 flex items-center gap-2 text-xs font-medium text-primary"
+        >
+          <Mail className="h-3.5 w-3.5" />
+          slpassistai@gmail.com
+        </a>
+      </Section>
+
       <Disclaimer />
 
       <button
