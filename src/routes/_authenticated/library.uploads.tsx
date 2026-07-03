@@ -2,12 +2,28 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { FileText, ImageIcon, Loader2, Trash2, UploadCloud } from "lucide-react";
 
+const CATEGORIES = ["Assessment", "Therapy Materials", "Research", "Books", "Other"] as const;
+
 export const Route = createFileRoute("/_authenticated/library/uploads")({
   head: () => ({ meta: [{ title: "My Uploads — Library" }] }),
+  component: UploadsPage,
+});
+
   component: UploadsPage,
 });
 
