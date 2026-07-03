@@ -33,6 +33,7 @@ import { Route as AuthenticatedLibraryAppReferenceRouteImport } from './routes/_
 import { Route as AuthenticatedLegalTermsRouteImport } from './routes/_authenticated/legal.terms'
 import { Route as AuthenticatedLegalPrivacyRouteImport } from './routes/_authenticated/legal.privacy'
 import { Route as AuthenticatedLegalDisclaimerRouteImport } from './routes/_authenticated/legal.disclaimer'
+import { Route as AuthenticatedLegalAccountDeletionRouteImport } from './routes/_authenticated/legal.account-deletion'
 import { Route as AuthenticatedCaseIdRouteImport } from './routes/_authenticated/case.$id'
 import { Route as AuthenticatedCaseIdEditRouteImport } from './routes/_authenticated/case.$id.edit'
 
@@ -166,6 +167,12 @@ const AuthenticatedLegalDisclaimerRoute =
     path: '/legal/disclaimer',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedLegalAccountDeletionRoute =
+  AuthenticatedLegalAccountDeletionRouteImport.update({
+    id: '/legal/account-deletion',
+    path: '/legal/account-deletion',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCaseIdRoute = AuthenticatedCaseIdRouteImport.update({
   id: '/case/$id',
   path: '/case/$id',
@@ -191,6 +198,7 @@ export interface FileRoutesByFullPath {
   '/saved-reports': typeof AuthenticatedSavedReportsRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/case/$id': typeof AuthenticatedCaseIdRouteWithChildren
+  '/legal/account-deletion': typeof AuthenticatedLegalAccountDeletionRoute
   '/legal/disclaimer': typeof AuthenticatedLegalDisclaimerRoute
   '/legal/privacy': typeof AuthenticatedLegalPrivacyRoute
   '/legal/terms': typeof AuthenticatedLegalTermsRoute
@@ -217,6 +225,7 @@ export interface FileRoutesByTo {
   '/saved-reports': typeof AuthenticatedSavedReportsRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/case/$id': typeof AuthenticatedCaseIdRouteWithChildren
+  '/legal/account-deletion': typeof AuthenticatedLegalAccountDeletionRoute
   '/legal/disclaimer': typeof AuthenticatedLegalDisclaimerRoute
   '/legal/privacy': typeof AuthenticatedLegalPrivacyRoute
   '/legal/terms': typeof AuthenticatedLegalTermsRoute
@@ -246,6 +255,7 @@ export interface FileRoutesById {
   '/_authenticated/saved-reports': typeof AuthenticatedSavedReportsRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/case/$id': typeof AuthenticatedCaseIdRouteWithChildren
+  '/_authenticated/legal/account-deletion': typeof AuthenticatedLegalAccountDeletionRoute
   '/_authenticated/legal/disclaimer': typeof AuthenticatedLegalDisclaimerRoute
   '/_authenticated/legal/privacy': typeof AuthenticatedLegalPrivacyRoute
   '/_authenticated/legal/terms': typeof AuthenticatedLegalTermsRoute
@@ -275,6 +285,7 @@ export interface FileRouteTypes {
     | '/saved-reports'
     | '/settings'
     | '/case/$id'
+    | '/legal/account-deletion'
     | '/legal/disclaimer'
     | '/legal/privacy'
     | '/legal/terms'
@@ -301,6 +312,7 @@ export interface FileRouteTypes {
     | '/saved-reports'
     | '/settings'
     | '/case/$id'
+    | '/legal/account-deletion'
     | '/legal/disclaimer'
     | '/legal/privacy'
     | '/legal/terms'
@@ -329,6 +341,7 @@ export interface FileRouteTypes {
     | '/_authenticated/saved-reports'
     | '/_authenticated/settings'
     | '/_authenticated/case/$id'
+    | '/_authenticated/legal/account-deletion'
     | '/_authenticated/legal/disclaimer'
     | '/_authenticated/legal/privacy'
     | '/_authenticated/legal/terms'
@@ -520,6 +533,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLegalDisclaimerRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/legal/account-deletion': {
+      id: '/_authenticated/legal/account-deletion'
+      path: '/legal/account-deletion'
+      fullPath: '/legal/account-deletion'
+      preLoaderRoute: typeof AuthenticatedLegalAccountDeletionRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/case/$id': {
       id: '/_authenticated/case/$id'
       path: '/case/$id'
@@ -584,6 +604,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSavedReportsRoute: typeof AuthenticatedSavedReportsRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedCaseIdRoute: typeof AuthenticatedCaseIdRouteWithChildren
+  AuthenticatedLegalAccountDeletionRoute: typeof AuthenticatedLegalAccountDeletionRoute
   AuthenticatedLegalDisclaimerRoute: typeof AuthenticatedLegalDisclaimerRoute
   AuthenticatedLegalPrivacyRoute: typeof AuthenticatedLegalPrivacyRoute
   AuthenticatedLegalTermsRoute: typeof AuthenticatedLegalTermsRoute
@@ -600,6 +621,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSavedReportsRoute: AuthenticatedSavedReportsRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedCaseIdRoute: AuthenticatedCaseIdRouteWithChildren,
+  AuthenticatedLegalAccountDeletionRoute:
+    AuthenticatedLegalAccountDeletionRoute,
   AuthenticatedLegalDisclaimerRoute: AuthenticatedLegalDisclaimerRoute,
   AuthenticatedLegalPrivacyRoute: AuthenticatedLegalPrivacyRoute,
   AuthenticatedLegalTermsRoute: AuthenticatedLegalTermsRoute,

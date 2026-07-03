@@ -1,10 +1,21 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { Disclaimer } from "@/components/Disclaimer";
 import { BrandMark } from "@/components/BrandMark";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Info, LogOut, Mail, ShieldCheck } from "lucide-react";
+import {
+  ChevronRight,
+  FileText,
+  Info,
+  LogOut,
+  Mail,
+  ScrollText,
+  ShieldAlert,
+  ShieldCheck,
+  Stethoscope,
+  Trash2,
+} from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({ meta: [{ title: "Settings — SLP Assist AI" }] }),
