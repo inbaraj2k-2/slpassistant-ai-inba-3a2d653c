@@ -153,6 +153,54 @@ export type Database = {
           },
         ]
       }
+      community_uploads: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          file_name: string
+          file_path: string
+          file_size: number | null
+          file_type: string | null
+          file_url: string
+          id: string
+          is_public: boolean
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url: string
+          id?: string
+          is_public?: boolean
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string
+          id?: string
+          is_public?: boolean
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       disorders: {
         Row: {
           category: string | null
