@@ -30,6 +30,7 @@ import { Route as AuthenticatedLibraryCommunityRouteImport } from './routes/_aut
 import { Route as AuthenticatedLibraryCaseHistoryRouteImport } from './routes/_authenticated/library.case-history'
 import { Route as AuthenticatedLibraryBooksRouteImport } from './routes/_authenticated/library.books'
 import { Route as AuthenticatedLibraryAppReferenceRouteImport } from './routes/_authenticated/library.app-reference'
+import { Route as AuthenticatedLegalPrivacyRouteImport } from './routes/_authenticated/legal.privacy'
 import { Route as AuthenticatedCaseIdRouteImport } from './routes/_authenticated/case.$id'
 import { Route as AuthenticatedCaseIdEditRouteImport } from './routes/_authenticated/case.$id.edit'
 
@@ -146,6 +147,12 @@ const AuthenticatedLibraryAppReferenceRoute =
     path: '/app-reference',
     getParentRoute: () => AuthenticatedLibraryRoute,
   } as any)
+const AuthenticatedLegalPrivacyRoute =
+  AuthenticatedLegalPrivacyRouteImport.update({
+    id: '/legal/privacy',
+    path: '/legal/privacy',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCaseIdRoute = AuthenticatedCaseIdRouteImport.update({
   id: '/case/$id',
   path: '/case/$id',
@@ -171,6 +178,7 @@ export interface FileRoutesByFullPath {
   '/saved-reports': typeof AuthenticatedSavedReportsRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/case/$id': typeof AuthenticatedCaseIdRouteWithChildren
+  '/legal/privacy': typeof AuthenticatedLegalPrivacyRoute
   '/library/app-reference': typeof AuthenticatedLibraryAppReferenceRoute
   '/library/books': typeof AuthenticatedLibraryBooksRoute
   '/library/case-history': typeof AuthenticatedLibraryCaseHistoryRoute
@@ -194,6 +202,7 @@ export interface FileRoutesByTo {
   '/saved-reports': typeof AuthenticatedSavedReportsRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/case/$id': typeof AuthenticatedCaseIdRouteWithChildren
+  '/legal/privacy': typeof AuthenticatedLegalPrivacyRoute
   '/library/app-reference': typeof AuthenticatedLibraryAppReferenceRoute
   '/library/books': typeof AuthenticatedLibraryBooksRoute
   '/library/case-history': typeof AuthenticatedLibraryCaseHistoryRoute
@@ -220,6 +229,7 @@ export interface FileRoutesById {
   '/_authenticated/saved-reports': typeof AuthenticatedSavedReportsRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/case/$id': typeof AuthenticatedCaseIdRouteWithChildren
+  '/_authenticated/legal/privacy': typeof AuthenticatedLegalPrivacyRoute
   '/_authenticated/library/app-reference': typeof AuthenticatedLibraryAppReferenceRoute
   '/_authenticated/library/books': typeof AuthenticatedLibraryBooksRoute
   '/_authenticated/library/case-history': typeof AuthenticatedLibraryCaseHistoryRoute
@@ -246,6 +256,7 @@ export interface FileRouteTypes {
     | '/saved-reports'
     | '/settings'
     | '/case/$id'
+    | '/legal/privacy'
     | '/library/app-reference'
     | '/library/books'
     | '/library/case-history'
@@ -269,6 +280,7 @@ export interface FileRouteTypes {
     | '/saved-reports'
     | '/settings'
     | '/case/$id'
+    | '/legal/privacy'
     | '/library/app-reference'
     | '/library/books'
     | '/library/case-history'
@@ -294,6 +306,7 @@ export interface FileRouteTypes {
     | '/_authenticated/saved-reports'
     | '/_authenticated/settings'
     | '/_authenticated/case/$id'
+    | '/_authenticated/legal/privacy'
     | '/_authenticated/library/app-reference'
     | '/_authenticated/library/books'
     | '/_authenticated/library/case-history'
@@ -461,6 +474,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLibraryAppReferenceRouteImport
       parentRoute: typeof AuthenticatedLibraryRoute
     }
+    '/_authenticated/legal/privacy': {
+      id: '/_authenticated/legal/privacy'
+      path: '/legal/privacy'
+      fullPath: '/legal/privacy'
+      preLoaderRoute: typeof AuthenticatedLegalPrivacyRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/case/$id': {
       id: '/_authenticated/case/$id'
       path: '/case/$id'
@@ -525,6 +545,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSavedReportsRoute: typeof AuthenticatedSavedReportsRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedCaseIdRoute: typeof AuthenticatedCaseIdRouteWithChildren
+  AuthenticatedLegalPrivacyRoute: typeof AuthenticatedLegalPrivacyRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -538,6 +559,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSavedReportsRoute: AuthenticatedSavedReportsRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedCaseIdRoute: AuthenticatedCaseIdRouteWithChildren,
+  AuthenticatedLegalPrivacyRoute: AuthenticatedLegalPrivacyRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -552,13 +574,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
