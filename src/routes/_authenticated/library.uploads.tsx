@@ -24,9 +24,6 @@ export const Route = createFileRoute("/_authenticated/library/uploads")({
   component: UploadsPage,
 });
 
-  component: UploadsPage,
-});
-
 type UploadRow = {
   id: string;
   user_id: string;
