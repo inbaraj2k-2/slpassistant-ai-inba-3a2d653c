@@ -214,6 +214,15 @@ function CommunityLibraryPage() {
                 <div className="mt-3 flex items-center gap-2">
                   <Button
                     size="sm"
+                    variant="secondary"
+                    className="rounded-xl"
+                    onClick={() => viewFile(r)}
+                  >
+                    <Eye className="h-4 w-4" />
+                    View
+                  </Button>
+                  <Button
+                    size="sm"
                     variant="outline"
                     className="rounded-xl"
                     onClick={() => download(r)}
