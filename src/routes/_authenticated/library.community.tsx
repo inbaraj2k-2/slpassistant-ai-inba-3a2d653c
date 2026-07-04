@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Download, FileText, ImageIcon, Loader2, Search, Trash2, Users } from "lucide-react";
+import { Download, Eye, FileText, ImageIcon, Loader2, Search, Trash2, Users } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/library/community")({
   head: () => ({ meta: [{ title: "Community Library" }] }),
