@@ -70,8 +70,8 @@ function HomePage() {
         <TileLink
           to="/knowledge"
           icon={<BookOpen className="h-5 w-5" />}
-          label="Knowledge Base"
-          desc="Disorders &amp; tools"
+          label="Clinical Knowledge Base"
+          desc="Disorders, Assessments &amp; Clinical References"
         />
         <TileLink
           to="/games"
