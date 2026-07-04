@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Download, FileText, ImageIcon, Loader2, Search, Trash2, Users } from "lucide-react";
+import { Download, Eye, FileText, ImageIcon, Loader2, Search, Trash2, Users } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/library/community")({
   head: () => ({ meta: [{ title: "Community Library" }] }),
@@ -100,6 +100,15 @@ function CommunityLibraryPage() {
       .from("uploads")
       .createSignedUrl(r.file_path, 60 * 10, { download: r.file_name });
     if (error || !data) return toast.error("Could not download file.");
+    window.open(data.signedUrl, "_blank", "noopener");
+  };
+
+  const viewFile = async (r: Row) => {
+    const { data, error } = await supabase.storage
+      .from("uploads")
+      .createSignedUrl(r.file_path, 60 * 10);
+    if (error || !data) return toast.error("Could not open file.");
+    // PDFs and images preview natively in a new tab; docx and others download/open in an external app.
     window.open(data.signedUrl, "_blank", "noopener");
   };
 
@@ -203,6 +212,15 @@ function CommunityLibraryPage() {
                   </div>
                 </div>
                 <div className="mt-3 flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="rounded-xl"
+                    onClick={() => viewFile(r)}
+                  >
+                    <Eye className="h-4 w-4" />
+                    View
+                  </Button>
                   <Button
                     size="sm"
                     variant="outline"
