@@ -103,6 +103,15 @@ function CommunityLibraryPage() {
     window.open(data.signedUrl, "_blank", "noopener");
   };
 
+  const viewFile = async (r: Row) => {
+    const { data, error } = await supabase.storage
+      .from("uploads")
+      .createSignedUrl(r.file_path, 60 * 10);
+    if (error || !data) return toast.error("Could not open file.");
+    // PDFs and images preview natively in a new tab; docx and others download/open in an external app.
+    window.open(data.signedUrl, "_blank", "noopener");
+  };
+
   const removeOwn = async (r: Row) => {
     if (!confirm(`Delete "${r.title}" from community?`)) return;
     const { error: sErr } = await supabase.storage.from("uploads").remove([r.file_path]);
