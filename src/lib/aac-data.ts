@@ -1,0 +1,171 @@
+export type AacTile = { label: string; emoji: string; speak?: string };
+export type AacBoard = { id: string; name: string; emoji: string; tiles: AacTile[] };
+
+export const CORE_TILES: AacTile[] = [
+  { label: "I", emoji: "🙋" },
+  { label: "you", emoji: "👉" },
+  { label: "want", emoji: "🙏" },
+  { label: "don't want", emoji: "🙅", speak: "don't want" },
+  { label: "more", emoji: "➕" },
+  { label: "stop", emoji: "✋" },
+  { label: "go", emoji: "🟢" },
+  { label: "help", emoji: "🆘" },
+  { label: "yes", emoji: "✅" },
+  { label: "no", emoji: "❌" },
+  { label: "please", emoji: "🥺" },
+  { label: "thank you", emoji: "🙏", speak: "thank you" },
+  { label: "like", emoji: "❤️" },
+  { label: "eat", emoji: "🍽️" },
+  { label: "drink", emoji: "🥤" },
+  { label: "play", emoji: "🧸" },
+  { label: "look", emoji: "👀" },
+  { label: "again", emoji: "🔁" },
+  { label: "finished", emoji: "🏁" },
+  { label: "hello", emoji: "👋" },
+];
+
+export const BOARDS: AacBoard[] = [
+  {
+    id: "food",
+    name: "Food & Drink",
+    emoji: "🍎",
+    tiles: [
+      { label: "water", emoji: "💧" },
+      { label: "milk", emoji: "🥛" },
+      { label: "juice", emoji: "🧃" },
+      { label: "apple", emoji: "🍎" },
+      { label: "banana", emoji: "🍌" },
+      { label: "bread", emoji: "🍞" },
+      { label: "cheese", emoji: "🧀" },
+      { label: "cookie", emoji: "🍪" },
+      { label: "pizza", emoji: "🍕" },
+      { label: "rice", emoji: "🍚" },
+      { label: "egg", emoji: "🥚" },
+      { label: "ice cream", emoji: "🍦" },
+      { label: "chicken", emoji: "🍗" },
+      { label: "soup", emoji: "🍲" },
+      { label: "chocolate", emoji: "🍫" },
+      { label: "hungry", emoji: "😋" },
+      { label: "thirsty", emoji: "👅" },
+      { label: "full", emoji: "🤤" },
+    ],
+  },
+  {
+    id: "feelings",
+    name: "Feelings",
+    emoji: "😊",
+    tiles: [
+      { label: "happy", emoji: "😊" },
+      { label: "sad", emoji: "😢" },
+      { label: "angry", emoji: "😠" },
+      { label: "scared", emoji: "😨" },
+      { label: "tired", emoji: "😴" },
+      { label: "excited", emoji: "🤩" },
+      { label: "sick", emoji: "🤒" },
+      { label: "hurt", emoji: "🤕" },
+      { label: "love", emoji: "🥰" },
+      { label: "silly", emoji: "🤪" },
+      { label: "bored", emoji: "😐" },
+      { label: "surprised", emoji: "😮" },
+      { label: "confused", emoji: "😕" },
+      { label: "calm", emoji: "😌" },
+      { label: "proud", emoji: "😎" },
+      { label: "shy", emoji: "😳" },
+    ],
+  },
+  {
+    id: "actions",
+    name: "Actions",
+    emoji: "🏃",
+    tiles: [
+      { label: "go", emoji: "➡️" },
+      { label: "come", emoji: "⬅️" },
+      { label: "sit", emoji: "🪑" },
+      { label: "stand", emoji: "🧍" },
+      { label: "walk", emoji: "🚶" },
+      { label: "run", emoji: "🏃" },
+      { label: "jump", emoji: "🤸" },
+      { label: "sleep", emoji: "💤" },
+      { label: "read", emoji: "📖" },
+      { label: "write", emoji: "✍️" },
+      { label: "wash", emoji: "🧼" },
+      { label: "open", emoji: "📂" },
+      { label: "close", emoji: "📁" },
+      { label: "give", emoji: "🤲" },
+      { label: "take", emoji: "🫴" },
+      { label: "listen", emoji: "👂" },
+      { label: "watch", emoji: "📺" },
+      { label: "sing", emoji: "🎤" },
+    ],
+  },
+  {
+    id: "people",
+    name: "People",
+    emoji: "👨‍👩‍👧",
+    tiles: [
+      { label: "mom", emoji: "👩" },
+      { label: "dad", emoji: "👨" },
+      { label: "baby", emoji: "👶" },
+      { label: "brother", emoji: "👦" },
+      { label: "sister", emoji: "👧" },
+      { label: "grandma", emoji: "👵" },
+      { label: "grandpa", emoji: "👴" },
+      { label: "friend", emoji: "🧑‍🤝‍🧑" },
+      { label: "teacher", emoji: "👩‍🏫" },
+      { label: "doctor", emoji: "👨‍⚕️" },
+      { label: "therapist", emoji: "🧑‍⚕️" },
+      { label: "me", emoji: "🙋" },
+    ],
+  },
+  {
+    id: "places",
+    name: "Places",
+    emoji: "🏠",
+    tiles: [
+      { label: "home", emoji: "🏠" },
+      { label: "school", emoji: "🏫" },
+      { label: "park", emoji: "🏞️" },
+      { label: "store", emoji: "🏬" },
+      { label: "hospital", emoji: "🏥" },
+      { label: "car", emoji: "🚗" },
+      { label: "bus", emoji: "🚌" },
+      { label: "outside", emoji: "🌳" },
+      { label: "inside", emoji: "🚪" },
+      { label: "bathroom", emoji: "🚻" },
+      { label: "bedroom", emoji: "🛏️" },
+      { label: "kitchen", emoji: "🍳" },
+    ],
+  },
+  {
+    id: "body",
+    name: "Body",
+    emoji: "🧍",
+    tiles: [
+      { label: "head", emoji: "🧠" },
+      { label: "hair", emoji: "💇" },
+      { label: "eyes", emoji: "👀" },
+      { label: "ears", emoji: "👂" },
+      { label: "nose", emoji: "👃" },
+      { label: "mouth", emoji: "👄" },
+      { label: "teeth", emoji: "🦷" },
+      { label: "tongue", emoji: "👅" },
+      { label: "hand", emoji: "✋" },
+      { label: "foot", emoji: "🦶" },
+      { label: "tummy", emoji: "🫃" },
+      { label: "heart", emoji: "❤️" },
+    ],
+  },
+];
+
+export function speak(text: string) {
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+  try {
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = 0.95;
+    u.pitch = 1;
+    window.speechSynthesis.speak(u);
+  } catch {
+    /* noop */
+  }
+}
