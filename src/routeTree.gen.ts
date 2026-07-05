@@ -23,6 +23,7 @@ import { Route as AuthenticatedGamesRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedCasesRouteImport } from './routes/_authenticated/cases'
 import { Route as AuthenticatedAdminDebugRouteImport } from './routes/_authenticated/admin-debug'
 import { Route as AuthenticatedLibraryIndexRouteImport } from './routes/_authenticated/library.index'
+import { Route as AuthenticatedClinicalToolsIndexRouteImport } from './routes/_authenticated/clinical-tools.index'
 import { Route as AuthenticatedLibraryUploadsRouteImport } from './routes/_authenticated/library.uploads'
 import { Route as AuthenticatedLibraryResearchRouteImport } from './routes/_authenticated/library.research'
 import { Route as AuthenticatedLibraryDownloadsRouteImport } from './routes/_authenticated/library.downloads'
@@ -34,6 +35,8 @@ import { Route as AuthenticatedLegalTermsRouteImport } from './routes/_authentic
 import { Route as AuthenticatedLegalPrivacyRouteImport } from './routes/_authenticated/legal.privacy'
 import { Route as AuthenticatedLegalDisclaimerRouteImport } from './routes/_authenticated/legal.disclaimer'
 import { Route as AuthenticatedLegalAccountDeletionRouteImport } from './routes/_authenticated/legal.account-deletion'
+import { Route as AuthenticatedClinicalToolsVoiceAnalysisRouteImport } from './routes/_authenticated/clinical-tools.voice-analysis'
+import { Route as AuthenticatedClinicalToolsAacRouteImport } from './routes/_authenticated/clinical-tools.aac'
 import { Route as AuthenticatedCaseIdRouteImport } from './routes/_authenticated/case.$id'
 import { Route as AuthenticatedCaseIdEditRouteImport } from './routes/_authenticated/case.$id.edit'
 
@@ -108,6 +111,12 @@ const AuthenticatedLibraryIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedLibraryRoute,
   } as any)
+const AuthenticatedClinicalToolsIndexRoute =
+  AuthenticatedClinicalToolsIndexRouteImport.update({
+    id: '/clinical-tools/',
+    path: '/clinical-tools/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedLibraryUploadsRoute =
   AuthenticatedLibraryUploadsRouteImport.update({
     id: '/uploads',
@@ -173,6 +182,18 @@ const AuthenticatedLegalAccountDeletionRoute =
     path: '/legal/account-deletion',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedClinicalToolsVoiceAnalysisRoute =
+  AuthenticatedClinicalToolsVoiceAnalysisRouteImport.update({
+    id: '/clinical-tools/voice-analysis',
+    path: '/clinical-tools/voice-analysis',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedClinicalToolsAacRoute =
+  AuthenticatedClinicalToolsAacRouteImport.update({
+    id: '/clinical-tools/aac',
+    path: '/clinical-tools/aac',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCaseIdRoute = AuthenticatedCaseIdRouteImport.update({
   id: '/case/$id',
   path: '/case/$id',
@@ -198,6 +219,8 @@ export interface FileRoutesByFullPath {
   '/saved-reports': typeof AuthenticatedSavedReportsRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/case/$id': typeof AuthenticatedCaseIdRouteWithChildren
+  '/clinical-tools/aac': typeof AuthenticatedClinicalToolsAacRoute
+  '/clinical-tools/voice-analysis': typeof AuthenticatedClinicalToolsVoiceAnalysisRoute
   '/legal/account-deletion': typeof AuthenticatedLegalAccountDeletionRoute
   '/legal/disclaimer': typeof AuthenticatedLegalDisclaimerRoute
   '/legal/privacy': typeof AuthenticatedLegalPrivacyRoute
@@ -209,6 +232,7 @@ export interface FileRoutesByFullPath {
   '/library/downloads': typeof AuthenticatedLibraryDownloadsRoute
   '/library/research': typeof AuthenticatedLibraryResearchRoute
   '/library/uploads': typeof AuthenticatedLibraryUploadsRoute
+  '/clinical-tools/': typeof AuthenticatedClinicalToolsIndexRoute
   '/library/': typeof AuthenticatedLibraryIndexRoute
   '/case/$id/edit': typeof AuthenticatedCaseIdEditRoute
 }
@@ -225,6 +249,8 @@ export interface FileRoutesByTo {
   '/saved-reports': typeof AuthenticatedSavedReportsRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/case/$id': typeof AuthenticatedCaseIdRouteWithChildren
+  '/clinical-tools/aac': typeof AuthenticatedClinicalToolsAacRoute
+  '/clinical-tools/voice-analysis': typeof AuthenticatedClinicalToolsVoiceAnalysisRoute
   '/legal/account-deletion': typeof AuthenticatedLegalAccountDeletionRoute
   '/legal/disclaimer': typeof AuthenticatedLegalDisclaimerRoute
   '/legal/privacy': typeof AuthenticatedLegalPrivacyRoute
@@ -236,6 +262,7 @@ export interface FileRoutesByTo {
   '/library/downloads': typeof AuthenticatedLibraryDownloadsRoute
   '/library/research': typeof AuthenticatedLibraryResearchRoute
   '/library/uploads': typeof AuthenticatedLibraryUploadsRoute
+  '/clinical-tools': typeof AuthenticatedClinicalToolsIndexRoute
   '/library': typeof AuthenticatedLibraryIndexRoute
   '/case/$id/edit': typeof AuthenticatedCaseIdEditRoute
 }
@@ -255,6 +282,8 @@ export interface FileRoutesById {
   '/_authenticated/saved-reports': typeof AuthenticatedSavedReportsRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/case/$id': typeof AuthenticatedCaseIdRouteWithChildren
+  '/_authenticated/clinical-tools/aac': typeof AuthenticatedClinicalToolsAacRoute
+  '/_authenticated/clinical-tools/voice-analysis': typeof AuthenticatedClinicalToolsVoiceAnalysisRoute
   '/_authenticated/legal/account-deletion': typeof AuthenticatedLegalAccountDeletionRoute
   '/_authenticated/legal/disclaimer': typeof AuthenticatedLegalDisclaimerRoute
   '/_authenticated/legal/privacy': typeof AuthenticatedLegalPrivacyRoute
@@ -266,6 +295,7 @@ export interface FileRoutesById {
   '/_authenticated/library/downloads': typeof AuthenticatedLibraryDownloadsRoute
   '/_authenticated/library/research': typeof AuthenticatedLibraryResearchRoute
   '/_authenticated/library/uploads': typeof AuthenticatedLibraryUploadsRoute
+  '/_authenticated/clinical-tools/': typeof AuthenticatedClinicalToolsIndexRoute
   '/_authenticated/library/': typeof AuthenticatedLibraryIndexRoute
   '/_authenticated/case/$id/edit': typeof AuthenticatedCaseIdEditRoute
 }
@@ -285,6 +315,8 @@ export interface FileRouteTypes {
     | '/saved-reports'
     | '/settings'
     | '/case/$id'
+    | '/clinical-tools/aac'
+    | '/clinical-tools/voice-analysis'
     | '/legal/account-deletion'
     | '/legal/disclaimer'
     | '/legal/privacy'
@@ -296,6 +328,7 @@ export interface FileRouteTypes {
     | '/library/downloads'
     | '/library/research'
     | '/library/uploads'
+    | '/clinical-tools/'
     | '/library/'
     | '/case/$id/edit'
   fileRoutesByTo: FileRoutesByTo
@@ -312,6 +345,8 @@ export interface FileRouteTypes {
     | '/saved-reports'
     | '/settings'
     | '/case/$id'
+    | '/clinical-tools/aac'
+    | '/clinical-tools/voice-analysis'
     | '/legal/account-deletion'
     | '/legal/disclaimer'
     | '/legal/privacy'
@@ -323,6 +358,7 @@ export interface FileRouteTypes {
     | '/library/downloads'
     | '/library/research'
     | '/library/uploads'
+    | '/clinical-tools'
     | '/library'
     | '/case/$id/edit'
   id:
@@ -341,6 +377,8 @@ export interface FileRouteTypes {
     | '/_authenticated/saved-reports'
     | '/_authenticated/settings'
     | '/_authenticated/case/$id'
+    | '/_authenticated/clinical-tools/aac'
+    | '/_authenticated/clinical-tools/voice-analysis'
     | '/_authenticated/legal/account-deletion'
     | '/_authenticated/legal/disclaimer'
     | '/_authenticated/legal/privacy'
@@ -352,6 +390,7 @@ export interface FileRouteTypes {
     | '/_authenticated/library/downloads'
     | '/_authenticated/library/research'
     | '/_authenticated/library/uploads'
+    | '/_authenticated/clinical-tools/'
     | '/_authenticated/library/'
     | '/_authenticated/case/$id/edit'
   fileRoutesById: FileRoutesById
@@ -463,6 +502,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLibraryIndexRouteImport
       parentRoute: typeof AuthenticatedLibraryRoute
     }
+    '/_authenticated/clinical-tools/': {
+      id: '/_authenticated/clinical-tools/'
+      path: '/clinical-tools'
+      fullPath: '/clinical-tools/'
+      preLoaderRoute: typeof AuthenticatedClinicalToolsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/library/uploads': {
       id: '/_authenticated/library/uploads'
       path: '/uploads'
@@ -540,6 +586,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLegalAccountDeletionRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/clinical-tools/voice-analysis': {
+      id: '/_authenticated/clinical-tools/voice-analysis'
+      path: '/clinical-tools/voice-analysis'
+      fullPath: '/clinical-tools/voice-analysis'
+      preLoaderRoute: typeof AuthenticatedClinicalToolsVoiceAnalysisRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/clinical-tools/aac': {
+      id: '/_authenticated/clinical-tools/aac'
+      path: '/clinical-tools/aac'
+      fullPath: '/clinical-tools/aac'
+      preLoaderRoute: typeof AuthenticatedClinicalToolsAacRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/case/$id': {
       id: '/_authenticated/case/$id'
       path: '/case/$id'
@@ -604,10 +664,13 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSavedReportsRoute: typeof AuthenticatedSavedReportsRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedCaseIdRoute: typeof AuthenticatedCaseIdRouteWithChildren
+  AuthenticatedClinicalToolsAacRoute: typeof AuthenticatedClinicalToolsAacRoute
+  AuthenticatedClinicalToolsVoiceAnalysisRoute: typeof AuthenticatedClinicalToolsVoiceAnalysisRoute
   AuthenticatedLegalAccountDeletionRoute: typeof AuthenticatedLegalAccountDeletionRoute
   AuthenticatedLegalDisclaimerRoute: typeof AuthenticatedLegalDisclaimerRoute
   AuthenticatedLegalPrivacyRoute: typeof AuthenticatedLegalPrivacyRoute
   AuthenticatedLegalTermsRoute: typeof AuthenticatedLegalTermsRoute
+  AuthenticatedClinicalToolsIndexRoute: typeof AuthenticatedClinicalToolsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -621,11 +684,15 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSavedReportsRoute: AuthenticatedSavedReportsRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedCaseIdRoute: AuthenticatedCaseIdRouteWithChildren,
+  AuthenticatedClinicalToolsAacRoute: AuthenticatedClinicalToolsAacRoute,
+  AuthenticatedClinicalToolsVoiceAnalysisRoute:
+    AuthenticatedClinicalToolsVoiceAnalysisRoute,
   AuthenticatedLegalAccountDeletionRoute:
     AuthenticatedLegalAccountDeletionRoute,
   AuthenticatedLegalDisclaimerRoute: AuthenticatedLegalDisclaimerRoute,
   AuthenticatedLegalPrivacyRoute: AuthenticatedLegalPrivacyRoute,
   AuthenticatedLegalTermsRoute: AuthenticatedLegalTermsRoute,
+  AuthenticatedClinicalToolsIndexRoute: AuthenticatedClinicalToolsIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
