@@ -104,11 +104,12 @@ function CommunityLibraryPage() {
   };
 
   const viewFile = async (r: Row) => {
+    // Force Content-Disposition: attachment to prevent inline execution of
+    // any attacker-supplied content-type on shared community files.
     const { data, error } = await supabase.storage
       .from("uploads")
-      .createSignedUrl(r.file_path, 60 * 10);
+      .createSignedUrl(r.file_path, 60 * 10, { download: r.file_name });
     if (error || !data) return toast.error("Could not open file.");
-    // PDFs and images preview natively in a new tab; docx and others download/open in an external app.
     window.open(data.signedUrl, "_blank", "noopener");
   };
 
