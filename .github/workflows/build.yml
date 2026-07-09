@@ -44,6 +44,9 @@ jobs:
       - name: Build web app
         run: bun run build
 
+      - name: Prepare Capacitor web assets
+        run: node scripts/prepare-capacitor-web.mjs
+
       - name: Verify Capacitor configuration
         run: bunx cap config
 
