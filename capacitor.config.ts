@@ -3,7 +3,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   appId: 'app.lovable.slpassistant',
   appName: 'SLP Assist AI',
-  webDir: 'dist',
+  webDir: 'dist/client',
   server: {
     androidScheme: 'https',
     // For live-reload during dev, set CAP_SERVER_URL env var to your preview URL
