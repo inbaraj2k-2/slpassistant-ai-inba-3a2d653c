@@ -13,7 +13,7 @@
 import { mkdirSync, writeFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-const webDir = resolve(process.cwd(), 'dist', 'client');
+const webDir = resolve(process.cwd(), 'output', 'public');
 mkdirSync(webDir, { recursive: true });
 
 const appUrl =
