@@ -1,19 +1,19 @@
 #!/usr/bin/env node
 /**
- * Prepares the Capacitor `webDir` (dist/client) for `cap sync`.
+ * Prepares the Capacitor `webDir` (.output/public) for `cap sync`.
  *
  * The app is an SSR TanStack Start build, so `vite build` does not emit a
  * static `index.html`. Capacitor requires one inside `webDir` or `cap sync`
- * fails with "Could not find the web assets directory".
+ * fails with "The web assets directory (./.output/public) must contain an index.html file".
  *
  * We generate a minimal shell that immediately loads the hosted app URL so
  * the Android wrapper keeps working against the deployed backend/SSR routes.
  * No UI or business logic is affected — the React app itself is unchanged.
  */
-import { mkdirSync, writeFileSync, existsSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-const webDir = resolve(process.cwd(), 'dist', 'client');
+const webDir = resolve(process.cwd(), '.output', 'public');
 mkdirSync(webDir, { recursive: true });
 
 const appUrl =
@@ -21,9 +21,7 @@ const appUrl =
   'https://slpassistant-ai-inba.lovable.app';
 
 const indexPath = resolve(webDir, 'index.html');
-
-if (!existsSync(indexPath)) {
-  const html = `<!doctype html>
+const html = `<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
@@ -41,8 +39,6 @@ if (!existsSync(indexPath)) {
   </body>
 </html>
 `;
-  writeFileSync(indexPath, html, 'utf8');
-  console.log(`[prepare-capacitor-web] wrote ${indexPath}`);
-} else {
-  console.log(`[prepare-capacitor-web] ${indexPath} already exists, leaving as-is`);
-}
+
+writeFileSync(indexPath, html, 'utf8');
+console.log(`[prepare-capacitor-web] wrote ${indexPath}`);

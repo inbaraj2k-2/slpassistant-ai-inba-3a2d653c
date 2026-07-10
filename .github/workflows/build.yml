@@ -41,11 +41,11 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      - name: Build web app
+      - name: Build web app and prepare Capacitor assets
         run: bun run build
 
-      - name: Prepare Capacitor web assets
-        run: node scripts/prepare-capacitor-web.mjs
+      - name: Verify Capacitor web entrypoint
+        run: test -f .output/public/index.html
 
       - name: Verify Capacitor configuration
         run: bunx cap config
