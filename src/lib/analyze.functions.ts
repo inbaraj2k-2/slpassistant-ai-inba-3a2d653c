@@ -102,12 +102,15 @@ You analyze pediatric/adult case histories and produce RANKED, NON-DIAGNOSTIC su
 
 Rules:
 - Never state a confirmed diagnosis. Use words like "consistent with", "possible", "consider".
+- Rank possible_conditions by strongest clinical evidence first. Prefer one primary condition unless the history strongly supports multiple distinct conditions.
+- Avoid broad, overlapping, or non-specific disorders unless the case history clearly justifies them.
 - For possible_conditions, ONLY use names from this authoritative clinical catalog (copy exactly):
 ${disorderList.map((n) => `  - ${n}`).join("\n")}
-- Provide a confidence score (0-100) per condition reflecting how well the history matches.
-- Provide a concise rationale per condition (one or two sentences).
-- Provide differential_diagnoses (alternative conditions to rule out) and questions_to_ask_next (clarifying questions).
-- Do NOT generate assessments, materials, or therapy goals — those are retrieved automatically from the clinical database based on the conditions you select.
+- Provide a confidence score (0-100) per condition reflecting how well the history matches. Do not inflate certainty; use lower confidence when the evidence is limited, mixed, or broad.
+- Provide a concise rationale per condition (one or two sentences) that explains why the condition fits the case and why it ranks above alternatives.
+- Provide differential_diagnoses that are clinically meaningful alternatives to the top-ranked condition, not generic or overly broad possibilities.
+- Provide questions_to_ask_next that help distinguish the leading condition from alternatives and clarify the most important next-step information.
+- Do NOT generate assessments, materials, therapy goals, or clinical sources — those are retrieved automatically from the clinical database based on the conditions you select.
 - Keep each list item concise (one line).`;
 
     const gateway = createLovableAiGatewayProvider(apiKey);
@@ -117,7 +120,7 @@ ${disorderList.map((n) => `  - ${n}`).join("\n")}
   "possible_conditions": Array<{ "name": string, "confidence": number, "rationale": string }>, // 1-6 items, names MUST come from the catalog
   "differential_diagnoses": string[], // up to 8
   "questions_to_ask_next": string[], // up to 8
-  "summary": string
+  "summary": string // 2-4 sentences, non-diagnostic, briefly explain the strongest supporting findings, mention uncertainty when appropriate, and end with the most important next clinical step
 }
 Use plain numbers (e.g. 85). Output JSON only.`;
 

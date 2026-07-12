@@ -9,6 +9,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { analyzeCase, type AnalysisResult } from "@/lib/analyze.functions";
 import {
   Beaker,
+  ChevronDown,
+  ChevronUp,
   ClipboardList,
   Download,
   HelpCircle,
@@ -217,26 +219,94 @@ function AnalyzingCard() {
 }
 
 function AnalysisView({ analysis }: { analysis: AnalysisResult }) {
+  const [selectedConditionIndex, setSelectedConditionIndex] = useState(() => {
+    const conditions = analysis.possible_conditions ?? [];
+    if (!conditions.length) return -1;
+    return conditions.reduce((bestIndex, condition, index) => {
+      return condition.confidence > conditions[bestIndex].confidence ? index : bestIndex;
+    }, 0);
+  });
+  const [showOtherConditions, setShowOtherConditions] = useState(false);
+
+  useEffect(() => {
+    const conditions = analysis.possible_conditions ?? [];
+    if (!conditions.length) {
+      setSelectedConditionIndex(-1);
+      return;
+    }
+
+    const highestIndex = conditions.reduce((bestIndex, condition, index) => {
+      return condition.confidence > conditions[bestIndex].confidence ? index : bestIndex;
+    }, 0);
+
+    setSelectedConditionIndex((currentIndex) => {
+      if (currentIndex >= 0 && currentIndex < conditions.length) return currentIndex;
+      return highestIndex;
+    });
+  }, [analysis.possible_conditions]);
+
+  const activeCondition = analysis.possible_conditions[selectedConditionIndex] ?? null;
+  const otherConditions = analysis.possible_conditions
+    .map((condition, index) => ({ condition, index }))
+    .filter(({ index }) => index !== selectedConditionIndex);
+
   return (
     <div className="space-y-4">
       <Block icon={<Sparkles className="h-4 w-4" />} title="Possible Conditions">
-        <ul className="space-y-2">
-          {analysis.possible_conditions.map((c, i) => (
-            <li key={i} className="rounded-xl border border-border/70 bg-background p-3">
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-sm font-semibold">{c.name}</p>
-                <ConfidenceBadge value={c.confidence} />
-              </div>
-              <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-secondary">
-                <div
-                  className="h-full bg-gradient-primary"
-                  style={{ width: `${c.confidence}%` }}
-                />
-              </div>
-              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{c.rationale}</p>
-            </li>
-          ))}
-        </ul>
+        {activeCondition ? (
+          <div className="rounded-xl border border-primary/20 bg-primary-soft p-3">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm font-semibold">{activeCondition.name}</p>
+              <ConfidenceBadge value={activeCondition.confidence} />
+            </div>
+            <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-secondary">
+              <div
+                className="h-full bg-gradient-primary"
+                style={{ width: `${activeCondition.confidence}%` }}
+              />
+            </div>
+            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+              {activeCondition.rationale}
+            </p>
+          </div>
+        ) : null}
+
+        {otherConditions.length > 0 ? (
+          <div className="mt-3 rounded-xl border border-border/70 bg-background p-3">
+            <button
+              type="button"
+              onClick={() => setShowOtherConditions((value) => !value)}
+              className="flex w-full items-center justify-between gap-2 text-left"
+            >
+              <span className="text-sm font-semibold">Other Possible Conditions</span>
+              {showOtherConditions ? (
+                <ChevronUp className="h-4 w-4 text-muted-foreground" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              )}
+            </button>
+
+            {showOtherConditions ? (
+              <ul className="mt-3 space-y-2">
+                {otherConditions.map(({ condition, index }) => (
+                  <li key={`${condition.name}-${index}`}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedConditionIndex(index);
+                        setShowOtherConditions(false);
+                      }}
+                      className="flex w-full items-center justify-between gap-2 rounded-lg border border-border/70 bg-background px-3 py-2 text-left transition hover:bg-secondary/50"
+                    >
+                      <span className="text-sm font-medium">{condition.name}</span>
+                      <ConfidenceBadge value={condition.confidence} />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
+        ) : null}
       </Block>
 
       {analysis.differential_diagnoses?.length > 0 && (
