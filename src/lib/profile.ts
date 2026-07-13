@@ -21,6 +21,14 @@ export async function ensureUserProfile(user: User) {
   const provider =
     typeof appMetadata.provider === "string" ? appMetadata.provider : "google";
 
+  const { data: existingProfile, error: existingProfileError } = await supabase
+    .from("profiles")
+    .select("clinic_name, clinic_logo_url")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (existingProfileError && existingProfileError.code !== "PGRST116") throw existingProfileError;
+
   const { error } = await supabase.from("profiles").upsert(
     {
       id: user.id,
@@ -28,6 +36,7 @@ export async function ensureUserProfile(user: User) {
       full_name: fullName,
       avatar_url: avatarUrl,
       provider,
+      ...(existingProfile ?? {}),
       updated_at: new Date().toISOString(),
     },
     { onConflict: "id" },
