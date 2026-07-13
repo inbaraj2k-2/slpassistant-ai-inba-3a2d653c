@@ -1,6 +1,12 @@
 apply plugin: 'com.android.application'
 
-android {
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file("key.properties")
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+    }
+
+    android {
     namespace = "app.lovable.slpassistant"
     compileSdk = rootProject.ext.compileSdkVersion
     compileOptions {
@@ -20,11 +26,20 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+                storeFile file(keystoreProperties['storeFile'])
+                        storePassword keystoreProperties['storePassword']
+                                keyAlias keystoreProperties['keyAlias']
+                                        keyPassword keystoreProperties['keyPassword']
+                                            }
+                                            }
     buildTypes {
         release {
+            signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-        }
+            }
     }
 }
 
