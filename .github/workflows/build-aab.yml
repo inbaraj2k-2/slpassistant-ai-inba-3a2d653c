@@ -56,8 +56,7 @@ jobs:
       - name: Prepare Keystore
         run: |
           mkdir -p android/app
-          cp android/slpassistai-release.jks 
-      android/app/slpassistai-release.jks
+          cp android/slpassistai-release.jks android/app/slpassistai-release.jks
 
       - name: Bundle Android App Bundle (AAB)
         working-directory: android
