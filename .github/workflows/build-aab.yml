@@ -53,6 +53,11 @@ jobs:
       - name: Sync Capacitor Android project
         run: bunx cap sync android
 
+      - name: Prepare Keystore
+        run: |
+          mkdir -p android/app
+          cp android/slpassistai-release.jks                  android/app/slpassistai-release.jks
+
       - name: Bundle Android App Bundle (AAB)
         working-directory: android
         run: ./gradlew bundleRelease --no-daemon --stacktrace
