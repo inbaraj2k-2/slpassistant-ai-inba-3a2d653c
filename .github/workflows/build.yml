@@ -53,13 +53,13 @@ jobs:
       - name: Sync Capacitor Android project
         run: bunx cap sync android
 
-      - name: Bundle Android App Bundle (AAB)
+      - name: Assemble Android release (unsigned)
         working-directory: android
-        run: ./gradlew bundleRelease --no-daemon --stacktrace
+        run: ./gradlew assembleRelease --no-daemon --stacktrace
 
-      - name: Upload release AAB artifact
+      - name: Upload release APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: app-release-aab
-          path: android/app/build/outputs/bundle/release/*.aab
+          name: app-release-unsigned
+          path: android/app/build/outputs/apk/release/*.apk
           if-no-files-found: error
