@@ -9,16 +9,22 @@ import { useServerFn } from "@tanstack/react-start";
 import { analyzeCase, type AnalysisResult } from "@/lib/analyze.functions";
 import {
   Beaker,
+  BookOpen,
+  CheckSquare,
   ChevronDown,
-  ChevronUp,
+  ChevronRight,
   ClipboardList,
   Download,
+  FileText,
   HelpCircle,
   Loader2,
   Package,
   Pencil,
   RefreshCw,
+  ShieldCheck,
   Sparkles,
+  Square,
+  Stethoscope,
   Target,
   Trash2,
 } from "lucide-react";
