@@ -7,14 +7,15 @@
     "dev": "vite dev",
     "build": "node scripts/build-kb-snapshot.mjs && vite build && node scripts/prepare-capacitor-web.mjs",
     "build:dev": "node scripts/build-kb-snapshot.mjs && vite build --mode development && node scripts/prepare-capacitor-web.mjs",
+    "build:capacitor": "node scripts/build-kb-snapshot.mjs && node scripts/build-capacitor.mjs",
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier --write .",
     "cap:add:android": "cap add android",
-    "cap:sync": "cap sync android",
+    "cap:sync": "bun run build:capacitor && cap sync android",
     "cap:copy": "cap copy android",
     "cap:open:android": "cap open android",
-    "android:build": "bun run build && cap sync android && cap open android"
+    "android:build": "bun run build:capacitor && cap sync android && cap open android"
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^2.0.48",
