@@ -28,10 +28,27 @@ jobs:
           bun-version: latest
 
       - name: Set up JDK 21
+        id: setup-java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
+
+      - name: Export JAVA_HOME for Gradle
+        run: |
+          echo "JAVA_HOME=${{ steps.setup-java.outputs.path }}" >> "$GITHUB_ENV"
+          echo "org.gradle.java.home=${{ steps.setup-java.outputs.path }}" >> android/gradle.properties
+
+      - name: Verify Java version
+        run: java -version
+
+      - name: Print JAVA_HOME
+        run: echo "JAVA_HOME=$JAVA_HOME"
+
+      - name: Verify Gradle uses Java 21
+        working-directory: android
+        run: ./gradlew --version
+
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
