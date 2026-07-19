@@ -3,7 +3,8 @@ import { AppShell } from "@/components/AppShell";
 import { Disclaimer } from "@/components/Disclaimer";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Sparkles } from "lucide-react";
+import { Loader2, Sparkles, WifiOff } from "lucide-react";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 
 export const Route = createFileRoute("/_authenticated/new-case")({
   head: () => ({ meta: [{ title: "New Case — SLP Assist AI" }] }),
@@ -46,6 +47,7 @@ const empty: Fields = {
 
 function NewCasePage() {
   const navigate = useNavigate();
+  const online = useOnlineStatus();
   const [f, setF] = useState<Fields>(empty);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -135,13 +137,21 @@ function NewCasePage() {
           <p className="rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">{error}</p>
         )}
 
+        {!online && (
+          <div className="flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200">
+            <WifiOff className="mt-0.5 h-4 w-4 shrink-0" />
+            <span>Internet required for AI analysis. You can still save the case history and use offline tools.</span>
+          </div>
+        )}
+
         <button
           onClick={analyze}
-          disabled={busy}
+          disabled={busy || !online}
+          title={!online ? "Internet required for AI analysis" : undefined}
           className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-primary font-semibold text-primary-foreground shadow-elev transition hover:opacity-95 disabled:opacity-60"
         >
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-          {busy ? "Saving…" : "Analyze Case"}
+          {busy ? "Saving…" : !online ? "AI Unavailable (Offline)" : "Analyze Case"}
         </button>
       </div>
     </AppShell>
