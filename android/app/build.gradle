@@ -8,8 +8,9 @@ if (keystorePropertiesFile.exists()) {
 
 def resolveSigningProp = { String propKey, String envKey ->
     def envVal = System.getenv(envKey)
-    if (envVal != null && !envVal.isEmpty()) return envVal
-    return keystoreProperties.getProperty(propKey)
+    if (envVal != null && !envVal.trim().isEmpty()) return envVal.trim()
+    def propVal = keystoreProperties.getProperty(propKey)
+    return propVal == null ? null : propVal.trim()
 }
 
 def signingStoreFile = resolveSigningProp('storeFile', 'ANDROID_KEYSTORE_FILE')
@@ -19,18 +20,42 @@ def signingKeyPassword = resolveSigningProp('keyPassword', 'ANDROID_KEY_PASSWORD
 
 def resolvedStoreFile = null
 if (signingStoreFile != null && !signingStoreFile.isEmpty()) {
-    def f = file(signingStoreFile)
-    if (!f.isAbsolute() || !f.exists()) {
-        def candidate = rootProject.file(signingStoreFile)
-        if (candidate.exists()) f = candidate
+    def appRelativeFile = file(signingStoreFile)
+    def rootRelativeFile = rootProject.file(signingStoreFile)
+    def repoRootRelativeFile = rootProject.projectDir.parentFile == null ? null : new File(rootProject.projectDir.parentFile, signingStoreFile)
+
+    if (appRelativeFile.exists()) {
+        resolvedStoreFile = appRelativeFile
+    } else if (rootRelativeFile.exists()) {
+        resolvedStoreFile = rootRelativeFile
+    } else if (repoRootRelativeFile != null && repoRootRelativeFile.exists()) {
+        resolvedStoreFile = repoRootRelativeFile
     }
-    if (f.exists()) resolvedStoreFile = f
 }
 
 def hasReleaseSigning = resolvedStoreFile != null &&
     signingStorePassword != null && !signingStorePassword.isEmpty() &&
     signingKeyAlias != null && !signingKeyAlias.isEmpty() &&
     signingKeyPassword != null && !signingKeyPassword.isEmpty()
+
+def validateReleaseSigning = {
+    def missing = []
+    if (signingStoreFile == null || signingStoreFile.isEmpty()) missing << "storeFile / ANDROID_KEYSTORE_FILE"
+    if (resolvedStoreFile == null) missing << "existing keystore file for '${signingStoreFile}'"
+    if (signingStorePassword == null || signingStorePassword.isEmpty()) missing << "storePassword / ANDROID_KEYSTORE_PASSWORD"
+    if (signingKeyAlias == null || signingKeyAlias.isEmpty()) missing << "keyAlias / ANDROID_KEY_ALIAS"
+    if (signingKeyPassword == null || signingKeyPassword.isEmpty()) missing << "keyPassword / ANDROID_KEY_PASSWORD"
+
+    if (!missing.isEmpty()) {
+        throw new GradleException("Release signing is incomplete. Missing: ${missing.join(', ')}. Provide android/keystore.properties or ANDROID_KEYSTORE_* environment variables.")
+    }
+}
+
+gradle.taskGraph.whenReady { taskGraph ->
+    if (taskGraph.hasTask(":app:bundleRelease") || taskGraph.hasTask(":app:signReleaseBundle") || taskGraph.hasTask(":app:assembleRelease")) {
+        validateReleaseSigning()
+    }
+}
 
 android {
     namespace = "app.lovable.slpassistant"
@@ -53,24 +78,18 @@ android {
         }
     }
     signingConfigs {
-        if (hasReleaseSigning) {
-            release {
-                storeFile resolvedStoreFile
-                storePassword signingStorePassword
-                keyAlias signingKeyAlias
-                keyPassword signingKeyPassword
-            }
+        release {
+            storeFile resolvedStoreFile
+            storePassword signingStorePassword
+            keyAlias signingKeyAlias
+            keyPassword signingKeyPassword
         }
     }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            if (hasReleaseSigning) {
-                signingConfig signingConfigs.release
-            } else {
-                logger.warn("Release signing config not found; :app:signReleaseBundle will fail. Provide android/keystore.properties or ANDROID_KEYSTORE_* env vars.")
-            }
+            signingConfig signingConfigs.release
         }
     }
 }
