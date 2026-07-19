@@ -47,6 +47,7 @@ const empty: Fields = {
 
 function NewCasePage() {
   const navigate = useNavigate();
+  const online = useOnlineStatus();
   const [f, setF] = useState<Fields>(empty);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
