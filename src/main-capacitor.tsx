@@ -13,7 +13,7 @@ import "./styles.css";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { RouterProvider, createRouter, HeadContent } from "@tanstack/react-router";
+import { RouterProvider, createRouter } from "@tanstack/react-router";
 
 import { routeTree } from "./routeTree.gen";
 
@@ -79,7 +79,6 @@ function App() {
   return (
     <StrictMode>
       <QueryClientProvider client={queryClient}>
-        <HeadContent />
         <RouterProvider router={router} />
       </QueryClientProvider>
     </StrictMode>
