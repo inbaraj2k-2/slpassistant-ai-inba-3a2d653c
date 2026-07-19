@@ -7,7 +7,7 @@
  * no SSR runtime — the app launches directly from local files.
  */
 import { execSync } from "node:child_process";
-import { cpSync, existsSync, mkdirSync, readdirSync, statSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, readdirSync, renameSync, statSync } from "node:fs";
 import { resolve, join } from "node:path";
 
 const root = process.cwd();
@@ -18,6 +18,15 @@ execSync("bunx vite build -c vite.capacitor.config.ts", {
   stdio: "inherit",
   cwd: root,
 });
+
+// Vite emits the entry as index.capacitor.html (matching the input filename).
+// Rename to index.html so Capacitor's WebView picks it up as the launcher.
+const emittedHtml = join(outDir, "index.capacitor.html");
+const finalHtml = join(outDir, "index.html");
+if (existsSync(emittedHtml)) {
+  renameSync(emittedHtml, finalHtml);
+  console.log(`[build-capacitor] Renamed index.capacitor.html -> index.html`);
+}
 
 // Copy public/ assets (icons, manifest, kb-snapshot.json, etc.) into the
 // bundle so they resolve at /manifest.webmanifest, /kb-snapshot.json, etc.
