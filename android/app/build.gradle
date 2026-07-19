@@ -1,5 +1,37 @@
 apply plugin: 'com.android.application'
 
+def keystorePropertiesFile = rootProject.file("keystore.properties")
+def keystoreProperties = new Properties()
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.withInputStream { keystoreProperties.load(it) }
+}
+
+def resolveSigningProp = { String propKey, String envKey ->
+    def envVal = System.getenv(envKey)
+    if (envVal != null && !envVal.isEmpty()) return envVal
+    return keystoreProperties.getProperty(propKey)
+}
+
+def signingStoreFile = resolveSigningProp('storeFile', 'ANDROID_KEYSTORE_FILE')
+def signingStorePassword = resolveSigningProp('storePassword', 'ANDROID_KEYSTORE_PASSWORD')
+def signingKeyAlias = resolveSigningProp('keyAlias', 'ANDROID_KEY_ALIAS')
+def signingKeyPassword = resolveSigningProp('keyPassword', 'ANDROID_KEY_PASSWORD')
+
+def resolvedStoreFile = null
+if (signingStoreFile != null && !signingStoreFile.isEmpty()) {
+    def f = file(signingStoreFile)
+    if (!f.isAbsolute() || !f.exists()) {
+        def candidate = rootProject.file(signingStoreFile)
+        if (candidate.exists()) f = candidate
+    }
+    if (f.exists()) resolvedStoreFile = f
+}
+
+def hasReleaseSigning = resolvedStoreFile != null &&
+    signingStorePassword != null && !signingStorePassword.isEmpty() &&
+    signingKeyAlias != null && !signingKeyAlias.isEmpty() &&
+    signingKeyPassword != null && !signingKeyPassword.isEmpty()
+
 android {
     namespace = "app.lovable.slpassistant"
     compileSdk = rootProject.ext.compileSdkVersion
