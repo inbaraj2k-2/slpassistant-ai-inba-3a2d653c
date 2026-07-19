@@ -35,15 +35,18 @@ export default defineConfig({
     },
   },
   resolve: {
-    // Force browser-safe stubs for server-only modules pulled in transitively.
+    // Replace server-only modules with browser-safe shims so the SPA bundle
+    // never pulls TanStack Start server internals into the browser.
     alias: [
+      { find: "@/lib/analyze.functions", replacement: resolve(__dirname, "src/capacitor/shims/analyze.functions.ts") },
+      { find: "@/lib/account.functions", replacement: resolve(__dirname, "src/capacitor/shims/account.functions.ts") },
+      { find: "@/lib/clinical.functions", replacement: resolve(__dirname, "src/capacitor/shims/clinical.functions.ts") },
+      { find: "@/lib/api/example.functions", replacement: resolve(__dirname, "src/capacitor/stub-empty.ts") },
       { find: "@/integrations/supabase/client.server", replacement: resolve(__dirname, "src/capacitor/stub-empty.ts") },
+      { find: "@/integrations/supabase/auth-middleware", replacement: resolve(__dirname, "src/capacitor/stub-empty.ts") },
       { find: "@/lib/ai-gateway.server", replacement: resolve(__dirname, "src/capacitor/stub-empty.ts") },
       { find: "@/lib/config.server", replacement: resolve(__dirname, "src/capacitor/stub-empty.ts") },
       { find: "@/lib/error-capture", replacement: resolve(__dirname, "src/capacitor/stub-empty.ts") },
-      { find: "./ai-gateway.server", replacement: resolve(__dirname, "src/capacitor/stub-empty.ts") },
-      { find: "./client.server", replacement: resolve(__dirname, "src/capacitor/stub-empty.ts") },
-      { find: "./error-capture", replacement: resolve(__dirname, "src/capacitor/stub-empty.ts") },
     ],
   },
 });
