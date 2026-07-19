@@ -79,7 +79,6 @@ function App() {
   return (
     <StrictMode>
       <QueryClientProvider client={queryClient}>
-        <HeadContent />
         <RouterProvider router={router} />
       </QueryClientProvider>
     </StrictMode>
