@@ -3,7 +3,8 @@ import { AppShell } from "@/components/AppShell";
 import { Disclaimer } from "@/components/Disclaimer";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Sparkles } from "lucide-react";
+import { Loader2, Sparkles, WifiOff } from "lucide-react";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 
 export const Route = createFileRoute("/_authenticated/new-case")({
   head: () => ({ meta: [{ title: "New Case — SLP Assist AI" }] }),
