@@ -16,6 +16,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
 
 import { routeTree } from "./routeTree.gen";
+import { completeCapacitorOAuthFromUrl } from "./lib/capacitor-auth";
 
 // Absolute origin of the published web app that hosts the server functions.
 // The mobile app talks to it only for AI analysis and other privileged RPC
