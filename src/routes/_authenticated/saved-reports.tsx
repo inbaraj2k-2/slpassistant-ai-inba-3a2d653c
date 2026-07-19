@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
-import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useCachedQuery } from "@/hooks/useCachedQuery";
 import { ChevronRight, FileText, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/saved-reports")({
@@ -10,17 +10,14 @@ export const Route = createFileRoute("/_authenticated/saved-reports")({
 });
 
 function SavedReportsPage() {
-  const { data, isLoading } = useQuery({
-    queryKey: ["saved-reports"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("cases")
-        .select("id, name, age, analysis, created_at")
-        .not("analysis", "is", null)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data ?? [];
-    },
+  const { data, isLoading } = useCachedQuery("saved-reports:v1", async () => {
+    const { data, error } = await supabase
+      .from("cases")
+      .select("id, name, age, analysis, created_at")
+      .not("analysis", "is", null)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data ?? [];
   });
 
   return (
