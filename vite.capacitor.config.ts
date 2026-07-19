@@ -38,6 +38,7 @@ export default defineConfig({
     // Replace server-only modules with browser-safe shims so the SPA bundle
     // never pulls TanStack Start server internals into the browser.
     alias: [
+      { find: "@tanstack/react-start", replacement: resolve(__dirname, "src/capacitor/stub-react-start.ts") },
       { find: "@/lib/analyze.functions", replacement: resolve(__dirname, "src/capacitor/shims/analyze.functions.ts") },
       { find: "@/lib/account.functions", replacement: resolve(__dirname, "src/capacitor/shims/account.functions.ts") },
       { find: "@/lib/clinical.functions", replacement: resolve(__dirname, "src/capacitor/shims/clinical.functions.ts") },
