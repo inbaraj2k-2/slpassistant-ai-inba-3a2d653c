@@ -1,7 +1,8 @@
 import { Link, useRouter } from "@tanstack/react-router";
-import { ArrowLeft, BookOpen, FolderClock, Home, Settings } from "lucide-react";
+import { ArrowLeft, BookOpen, FolderClock, Home, Settings, WifiOff } from "lucide-react";
 import type { ReactNode } from "react";
 import { BrandMark } from "@/components/BrandMark";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 
 interface Props {
   title: string;
