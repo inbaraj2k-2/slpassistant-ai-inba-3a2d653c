@@ -37,11 +37,13 @@ export default defineConfig({
   resolve: {
     // Force browser-safe stubs for server-only modules pulled in transitively.
     alias: [
-      { find: /^@\/integrations\/supabase\/client\.server$/, replacement: resolve(__dirname, "src/capacitor/stub-empty.ts") },
-      { find: /^@\/lib\/ai-gateway\.server$/, replacement: resolve(__dirname, "src/capacitor/stub-empty.ts") },
-      { find: /^@\/lib\/config\.server$/, replacement: resolve(__dirname, "src/capacitor/stub-empty.ts") },
-      { find: /^@\/lib\/error-capture$/, replacement: resolve(__dirname, "src/capacitor/stub-empty.ts") },
-      { find: /\.server(\.ts|\.tsx)?$/, replacement: resolve(__dirname, "src/capacitor/stub-empty.ts") },
+      { find: "@/integrations/supabase/client.server", replacement: resolve(__dirname, "src/capacitor/stub-empty.ts") },
+      { find: "@/lib/ai-gateway.server", replacement: resolve(__dirname, "src/capacitor/stub-empty.ts") },
+      { find: "@/lib/config.server", replacement: resolve(__dirname, "src/capacitor/stub-empty.ts") },
+      { find: "@/lib/error-capture", replacement: resolve(__dirname, "src/capacitor/stub-empty.ts") },
+      { find: "./ai-gateway.server", replacement: resolve(__dirname, "src/capacitor/stub-empty.ts") },
+      { find: "./client.server", replacement: resolve(__dirname, "src/capacitor/stub-empty.ts") },
+      { find: "./error-capture", replacement: resolve(__dirname, "src/capacitor/stub-empty.ts") },
     ],
   },
 });
