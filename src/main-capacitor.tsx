@@ -16,6 +16,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
 
 import { routeTree } from "./routeTree.gen";
+import { completeCapacitorOAuthFromUrl } from "./lib/capacitor-auth";
 
 // Absolute origin of the published web app that hosts the server functions.
 // The mobile app talks to it only for AI analysis and other privileged RPC
@@ -88,3 +89,23 @@ function App() {
 const container = document.getElementById("root");
 if (!container) throw new Error("Missing #root element");
 createRoot(container).render(<App />);
+
+// Deep-link handler for the Google OAuth callback returning from Chrome
+// Custom Tab as app.lovable.slpassistant://auth-callback#access_token=...
+(async () => {
+  try {
+    const { App: CapApp } = await import("@capacitor/app");
+    CapApp.addListener("appUrlOpen", async (event: { url: string }) => {
+      try {
+        const consumed = await completeCapacitorOAuthFromUrl(event.url);
+        if (consumed) {
+          router.navigate({ to: "/home", replace: true });
+        }
+      } catch (err) {
+        console.error("[capacitor] OAuth deep-link failed", err);
+      }
+    });
+  } catch {
+    // Not running under Capacitor — ignore.
+  }
+})();
