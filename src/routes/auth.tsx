@@ -5,6 +5,11 @@ import { lovable } from "@/integrations/lovable";
 import { Disclaimer } from "@/components/Disclaimer";
 import { BrandMark } from "@/components/BrandMark";
 import { ensureUserProfile } from "@/lib/profile";
+import {
+  CAPACITOR_DEEP_LINK_URL,
+  isCapacitorRuntime,
+  signInWithGoogleOnCapacitor,
+} from "@/lib/capacitor-auth";
 import { Loader2, UserRound } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({
