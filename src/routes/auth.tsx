@@ -29,6 +29,17 @@ function AuthPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // When Google/Supabase redirects the Chrome Custom Tab back to
+    // https://<published>/auth?mobile_callback=1#access_token=...,
+    // immediately deep-link the tokens back into the installed Android app.
+    if (typeof window !== "undefined") {
+      const search = new URLSearchParams(window.location.search);
+      if (search.get("mobile_callback") === "1" && window.location.hash) {
+        window.location.href = `${CAPACITOR_DEEP_LINK_URL}${window.location.hash}`;
+        return;
+      }
+    }
+
     supabase.auth.getUser().then(async ({ data }) => {
       if (data.user) {
         try {
@@ -47,6 +58,15 @@ function AuthPage() {
     setError(null);
     setBusy("google");
     try {
+      // Inside the installed Android app, popups don't work — use a
+      // Chrome Custom Tab + deep-link callback instead.
+      if (isCapacitorRuntime()) {
+        await signInWithGoogleOnCapacitor();
+        // The rest of the flow is handled by the appUrlOpen listener in
+        // src/main-capacitor.tsx once Google redirects back to the app.
+        return;
+      }
+
       const result = await lovable.auth.signInWithOAuth("google", {
         redirect_uri: window.location.origin,
         extraParams: { prompt: "select_account" },
