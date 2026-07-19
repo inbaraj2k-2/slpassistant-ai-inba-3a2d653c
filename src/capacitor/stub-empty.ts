@@ -10,3 +10,11 @@ export const supabaseAdmin = new Proxy({}, {
 export function createLovableAiGatewayProvider() {
   throw new Error("AI gateway is not available in the mobile bundle");
 }
+export function runAnalyzeCase(): never {
+  throw new Error("runAnalyzeCase is not available in the mobile bundle");
+}
+export function runDeleteMyAccount(): never {
+  throw new Error("runDeleteMyAccount is not available in the mobile bundle");
+}
+export const AnalysisSchema = undefined as unknown;
+export type AnalysisResult = unknown;

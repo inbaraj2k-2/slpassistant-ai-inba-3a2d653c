@@ -46,6 +46,7 @@ export default defineConfig({
       { find: "@/integrations/supabase/client.server", replacement: resolve(__dirname, "src/capacitor/stub-empty.ts") },
       { find: "@/integrations/supabase/auth-middleware", replacement: resolve(__dirname, "src/capacitor/stub-empty.ts") },
       { find: "@/lib/ai-gateway.server", replacement: resolve(__dirname, "src/capacitor/stub-empty.ts") },
+      { find: "@/lib/analyze-core.server", replacement: resolve(__dirname, "src/capacitor/stub-empty.ts") },
       { find: "@/lib/config.server", replacement: resolve(__dirname, "src/capacitor/stub-empty.ts") },
       { find: "@/lib/error-capture", replacement: resolve(__dirname, "src/capacitor/stub-empty.ts") },
     ],

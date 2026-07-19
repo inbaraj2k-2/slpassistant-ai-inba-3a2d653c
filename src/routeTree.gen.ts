@@ -13,6 +13,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiAnalyzeRouteImport } from './routes/api/analyze'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedSavedReportsRouteImport } from './routes/_authenticated/saved-reports'
 import { Route as AuthenticatedNewCaseRouteImport } from './routes/_authenticated/new-case'
@@ -24,6 +25,7 @@ import { Route as AuthenticatedCasesRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedAdminDebugRouteImport } from './routes/_authenticated/admin-debug'
 import { Route as AuthenticatedLibraryIndexRouteImport } from './routes/_authenticated/library.index'
 import { Route as AuthenticatedClinicalToolsIndexRouteImport } from './routes/_authenticated/clinical-tools.index'
+import { Route as ApiAccountDeleteRouteImport } from './routes/api/account.delete'
 import { Route as AuthenticatedLibraryUploadsRouteImport } from './routes/_authenticated/library.uploads'
 import { Route as AuthenticatedLibraryResearchRouteImport } from './routes/_authenticated/library.research'
 import { Route as AuthenticatedLibraryDownloadsRouteImport } from './routes/_authenticated/library.downloads'
@@ -57,6 +59,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAnalyzeRoute = ApiAnalyzeRouteImport.update({
+  id: '/api/analyze',
+  path: '/api/analyze',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
@@ -117,6 +124,11 @@ const AuthenticatedClinicalToolsIndexRoute =
     path: '/clinical-tools/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiAccountDeleteRoute = ApiAccountDeleteRouteImport.update({
+  id: '/api/account/delete',
+  path: '/api/account/delete',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedLibraryUploadsRoute =
   AuthenticatedLibraryUploadsRouteImport.update({
     id: '/uploads',
@@ -218,6 +230,7 @@ export interface FileRoutesByFullPath {
   '/new-case': typeof AuthenticatedNewCaseRoute
   '/saved-reports': typeof AuthenticatedSavedReportsRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/api/analyze': typeof ApiAnalyzeRoute
   '/case/$id': typeof AuthenticatedCaseIdRouteWithChildren
   '/clinical-tools/aac': typeof AuthenticatedClinicalToolsAacRoute
   '/clinical-tools/voice-analysis': typeof AuthenticatedClinicalToolsVoiceAnalysisRoute
@@ -232,6 +245,7 @@ export interface FileRoutesByFullPath {
   '/library/downloads': typeof AuthenticatedLibraryDownloadsRoute
   '/library/research': typeof AuthenticatedLibraryResearchRoute
   '/library/uploads': typeof AuthenticatedLibraryUploadsRoute
+  '/api/account/delete': typeof ApiAccountDeleteRoute
   '/clinical-tools/': typeof AuthenticatedClinicalToolsIndexRoute
   '/library/': typeof AuthenticatedLibraryIndexRoute
   '/case/$id/edit': typeof AuthenticatedCaseIdEditRoute
@@ -248,6 +262,7 @@ export interface FileRoutesByTo {
   '/new-case': typeof AuthenticatedNewCaseRoute
   '/saved-reports': typeof AuthenticatedSavedReportsRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/api/analyze': typeof ApiAnalyzeRoute
   '/case/$id': typeof AuthenticatedCaseIdRouteWithChildren
   '/clinical-tools/aac': typeof AuthenticatedClinicalToolsAacRoute
   '/clinical-tools/voice-analysis': typeof AuthenticatedClinicalToolsVoiceAnalysisRoute
@@ -262,6 +277,7 @@ export interface FileRoutesByTo {
   '/library/downloads': typeof AuthenticatedLibraryDownloadsRoute
   '/library/research': typeof AuthenticatedLibraryResearchRoute
   '/library/uploads': typeof AuthenticatedLibraryUploadsRoute
+  '/api/account/delete': typeof ApiAccountDeleteRoute
   '/clinical-tools': typeof AuthenticatedClinicalToolsIndexRoute
   '/library': typeof AuthenticatedLibraryIndexRoute
   '/case/$id/edit': typeof AuthenticatedCaseIdEditRoute
@@ -281,6 +297,7 @@ export interface FileRoutesById {
   '/_authenticated/new-case': typeof AuthenticatedNewCaseRoute
   '/_authenticated/saved-reports': typeof AuthenticatedSavedReportsRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/api/analyze': typeof ApiAnalyzeRoute
   '/_authenticated/case/$id': typeof AuthenticatedCaseIdRouteWithChildren
   '/_authenticated/clinical-tools/aac': typeof AuthenticatedClinicalToolsAacRoute
   '/_authenticated/clinical-tools/voice-analysis': typeof AuthenticatedClinicalToolsVoiceAnalysisRoute
@@ -295,6 +312,7 @@ export interface FileRoutesById {
   '/_authenticated/library/downloads': typeof AuthenticatedLibraryDownloadsRoute
   '/_authenticated/library/research': typeof AuthenticatedLibraryResearchRoute
   '/_authenticated/library/uploads': typeof AuthenticatedLibraryUploadsRoute
+  '/api/account/delete': typeof ApiAccountDeleteRoute
   '/_authenticated/clinical-tools/': typeof AuthenticatedClinicalToolsIndexRoute
   '/_authenticated/library/': typeof AuthenticatedLibraryIndexRoute
   '/_authenticated/case/$id/edit': typeof AuthenticatedCaseIdEditRoute
@@ -314,6 +332,7 @@ export interface FileRouteTypes {
     | '/new-case'
     | '/saved-reports'
     | '/settings'
+    | '/api/analyze'
     | '/case/$id'
     | '/clinical-tools/aac'
     | '/clinical-tools/voice-analysis'
@@ -328,6 +347,7 @@ export interface FileRouteTypes {
     | '/library/downloads'
     | '/library/research'
     | '/library/uploads'
+    | '/api/account/delete'
     | '/clinical-tools/'
     | '/library/'
     | '/case/$id/edit'
@@ -344,6 +364,7 @@ export interface FileRouteTypes {
     | '/new-case'
     | '/saved-reports'
     | '/settings'
+    | '/api/analyze'
     | '/case/$id'
     | '/clinical-tools/aac'
     | '/clinical-tools/voice-analysis'
@@ -358,6 +379,7 @@ export interface FileRouteTypes {
     | '/library/downloads'
     | '/library/research'
     | '/library/uploads'
+    | '/api/account/delete'
     | '/clinical-tools'
     | '/library'
     | '/case/$id/edit'
@@ -376,6 +398,7 @@ export interface FileRouteTypes {
     | '/_authenticated/new-case'
     | '/_authenticated/saved-reports'
     | '/_authenticated/settings'
+    | '/api/analyze'
     | '/_authenticated/case/$id'
     | '/_authenticated/clinical-tools/aac'
     | '/_authenticated/clinical-tools/voice-analysis'
@@ -390,6 +413,7 @@ export interface FileRouteTypes {
     | '/_authenticated/library/downloads'
     | '/_authenticated/library/research'
     | '/_authenticated/library/uploads'
+    | '/api/account/delete'
     | '/_authenticated/clinical-tools/'
     | '/_authenticated/library/'
     | '/_authenticated/case/$id/edit'
@@ -400,6 +424,8 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  ApiAnalyzeRoute: typeof ApiAnalyzeRoute
+  ApiAccountDeleteRoute: typeof ApiAccountDeleteRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -430,6 +456,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/analyze': {
+      id: '/api/analyze'
+      path: '/api/analyze'
+      fullPath: '/api/analyze'
+      preLoaderRoute: typeof ApiAnalyzeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/settings': {
@@ -508,6 +541,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/clinical-tools/'
       preLoaderRoute: typeof AuthenticatedClinicalToolsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/account/delete': {
+      id: '/api/account/delete'
+      path: '/api/account/delete'
+      fullPath: '/api/account/delete'
+      preLoaderRoute: typeof ApiAccountDeleteRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/library/uploads': {
       id: '/_authenticated/library/uploads'
@@ -703,6 +743,8 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  ApiAnalyzeRoute: ApiAnalyzeRoute,
+  ApiAccountDeleteRoute: ApiAccountDeleteRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
