@@ -1,45 +1,26 @@
-// Capacitor-only Google OAuth flow.
+// Capacitor-only Google OAuth flow using Lovable's managed OAuth broker.
 //
-// Rationale: the default Lovable web-message popup flow does not complete
-// inside an Android WebView (popups return to https://localhost, which does
-// not exist -> "404 Page not found"). Instead, on Capacitor we:
-//   1. Ask Supabase for a Google OAuth URL using the *implicit* flow
-//      (tokens returned in the URL hash — no code_verifier to share across
-//      processes).
-//   2. Open that URL in a Chrome Custom Tab via @capacitor/browser.
-//   3. Supabase redirects back to the published web /auth page with the
-//      tokens in the hash and ?mobile_callback=1.
-//   4. That page immediately deep-links back to the app using our custom
-//      scheme (app.lovable.slpassistant://auth-callback#<hash>).
+// Flow:
+//   1. Build a broker URL against the published origin:
+//        https://<published>/~oauth/initiate?provider=google
+//          &redirect_uri=https://<published>/auth?mobile_callback=1&state=...
+//   2. Open it in a Chrome Custom Tab via @capacitor/browser.
+//   3. Lovable's broker handles Google OAuth (Managed Cloud Auth — no need
+//      to configure Supabase's native Google provider) and redirects the
+//      Custom Tab back to /auth?mobile_callback=1#access_token=...&refresh_token=...
+//   4. That /auth page deep-links the tokens back into the app using
+//      app.lovable.slpassistant://auth-callback#<hash>.
 //   5. The app's appUrlOpen listener (main-capacitor.tsx) parses the tokens
 //      and calls supabase.auth.setSession().
-//
-// The published /auth page is on the app's Site URL, so it is already an
-// allowed Supabase redirect target — no Supabase dashboard changes needed.
 
-import { createClient } from "@supabase/supabase-js";
-import type { Database } from "@/integrations/supabase/types";
 import { supabase } from "@/integrations/supabase/client";
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env
-  .VITE_SUPABASE_PUBLISHABLE_KEY as string;
-
 const REMOTE_ORIGIN = "https://slpassistant-ai-inba.lovable.app";
+const OAUTH_BROKER_URL = `${REMOTE_ORIGIN}/~oauth/initiate`;
+
 export const CAPACITOR_DEEP_LINK_SCHEME = "app.lovable.slpassistant";
 export const CAPACITOR_DEEP_LINK_HOST = "auth-callback";
 export const CAPACITOR_DEEP_LINK_URL = `${CAPACITOR_DEEP_LINK_SCHEME}://${CAPACITOR_DEEP_LINK_HOST}`;
-
-// Dedicated supabase client that uses the implicit OAuth flow (hash tokens),
-// so the app process can consume tokens produced by the Chrome Custom Tab.
-const oauthClient = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-  auth: {
-    persistSession: false,
-    autoRefreshToken: false,
-    detectSessionInUrl: false,
-    flowType: "implicit",
-  },
-});
 
 export function isCapacitorRuntime(): boolean {
   if (typeof window === "undefined") return false;
@@ -47,31 +28,35 @@ export function isCapacitorRuntime(): boolean {
   return Boolean(anyWin.Capacitor?.isNativePlatform?.());
 }
 
-export async function signInWithGoogleOnCapacitor(): Promise<void> {
-  const redirectTo = `${REMOTE_ORIGIN}/auth?mobile_callback=1`;
+function generateState(): string {
+  if (typeof crypto !== "undefined" && crypto.getRandomValues) {
+    return [...crypto.getRandomValues(new Uint8Array(16))]
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+  }
+  return Math.random().toString(36).slice(2) + Date.now().toString(36);
+}
 
-  const { data, error } = await oauthClient.auth.signInWithOAuth({
+export async function signInWithGoogleOnCapacitor(): Promise<void> {
+  const redirectUri = `${REMOTE_ORIGIN}/auth?mobile_callback=1`;
+  const params = new URLSearchParams({
     provider: "google",
-    options: {
-      redirectTo,
-      skipBrowserRedirect: true,
-      queryParams: { prompt: "select_account" },
-    },
+    redirect_uri: redirectUri,
+    state: generateState(),
+    prompt: "select_account",
   });
-  if (error) throw error;
-  if (!data?.url) throw new Error("Google sign-in URL was not returned");
+  const url = `${OAUTH_BROKER_URL}?${params.toString()}`;
 
   const { Browser } = await import("@capacitor/browser");
-  await Browser.open({ url: data.url, presentationStyle: "fullscreen" });
+  await Browser.open({ url, presentationStyle: "fullscreen" });
 }
 
 // Called from the appUrlOpen listener when the OS hands us back the deep link
 // (app.lovable.slpassistant://auth-callback#access_token=...&refresh_token=...).
 export async function completeCapacitorOAuthFromUrl(url: string): Promise<boolean> {
-  let hash = "";
   const hashIdx = url.indexOf("#");
-  if (hashIdx >= 0) hash = url.slice(hashIdx + 1);
-
+  if (hashIdx < 0) return false;
+  const hash = url.slice(hashIdx + 1);
   if (!hash) return false;
 
   const params = new URLSearchParams(hash);
