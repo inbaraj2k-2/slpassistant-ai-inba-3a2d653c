@@ -1,7 +1,8 @@
 import { Link, useRouter } from "@tanstack/react-router";
-import { ArrowLeft, BookOpen, FolderClock, Home, Settings } from "lucide-react";
+import { ArrowLeft, BookOpen, FolderClock, Home, Settings, WifiOff } from "lucide-react";
 import type { ReactNode } from "react";
 import { BrandMark } from "@/components/BrandMark";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 
 interface Props {
   title: string;
@@ -14,8 +15,19 @@ interface Props {
 
 export function AppShell({ title, subtitle, back, right, children, hideNav }: Props) {
   const router = useRouter();
+  const online = useOnlineStatus();
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-md flex-col bg-background">
+      {!online && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="sticky top-0 z-30 flex items-center justify-center gap-2 bg-amber-500/95 px-4 py-1.5 text-[11px] font-semibold text-amber-950 shadow-sm"
+        >
+          <WifiOff className="h-3.5 w-3.5" />
+          Offline — AI features disabled. Saved data still available.
+        </div>
+      )}
       <header className="sticky top-0 z-20 border-b border-border/70 bg-background/85 backdrop-blur">
         <div className="flex items-center gap-3 px-4 pb-3 pt-5">
           {back ? (

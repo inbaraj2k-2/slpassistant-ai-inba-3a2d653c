@@ -2,8 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
-import { listKnowledgeBase } from "@/lib/clinical.functions";
+import { loadKnowledgeBase } from "@/lib/kb-offline";
 import { BookOpen, ChevronDown, Loader2, Search } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/knowledge")({
@@ -12,10 +11,10 @@ export const Route = createFileRoute("/_authenticated/knowledge")({
 });
 
 function KnowledgePage() {
-  const fetchKb = useServerFn(listKnowledgeBase);
   const { data, isLoading, error } = useQuery({
-    queryKey: ["knowledge-base"],
-    queryFn: () => fetchKb(),
+    queryKey: ["knowledge-base-offline"],
+    queryFn: loadKnowledgeBase,
+    staleTime: 5 * 60 * 1000,
   });
 
   const [q, setQ] = useState("");

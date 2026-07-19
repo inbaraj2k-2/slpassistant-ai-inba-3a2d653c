@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build && node scripts/prepare-capacitor-web.mjs",
-    "build:dev": "vite build --mode development && node scripts/prepare-capacitor-web.mjs",
+    "build": "node scripts/build-kb-snapshot.mjs && vite build && node scripts/prepare-capacitor-web.mjs",
+    "build:dev": "node scripts/build-kb-snapshot.mjs && vite build --mode development && node scripts/prepare-capacitor-web.mjs",
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier --write .",
