@@ -1,61 +1,31 @@
 apply plugin: 'com.android.application'
 
-def keystorePropertiesFile = rootProject.file("keystore.properties")
-def keystoreProperties = new Properties()
-if (keystorePropertiesFile.exists()) {
-    keystorePropertiesFile.withInputStream { keystoreProperties.load(it) }
+// Canonical release signing config: read ONLY android/key.properties.
+def keyPropsFile = rootProject.file("key.properties")
+def keyProps = new Properties()
+if (keyPropsFile.exists()) {
+    keyPropsFile.withInputStream { keyProps.load(it) }
 }
 
-def resolveSigningProp = { String propKey, String envKey ->
-    def envVal = System.getenv(envKey)
-    if (envVal != null && !envVal.trim().isEmpty()) return envVal.trim()
-    def propVal = keystoreProperties.getProperty(propKey)
-    return propVal == null ? null : propVal.trim()
-}
+def signingStoreFileName = (keyProps.getProperty('storeFile') ?: '').trim()
+def signingStorePassword = (keyProps.getProperty('storePassword') ?: '').trim()
+def signingKeyAlias      = (keyProps.getProperty('keyAlias') ?: '').trim()
+def signingKeyPassword   = (keyProps.getProperty('keyPassword') ?: '').trim()
 
-def signingStoreFile = resolveSigningProp('storeFile', 'ANDROID_KEYSTORE_FILE')
-def signingStorePassword = resolveSigningProp('storePassword', 'ANDROID_KEYSTORE_PASSWORD')
-def signingKeyAlias = resolveSigningProp('keyAlias', 'ANDROID_KEY_ALIAS')
-def signingKeyPassword = resolveSigningProp('keyPassword', 'ANDROID_KEY_PASSWORD')
-
+// Resolve keystore path (relative to android/) — fall back to app dir if needed.
 def resolvedStoreFile = null
-if (signingStoreFile != null && !signingStoreFile.isEmpty()) {
-    def appRelativeFile = file(signingStoreFile)
-    def rootRelativeFile = rootProject.file(signingStoreFile)
-    def repoRootRelativeFile = rootProject.projectDir.parentFile == null ? null : new File(rootProject.projectDir.parentFile, signingStoreFile)
-
-    if (appRelativeFile.exists()) {
-        resolvedStoreFile = appRelativeFile
-    } else if (rootRelativeFile.exists()) {
-        resolvedStoreFile = rootRelativeFile
-    } else if (repoRootRelativeFile != null && repoRootRelativeFile.exists()) {
-        resolvedStoreFile = repoRootRelativeFile
-    }
+if (!signingStoreFileName.isEmpty()) {
+    def candidates = [
+        rootProject.file(signingStoreFileName),
+        file(signingStoreFileName),
+    ]
+    resolvedStoreFile = candidates.find { it != null && it.exists() }
 }
 
-def hasReleaseSigning = resolvedStoreFile != null &&
-    signingStorePassword != null && !signingStorePassword.isEmpty() &&
-    signingKeyAlias != null && !signingKeyAlias.isEmpty() &&
-    signingKeyPassword != null && !signingKeyPassword.isEmpty()
-
-def validateReleaseSigning = {
-    def missing = []
-    if (signingStoreFile == null || signingStoreFile.isEmpty()) missing << "storeFile / ANDROID_KEYSTORE_FILE"
-    if (resolvedStoreFile == null) missing << "existing keystore file for '${signingStoreFile}'"
-    if (signingStorePassword == null || signingStorePassword.isEmpty()) missing << "storePassword / ANDROID_KEYSTORE_PASSWORD"
-    if (signingKeyAlias == null || signingKeyAlias.isEmpty()) missing << "keyAlias / ANDROID_KEY_ALIAS"
-    if (signingKeyPassword == null || signingKeyPassword.isEmpty()) missing << "keyPassword / ANDROID_KEY_PASSWORD"
-
-    if (!missing.isEmpty()) {
-        throw new GradleException("Release signing is incomplete. Missing: ${missing.join(', ')}. Provide android/keystore.properties or ANDROID_KEYSTORE_* environment variables.")
-    }
-}
-
-gradle.taskGraph.whenReady { taskGraph ->
-    if (taskGraph.hasTask(":app:bundleRelease") || taskGraph.hasTask(":app:signReleaseBundle") || taskGraph.hasTask(":app:assembleRelease")) {
-        validateReleaseSigning()
-    }
-}
+// Always provide a non-null placeholder so signingConfigs.release is well-formed.
+// Real validation happens in the validateReleaseSigning task below.
+def placeholderStore = rootProject.file("key.properties")
+def effectiveStoreFile = resolvedStoreFile ?: placeholderStore
 
 android {
     namespace = "app.lovable.slpassistant"
@@ -72,17 +42,15 @@ android {
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
-             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
-             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
     signingConfigs {
         release {
-            storeFile resolvedStoreFile
-            storePassword signingStorePassword
-            keyAlias signingKeyAlias
-            keyPassword signingKeyPassword
+            storeFile effectiveStoreFile
+            storePassword signingStorePassword.isEmpty() ? "unset" : signingStorePassword
+            keyAlias signingKeyAlias.isEmpty() ? "unset" : signingKeyAlias
+            keyPassword signingKeyPassword.isEmpty() ? "unset" : signingKeyPassword
         }
     }
     buildTypes {
@@ -92,6 +60,35 @@ android {
             signingConfig signingConfigs.release
         }
     }
+}
+
+// Fail fast with a precise message BEFORE :app:signReleaseBundle runs,
+// instead of surfacing a NullPointerException from the signing task.
+tasks.register("validateReleaseSigning") {
+    doLast {
+        def problems = []
+        if (!keyPropsFile.exists()) {
+            problems << "android/key.properties is missing"
+        }
+        if (signingStoreFileName.isEmpty()) problems << "key.properties 'storeFile' is empty or missing"
+        if (signingStorePassword.isEmpty()) problems << "key.properties 'storePassword' is empty or missing"
+        if (signingKeyAlias.isEmpty())      problems << "key.properties 'keyAlias' is empty or missing"
+        if (signingKeyPassword.isEmpty())   problems << "key.properties 'keyPassword' is empty or missing"
+        if (resolvedStoreFile == null && !signingStoreFileName.isEmpty()) {
+            problems << "keystore file '${signingStoreFileName}' not found under android/ or android/app/"
+        }
+        if (!problems.isEmpty()) {
+            throw new GradleException(
+                "Release signing is not configured correctly:\n  - " + problems.join("\n  - ")
+            )
+        }
+        logger.lifecycle("Release signing OK: store=${resolvedStoreFile}, alias=${signingKeyAlias}")
+    }
+}
+
+// Attach validation before every release signing / bundling task.
+tasks.matching { it.name in ["bundleRelease", "assembleRelease", "signReleaseBundle", "packageRelease"] }.configureEach {
+    dependsOn "validateReleaseSigning"
 }
 
 repositories {
