@@ -1,4 +1,4 @@
-name: Build and Verify
+name: Build Signed Android AAB
 
 on:
   push:
@@ -7,6 +7,7 @@ on:
   pull_request:
     branches:
       - '**'
+  workflow_dispatch:
 
 jobs:
   build:
