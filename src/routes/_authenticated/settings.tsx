@@ -29,6 +29,27 @@ function SettingsPage() {
     queryKey: ["me"],
     queryFn: async () => (await supabase.auth.getUser()).data.user,
   });
+  const { data: version } = useQuery({
+    queryKey: ["app-version"],
+    queryFn: () => getAppVersion(),
+    staleTime: Infinity,
+  });
+
+  const meta = (user?.user_metadata ?? {}) as Record<string, unknown>;
+  const avatarUrl =
+    (typeof meta.avatar_url === "string" && meta.avatar_url) ||
+    (typeof meta.picture === "string" && meta.picture) ||
+    null;
+  const fullName =
+    (typeof meta.full_name === "string" && meta.full_name) ||
+    (typeof meta.name === "string" && meta.name) ||
+    "Clinician";
+
+  const versionLabel = version
+    ? version.versionCode
+      ? `${version.versionName} (${version.versionCode})`
+      : version.versionName
+    : "…";
 
   async function signOut() {
     await qc.cancelQueries();
@@ -42,22 +63,29 @@ function SettingsPage() {
       <section className="mb-4 rounded-2xl border border-border bg-card p-4 shadow-card">
         <div className="flex items-center gap-3">
           <div className="grid h-12 w-12 place-items-center overflow-hidden rounded-xl bg-gradient-primary text-primary-foreground">
-            <BrandMark />
+            {avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt="Profile"
+                referrerPolicy="no-referrer"
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <BrandMark />
+            )}
           </div>
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold">
-              {(user?.user_metadata?.full_name as string) || "Clinician"}
-            </p>
+            <p className="truncate text-sm font-semibold">{fullName}</p>
             <p className="flex items-center gap-1 truncate text-xs text-muted-foreground">
               <Mail className="h-3 w-3" />
-              {user?.email}
+              {user?.email ?? "Signed in"}
             </p>
           </div>
         </div>
       </section>
 
       <Section title="About">
-        <Row icon={<Info className="h-4 w-4" />} label="App version" value="1.0.0" />
+        <Row icon={<Info className="h-4 w-4" />} label="App version" value={versionLabel} />
         <Row icon={<ShieldCheck className="h-4 w-4" />} label="Data" value="Stored privately per account" />
       </Section>
 
