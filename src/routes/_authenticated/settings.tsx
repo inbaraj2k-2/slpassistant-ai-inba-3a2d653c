@@ -1,10 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { Disclaimer } from "@/components/Disclaimer";
-import { BrandMark } from "@/components/BrandMark";
+import { UserAvatar } from "@/components/UserAvatar";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getAppVersion } from "@/lib/native";
+import { useProfile } from "@/hooks/useProfile";
 import {
   ChevronRight,
   Info,
@@ -15,6 +16,7 @@ import {
   ShieldCheck,
   Stethoscope,
   Trash2,
+  UserCircle2,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({
@@ -25,25 +27,12 @@ export const Route = createFileRoute("/_authenticated/settings")({
 function SettingsPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const { data: user } = useQuery({
-    queryKey: ["me"],
-    queryFn: async () => (await supabase.auth.getUser()).data.user,
-  });
+  const { data: profile } = useProfile();
   const { data: version } = useQuery({
     queryKey: ["app-version"],
     queryFn: () => getAppVersion(),
     staleTime: Infinity,
   });
-
-  const meta = (user?.user_metadata ?? {}) as Record<string, unknown>;
-  const avatarUrl =
-    (typeof meta.avatar_url === "string" && meta.avatar_url) ||
-    (typeof meta.picture === "string" && meta.picture) ||
-    null;
-  const fullName =
-    (typeof meta.full_name === "string" && meta.full_name) ||
-    (typeof meta.name === "string" && meta.name) ||
-    "Clinician";
 
   const versionLabel = version
     ? version.versionCode
@@ -60,29 +49,29 @@ function SettingsPage() {
 
   return (
     <AppShell title="Settings">
-      <section className="mb-4 rounded-2xl border border-border bg-card p-4 shadow-card">
-        <div className="flex items-center gap-3">
-          <div className="grid h-12 w-12 place-items-center overflow-hidden rounded-xl bg-gradient-primary text-primary-foreground">
-            {avatarUrl ? (
-              <img
-                src={avatarUrl}
-                alt="Profile"
-                referrerPolicy="no-referrer"
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <BrandMark />
-            )}
-          </div>
-          <div className="min-w-0">
-            <p className="truncate text-sm font-semibold">{fullName}</p>
-            <p className="flex items-center gap-1 truncate text-xs text-muted-foreground">
-              <Mail className="h-3 w-3" />
-              {user?.email ?? "Signed in"}
-            </p>
-          </div>
+      <Link
+        to="/profile"
+        className="mb-4 flex items-center gap-3 rounded-2xl border border-border bg-card p-4 shadow-card transition active:scale-[0.99]"
+      >
+        <UserAvatar
+          src={profile?.avatarUrl}
+          name={profile?.displayName}
+          email={profile?.email}
+          className="h-12 w-12"
+        />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold">{profile?.displayName ?? "Clinician"}</p>
+          <p className="flex items-center gap-1 truncate text-xs text-muted-foreground">
+            <Mail className="h-3 w-3" />
+            {profile?.email ?? "Signed in"}
+          </p>
         </div>
-      </section>
+        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+      </Link>
+
+      <Section title="Account">
+        <LinkRow to="/profile" icon={<UserCircle2 className="h-4 w-4" />} label="Edit profile" />
+      </Section>
 
       <Section title="About">
         <Row icon={<Info className="h-4 w-4" />} label="App version" value={versionLabel} />
