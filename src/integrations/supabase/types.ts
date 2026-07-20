@@ -395,10 +395,12 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_path: string | null
           avatar_url: string | null
           clinic_logo_url: string | null
           clinic_name: string | null
           created_at: string
+          display_name: string | null
           email: string | null
           full_name: string | null
           id: string
@@ -406,10 +408,12 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          avatar_path?: string | null
           avatar_url?: string | null
           clinic_logo_url?: string | null
           clinic_name?: string | null
           created_at?: string
+          display_name?: string | null
           email?: string | null
           full_name?: string | null
           id: string
@@ -417,10 +421,12 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          avatar_path?: string | null
           avatar_url?: string | null
           clinic_logo_url?: string | null
           clinic_name?: string | null
           created_at?: string
+          display_name?: string | null
           email?: string | null
           full_name?: string | null
           id?: string

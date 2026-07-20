@@ -1,5 +1,5 @@
 import { Play, Search, WifiOff } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { speakText } from "@/lib/native";
 import { generateAiSymbol } from "../ai/generateSymbol";
 import { useInstantSearch } from "../hooks/useInstantSearch";
@@ -11,6 +11,23 @@ import { CoreRow } from "./CoreRow";
 import { ResultsGrid } from "./ResultsGrid";
 import { SentenceStrip } from "./SentenceStrip";
 import { VocabEditorSheet } from "./VocabEditorSheet";
+
+// Best-effort helper to close the on-screen keyboard on Android/iOS. On the
+// web the blur() call is enough; on Capacitor we also ask the OS to dismiss
+// its software keyboard so the user can never get trapped on this screen.
+async function dismissSoftKeyboard() {
+  try {
+    const active = typeof document !== "undefined" ? (document.activeElement as HTMLElement | null) : null;
+    if (active && typeof active.blur === "function") active.blur();
+  } catch { /* no-op */ }
+  try {
+    // @ts-expect-error - injected by Capacitor at runtime.
+    if (typeof window !== "undefined" && window.Capacitor?.isNativePlatform?.()) {
+      const { Keyboard } = await import("@capacitor/keyboard");
+      await Keyboard.hide();
+    }
+  } catch { /* plugin not available */ }
+}
 
 export function SmartKeyboard() {
   const [query, setQuery] = useState("");
@@ -58,7 +75,13 @@ export function SmartKeyboard() {
         }).catch(() => {});
       }
       setQuery("");
-      inputRef.current?.focus();
+      // Only refocus if the user was already typing in the search box. This
+      // prevents the software keyboard from popping back up after a tile tap
+      // that came from a tool-tap on Android — a common source of the
+      // "keyboard stuck open, back button ignored" freeze.
+      if (document.activeElement === inputRef.current) {
+        inputRef.current?.focus({ preventScroll: true });
+      }
     },
     [],
   );
@@ -99,15 +122,52 @@ export function SmartKeyboard() {
     if (row) setEditing(row);
   }, []);
 
+  // On mount: DO NOT auto-focus the search input. Auto-focus caused the
+  // Android software keyboard to open immediately, and combined with the
+  // previous `captureInput: true` Capacitor option it could trap the user
+  // in an unresponsive state where the Back button and bottom nav no
+  // longer received touch events. We now open the keyboard only when the
+  // user actively taps the search field.
+  //
+  // On unmount (route change / back navigation): always dismiss the OS
+  // keyboard so the user can never leave this screen with the IME still
+  // grabbing input focus.
   useEffect(() => {
-    // Keep focus on input when a chip is added (helps Android keyboard flow).
-    inputRef.current?.focus({ preventScroll: true });
+    return () => {
+      void dismissSoftKeyboard();
+    };
+  }, []);
+
+  // Handle the Android hardware Back button as a two-step exit:
+  //   1) if the software keyboard is open, close it first
+  //   2) otherwise navigate back
+  // Without this, some Android IMEs would swallow the Back press.
+  useEffect(() => {
+    let remove: (() => void) | null = null;
+    (async () => {
+      try {
+        // @ts-expect-error - injected by Capacitor at runtime.
+        if (!(typeof window !== "undefined" && window.Capacitor?.isNativePlatform?.())) return;
+        const { App } = await import("@capacitor/app");
+        const handle = await App.addListener("backButton", async () => {
+          const active = document.activeElement as HTMLElement | null;
+          if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA")) {
+            await dismissSoftKeyboard();
+            return;
+          }
+          await dismissSoftKeyboard();
+          window.history.back();
+        });
+        remove = () => { handle.remove().catch(() => {}); };
+      } catch { /* not on native */ }
+    })();
+    return () => { remove?.(); };
   }, []);
 
   const emptyQuery = !query.trim();
 
   return (
-    <div className="relative flex min-h-[calc(100vh-200px)] flex-col gap-3">
+    <div className="relative flex flex-col gap-3 pb-6">
       {/* Sentence strip */}
       <SentenceStrip
         chips={chips}

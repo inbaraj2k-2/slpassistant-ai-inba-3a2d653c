@@ -17,6 +17,7 @@ import { Route as ApiAnalyzeRouteImport } from './routes/api/analyze'
 import { Route as ApiAacGenerateImageRouteImport } from './routes/api/aac-generate-image'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedSavedReportsRouteImport } from './routes/_authenticated/saved-reports'
+import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedNewCaseRouteImport } from './routes/_authenticated/new-case'
 import { Route as AuthenticatedLibraryRouteImport } from './routes/_authenticated/library'
 import { Route as AuthenticatedKnowledgeRouteImport } from './routes/_authenticated/knowledge'
@@ -83,6 +84,11 @@ const AuthenticatedSavedReportsRoute =
     path: '/saved-reports',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedNewCaseRoute = AuthenticatedNewCaseRouteImport.update({
   id: '/new-case',
   path: '/new-case',
@@ -234,6 +240,7 @@ export interface FileRoutesByFullPath {
   '/knowledge': typeof AuthenticatedKnowledgeRoute
   '/library': typeof AuthenticatedLibraryRouteWithChildren
   '/new-case': typeof AuthenticatedNewCaseRoute
+  '/profile': typeof AuthenticatedProfileRoute
   '/saved-reports': typeof AuthenticatedSavedReportsRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/api/aac-generate-image': typeof ApiAacGenerateImageRoute
@@ -267,6 +274,7 @@ export interface FileRoutesByTo {
   '/home': typeof AuthenticatedHomeRoute
   '/knowledge': typeof AuthenticatedKnowledgeRoute
   '/new-case': typeof AuthenticatedNewCaseRoute
+  '/profile': typeof AuthenticatedProfileRoute
   '/saved-reports': typeof AuthenticatedSavedReportsRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/api/aac-generate-image': typeof ApiAacGenerateImageRoute
@@ -303,6 +311,7 @@ export interface FileRoutesById {
   '/_authenticated/knowledge': typeof AuthenticatedKnowledgeRoute
   '/_authenticated/library': typeof AuthenticatedLibraryRouteWithChildren
   '/_authenticated/new-case': typeof AuthenticatedNewCaseRoute
+  '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/saved-reports': typeof AuthenticatedSavedReportsRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/api/aac-generate-image': typeof ApiAacGenerateImageRoute
@@ -339,6 +348,7 @@ export interface FileRouteTypes {
     | '/knowledge'
     | '/library'
     | '/new-case'
+    | '/profile'
     | '/saved-reports'
     | '/settings'
     | '/api/aac-generate-image'
@@ -372,6 +382,7 @@ export interface FileRouteTypes {
     | '/home'
     | '/knowledge'
     | '/new-case'
+    | '/profile'
     | '/saved-reports'
     | '/settings'
     | '/api/aac-generate-image'
@@ -407,6 +418,7 @@ export interface FileRouteTypes {
     | '/_authenticated/knowledge'
     | '/_authenticated/library'
     | '/_authenticated/new-case'
+    | '/_authenticated/profile'
     | '/_authenticated/saved-reports'
     | '/_authenticated/settings'
     | '/api/aac-generate-image'
@@ -497,6 +509,13 @@ declare module '@tanstack/react-router' {
       path: '/saved-reports'
       fullPath: '/saved-reports'
       preLoaderRoute: typeof AuthenticatedSavedReportsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/profile': {
+      id: '/_authenticated/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthenticatedProfileRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/new-case': {
@@ -721,6 +740,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedKnowledgeRoute: typeof AuthenticatedKnowledgeRoute
   AuthenticatedLibraryRoute: typeof AuthenticatedLibraryRouteWithChildren
   AuthenticatedNewCaseRoute: typeof AuthenticatedNewCaseRoute
+  AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedSavedReportsRoute: typeof AuthenticatedSavedReportsRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedCaseIdRoute: typeof AuthenticatedCaseIdRouteWithChildren
@@ -741,6 +761,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedKnowledgeRoute: AuthenticatedKnowledgeRoute,
   AuthenticatedLibraryRoute: AuthenticatedLibraryRouteWithChildren,
   AuthenticatedNewCaseRoute: AuthenticatedNewCaseRoute,
+  AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedSavedReportsRoute: AuthenticatedSavedReportsRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedCaseIdRoute: AuthenticatedCaseIdRouteWithChildren,

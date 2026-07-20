@@ -16,11 +16,21 @@ const config: CapacitorConfig = {
   },
   android: {
     allowMixedContent: false,
-    captureInput: true,
+    // captureInput must be false — when true, native Android intercepts
+    // touch events destined for the WebView which can strand the user
+    // inside the AAC search field with an unresponsive UI.
+    captureInput: false,
     webContentsDebuggingEnabled: true,
   },
   plugins: {
-    Keyboard: { resize: 'body' },
+    Keyboard: {
+      // `native` lets Android resize the window normally (adjustResize) and
+      // avoids the layout-thrash + fixed-nav clipping that `body` triggers
+      // on some devices when the software keyboard is shown for a long
+      // stretch (as in the AAC keyboard screen).
+      resize: 'native',
+      resizeOnFullScreen: true,
+    },
     StatusBar: {
       // Do NOT draw the WebView behind the status bar. This keeps the system
       // clock, battery, Wi-Fi and notification icons visible above the app UI.
