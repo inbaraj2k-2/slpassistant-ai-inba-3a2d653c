@@ -1,5 +1,5 @@
 import { Play, Search, WifiOff } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { speakText } from "@/lib/native";
 import { generateAiSymbol } from "../ai/generateSymbol";
 import { useInstantSearch } from "../hooks/useInstantSearch";
@@ -11,6 +11,23 @@ import { CoreRow } from "./CoreRow";
 import { ResultsGrid } from "./ResultsGrid";
 import { SentenceStrip } from "./SentenceStrip";
 import { VocabEditorSheet } from "./VocabEditorSheet";
+
+// Best-effort helper to close the on-screen keyboard on Android/iOS. On the
+// web the blur() call is enough; on Capacitor we also ask the OS to dismiss
+// its software keyboard so the user can never get trapped on this screen.
+async function dismissSoftKeyboard() {
+  try {
+    const active = typeof document !== "undefined" ? (document.activeElement as HTMLElement | null) : null;
+    if (active && typeof active.blur === "function") active.blur();
+  } catch { /* no-op */ }
+  try {
+    // @ts-expect-error - injected by Capacitor at runtime.
+    if (typeof window !== "undefined" && window.Capacitor?.isNativePlatform?.()) {
+      const { Keyboard } = await import("@capacitor/keyboard");
+      await Keyboard.hide();
+    }
+  } catch { /* plugin not available */ }
+}
 
 export function SmartKeyboard() {
   const [query, setQuery] = useState("");
