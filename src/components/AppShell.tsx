@@ -1,9 +1,9 @@
 import { Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { ArrowLeft, BookOpen, FolderClock, Home, Settings, WifiOff } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
-import { BrandMark } from "@/components/BrandMark";
+import { type ReactNode } from "react";
+import { UserAvatar } from "@/components/UserAvatar";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
-import { supabase } from "@/integrations/supabase/client";
+import { useProfile } from "@/hooks/useProfile";
 
 interface Props {
   title: string;
@@ -14,31 +14,11 @@ interface Props {
   hideNav?: boolean;
 }
 
-function useUserAvatar() {
-  const [avatar, setAvatar] = useState<string | null>(null);
-  useEffect(() => {
-    let mounted = true;
-    supabase.auth.getUser().then(({ data }) => {
-      if (!mounted) return;
-      const m = (data.user?.user_metadata ?? {}) as Record<string, unknown>;
-      const url =
-        (typeof m.avatar_url === "string" && m.avatar_url) ||
-        (typeof m.picture === "string" && m.picture) ||
-        null;
-      setAvatar(url);
-    });
-    return () => {
-      mounted = false;
-    };
-  }, []);
-  return avatar;
-}
-
 export function AppShell({ title, subtitle, back, right, children, hideNav }: Props) {
   const router = useRouter();
   const navigate = useNavigate();
   const online = useOnlineStatus();
-  const avatar = useUserAvatar();
+  const { data: profile } = useProfile();
   return (
     <div
       className="mx-auto flex min-h-screen w-full max-w-md flex-col bg-background"
