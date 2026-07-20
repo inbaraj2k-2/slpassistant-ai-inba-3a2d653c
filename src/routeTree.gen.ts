@@ -14,6 +14,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiAnalyzeRouteImport } from './routes/api/analyze'
+import { Route as ApiAacGenerateImageRouteImport } from './routes/api/aac-generate-image'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedSavedReportsRouteImport } from './routes/_authenticated/saved-reports'
 import { Route as AuthenticatedNewCaseRouteImport } from './routes/_authenticated/new-case'
@@ -64,6 +65,11 @@ const IndexRoute = IndexRouteImport.update({
 const ApiAnalyzeRoute = ApiAnalyzeRouteImport.update({
   id: '/api/analyze',
   path: '/api/analyze',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAacGenerateImageRoute = ApiAacGenerateImageRouteImport.update({
+  id: '/api/aac-generate-image',
+  path: '/api/aac-generate-image',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
@@ -230,6 +236,7 @@ export interface FileRoutesByFullPath {
   '/new-case': typeof AuthenticatedNewCaseRoute
   '/saved-reports': typeof AuthenticatedSavedReportsRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/api/aac-generate-image': typeof ApiAacGenerateImageRoute
   '/api/analyze': typeof ApiAnalyzeRoute
   '/case/$id': typeof AuthenticatedCaseIdRouteWithChildren
   '/clinical-tools/aac': typeof AuthenticatedClinicalToolsAacRoute
@@ -262,6 +269,7 @@ export interface FileRoutesByTo {
   '/new-case': typeof AuthenticatedNewCaseRoute
   '/saved-reports': typeof AuthenticatedSavedReportsRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/api/aac-generate-image': typeof ApiAacGenerateImageRoute
   '/api/analyze': typeof ApiAnalyzeRoute
   '/case/$id': typeof AuthenticatedCaseIdRouteWithChildren
   '/clinical-tools/aac': typeof AuthenticatedClinicalToolsAacRoute
@@ -297,6 +305,7 @@ export interface FileRoutesById {
   '/_authenticated/new-case': typeof AuthenticatedNewCaseRoute
   '/_authenticated/saved-reports': typeof AuthenticatedSavedReportsRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/api/aac-generate-image': typeof ApiAacGenerateImageRoute
   '/api/analyze': typeof ApiAnalyzeRoute
   '/_authenticated/case/$id': typeof AuthenticatedCaseIdRouteWithChildren
   '/_authenticated/clinical-tools/aac': typeof AuthenticatedClinicalToolsAacRoute
@@ -332,6 +341,7 @@ export interface FileRouteTypes {
     | '/new-case'
     | '/saved-reports'
     | '/settings'
+    | '/api/aac-generate-image'
     | '/api/analyze'
     | '/case/$id'
     | '/clinical-tools/aac'
@@ -364,6 +374,7 @@ export interface FileRouteTypes {
     | '/new-case'
     | '/saved-reports'
     | '/settings'
+    | '/api/aac-generate-image'
     | '/api/analyze'
     | '/case/$id'
     | '/clinical-tools/aac'
@@ -398,6 +409,7 @@ export interface FileRouteTypes {
     | '/_authenticated/new-case'
     | '/_authenticated/saved-reports'
     | '/_authenticated/settings'
+    | '/api/aac-generate-image'
     | '/api/analyze'
     | '/_authenticated/case/$id'
     | '/_authenticated/clinical-tools/aac'
@@ -424,6 +436,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  ApiAacGenerateImageRoute: typeof ApiAacGenerateImageRoute
   ApiAnalyzeRoute: typeof ApiAnalyzeRoute
   ApiAccountDeleteRoute: typeof ApiAccountDeleteRoute
 }
@@ -463,6 +476,13 @@ declare module '@tanstack/react-router' {
       path: '/api/analyze'
       fullPath: '/api/analyze'
       preLoaderRoute: typeof ApiAnalyzeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/aac-generate-image': {
+      id: '/api/aac-generate-image'
+      path: '/api/aac-generate-image'
+      fullPath: '/api/aac-generate-image'
+      preLoaderRoute: typeof ApiAacGenerateImageRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/settings': {
@@ -743,19 +763,10 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  ApiAacGenerateImageRoute: ApiAacGenerateImageRoute,
   ApiAnalyzeRoute: ApiAnalyzeRoute,
   ApiAccountDeleteRoute: ApiAccountDeleteRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

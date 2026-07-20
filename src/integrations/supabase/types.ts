@@ -14,6 +14,122 @@ export type Database = {
   }
   public: {
     Tables: {
+      aac_search_history: {
+        Row: {
+          chosen_vocab_id: string | null
+          created_at: string
+          id: string
+          query: string
+          user_id: string
+        }
+        Insert: {
+          chosen_vocab_id?: string | null
+          created_at?: string
+          id?: string
+          query: string
+          user_id: string
+        }
+        Update: {
+          chosen_vocab_id?: string | null
+          created_at?: string
+          id?: string
+          query?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aac_search_history_chosen_vocab_id_fkey"
+            columns: ["chosen_vocab_id"]
+            isOneToOne: false
+            referencedRelation: "aac_vocabulary"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      aac_settings: {
+        Row: {
+          high_contrast: boolean
+          large_targets: boolean
+          mode: string
+          updated_at: string
+          user_id: string
+          voice_pitch: number
+          voice_rate: number
+        }
+        Insert: {
+          high_contrast?: boolean
+          large_targets?: boolean
+          mode?: string
+          updated_at?: string
+          user_id: string
+          voice_pitch?: number
+          voice_rate?: number
+        }
+        Update: {
+          high_contrast?: boolean
+          large_targets?: boolean
+          mode?: string
+          updated_at?: string
+          user_id?: string
+          voice_pitch?: number
+          voice_rate?: number
+        }
+        Relationships: []
+      }
+      aac_vocabulary: {
+        Row: {
+          category: string | null
+          created_at: string
+          emoji: string | null
+          id: string
+          image_path: string | null
+          image_url: string | null
+          is_favorite: boolean
+          keywords: string[]
+          label: string
+          last_used_at: string | null
+          pinned: boolean
+          source: string
+          updated_at: string
+          use_count: number
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          emoji?: string | null
+          id?: string
+          image_path?: string | null
+          image_url?: string | null
+          is_favorite?: boolean
+          keywords?: string[]
+          label: string
+          last_used_at?: string | null
+          pinned?: boolean
+          source?: string
+          updated_at?: string
+          use_count?: number
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          emoji?: string | null
+          id?: string
+          image_path?: string | null
+          image_url?: string | null
+          is_favorite?: boolean
+          keywords?: string[]
+          label?: string
+          last_used_at?: string | null
+          pinned?: boolean
+          source?: string
+          updated_at?: string
+          use_count?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       assessments: {
         Row: {
           created_at: string
