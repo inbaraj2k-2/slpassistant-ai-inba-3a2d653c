@@ -109,3 +109,18 @@ createRoot(container).render(<App />);
     // Not running under Capacitor — ignore.
   }
 })();
+
+// Configure the Android system status bar so it stays visible above the
+// WebView (matches Google Drive / Chrome behaviour). Any failure here is
+// non-fatal — on web this simply no-ops.
+(async () => {
+  try {
+    const { StatusBar, Style } = await import("@capacitor/status-bar");
+    await StatusBar.setOverlaysWebView({ overlay: false });
+    await StatusBar.setStyle({ style: Style.Light });
+    await StatusBar.setBackgroundColor({ color: "#5b21b6" });
+    await StatusBar.show();
+  } catch {
+    /* not running under Capacitor */
+  }
+})();

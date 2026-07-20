@@ -1,8 +1,9 @@
-import { Link, useRouter } from "@tanstack/react-router";
+import { Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { ArrowLeft, BookOpen, FolderClock, Home, Settings, WifiOff } from "lucide-react";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { BrandMark } from "@/components/BrandMark";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
   title: string;
@@ -13,11 +14,39 @@ interface Props {
   hideNav?: boolean;
 }
 
+function useUserAvatar() {
+  const [avatar, setAvatar] = useState<string | null>(null);
+  useEffect(() => {
+    let mounted = true;
+    supabase.auth.getUser().then(({ data }) => {
+      if (!mounted) return;
+      const m = (data.user?.user_metadata ?? {}) as Record<string, unknown>;
+      const url =
+        (typeof m.avatar_url === "string" && m.avatar_url) ||
+        (typeof m.picture === "string" && m.picture) ||
+        null;
+      setAvatar(url);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+  return avatar;
+}
+
 export function AppShell({ title, subtitle, back, right, children, hideNav }: Props) {
   const router = useRouter();
+  const navigate = useNavigate();
   const online = useOnlineStatus();
+  const avatar = useUserAvatar();
   return (
-    <div className="mx-auto flex min-h-screen w-full max-w-md flex-col bg-background">
+    <div
+      className="mx-auto flex min-h-screen w-full max-w-md flex-col bg-background"
+      style={{
+        paddingTop: "env(safe-area-inset-top)",
+        paddingBottom: "env(safe-area-inset-bottom)",
+      }}
+    >
       {!online && (
         <div
           role="status"
@@ -39,9 +68,22 @@ export function AppShell({ title, subtitle, back, right, children, hideNav }: Pr
               <ArrowLeft className="h-4 w-4" />
             </button>
           ) : (
-            <div className="grid h-9 w-9 place-items-center overflow-hidden rounded-xl bg-gradient-primary text-primary-foreground shadow-card">
-              <BrandMark />
-            </div>
+            <button
+              onClick={() => navigate({ to: "/settings" })}
+              aria-label="Open profile & settings"
+              className="grid h-9 w-9 place-items-center overflow-hidden rounded-xl bg-gradient-primary text-primary-foreground shadow-card"
+            >
+              {avatar ? (
+                <img
+                  src={avatar}
+                  alt="Profile"
+                  referrerPolicy="no-referrer"
+                  className="h-full w-full rounded-xl object-cover"
+                />
+              ) : (
+                <BrandMark />
+              )}
+            </button>
           )}
           <div className="min-w-0 flex-1">
             <h1 className="truncate text-base font-semibold tracking-tight">{title}</h1>
@@ -56,7 +98,10 @@ export function AppShell({ title, subtitle, back, right, children, hideNav }: Pr
       <main className="flex-1 px-4 pb-28 pt-4">{children}</main>
 
       {!hideNav && (
-        <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background/95 backdrop-blur">
+        <nav
+          className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background/95 backdrop-blur"
+          style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+        >
           <div className="mx-auto flex max-w-md items-center justify-around px-2 py-2">
             <NavItem to="/home" icon={<Home className="h-5 w-5" />} label="Home" />
             <NavItem to="/cases" icon={<FolderClock className="h-5 w-5" />} label="Cases" />

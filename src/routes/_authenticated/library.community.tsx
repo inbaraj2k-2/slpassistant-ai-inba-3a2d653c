@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Download, Eye, FileText, ImageIcon, Loader2, Search, Trash2, Users } from "lucide-react";
+import { downloadToDevice, isNative, openInAppBrowser } from "@/lib/native";
 
 export const Route = createFileRoute("/_authenticated/library/community")({
   head: () => ({ meta: [{ title: "Community Library" }] }),
@@ -100,17 +101,22 @@ function CommunityLibraryPage() {
       .from("uploads")
       .createSignedUrl(r.file_path, 60 * 10, { download: r.file_name });
     if (error || !data) return toast.error("Could not download file.");
-    window.open(data.signedUrl, "_blank", "noopener");
+    try {
+      const dest = await downloadToDevice(data.signedUrl, r.file_name);
+      if (isNative()) toast.success(`Saved to ${dest}`);
+    } catch {
+      toast.error("Could not save file.");
+    }
   };
 
   const viewFile = async (r: Row) => {
-    // Force Content-Disposition: attachment to prevent inline execution of
-    // any attacker-supplied content-type on shared community files.
+    // View inline: for native we open Capacitor Browser (in-app tab) without
+    // forcing a download, so PDFs/images render instead of being saved.
     const { data, error } = await supabase.storage
       .from("uploads")
-      .createSignedUrl(r.file_path, 60 * 10, { download: r.file_name });
+      .createSignedUrl(r.file_path, 60 * 10);
     if (error || !data) return toast.error("Could not open file.");
-    window.open(data.signedUrl, "_blank", "noopener");
+    await openInAppBrowser(data.signedUrl);
   };
 
   const removeOwn = async (r: Row) => {

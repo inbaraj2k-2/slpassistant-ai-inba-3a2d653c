@@ -22,7 +22,10 @@ const config: CapacitorConfig = {
   plugins: {
     Keyboard: { resize: 'body' },
     StatusBar: {
-      style: 'DARK',
+      // Do NOT draw the WebView behind the status bar. This keeps the system
+      // clock, battery, Wi-Fi and notification icons visible above the app UI.
+      overlaysWebView: false,
+      style: 'LIGHT',
       backgroundColor: '#5b21b6',
     },
   },

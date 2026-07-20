@@ -138,12 +138,10 @@ function buildDeck(sound: string, position: Position | "all"): Card[] {
   return cards;
 }
 
+import { speakText } from "@/lib/native";
+
 function speak(text: string) {
-  if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-  const u = new SpeechSynthesisUtterance(text);
-  u.rate = 0.9;
-  window.speechSynthesis.cancel();
-  window.speechSynthesis.speak(u);
+  void speakText(text);
 }
 
 function Flashcards() {
