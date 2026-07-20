@@ -1,85 +1,146 @@
 
-# Convert SLP Assist AI into a real offline Android app
+# Smart AAC Keyboard — Production Rebuild
 
-Goal: the APK/AAB must ship the entire frontend inside the app, launch without any hosted redirect, and only reach the network for AI analysis (and Supabase sync when online). Games, Knowledge Base, Saved Reports and other local UI must run fully offline.
+Replace the current AAC Communicator with a search-driven, AI-assisted communication keyboard. Old tap-tile grid becomes a search-results grid; a static core-word row stays visible when the input is empty so users always have a starting point.
 
-## Current state
+## What you'll see
 
-- `capacitor.config.ts` points `webDir` at `.output/public` (the SSR build).
-- `scripts/prepare-capacitor-web.mjs` writes a fake `index.html` that immediately redirects to `https://slpassistant-ai-inba.lovable.app`. That is what makes the installed app "open the website".
-- All routing is TanStack Start with SSR + server functions (`createServerFn` + Supabase auth middleware).
-- AI calls, DB reads, and auth all go through server functions today.
+```text
+┌──────────────────────────────────────────────┐
+│  I  want  🍎apple  ▍                         │  ← sentence strip (tap chip to edit/remove)
+├──────────────────────────────────────────────┤
+│  🔎 Type a word…                    [Speak]  │  ← native text input + fixed Speak
+├──────────────────────────────────────────────┤
+│  [🍎 apple] [🍏 green apple] [🎨 apple pie]  │
+│  [📷 apple photo] [🍎 red apple] …           │  ← instant results grid
+│                                              │
+│  Nothing fits?   [ ✨ Generate with AI ]      │
+├──────────────────────────────────────────────┤
+│  Core: I  you  want  more  stop  help  yes…  │  ← shown when input is empty
+├──────────────────────────────────────────────┤
+│  ⌫ Delete                          Clear 🗑  │
+└──────────────────────────────────────────────┘
+```
 
-None of that survives inside an APK — a Capacitor WebView has no Node/Workers runtime.
+Offline: a small "Offline" chip appears next to the input; results fall back to cached + user vocab; "Generate with AI" is disabled.
 
-## Approach
+## Architecture (modular)
 
-Ship a separate **client-only SPA bundle** for Capacitor while keeping the existing SSR web app untouched for browser/desktop users.
+```text
+src/features/aac/
+  data/
+    core-words.ts            // 20 fixed core tiles (offline-safe)
+  engine/
+    search.ts                // orchestrates providers by priority
+    ranker.ts                // frecency + fuzzy scoring
+    cache.ts                 // IndexedDB (idb-keyval) tile + thumb cache
+  providers/
+    userVocabProvider.ts     // Supabase aac_vocabulary
+    coreProvider.ts          // built-in core words
+    openverseProvider.ts     // https://api.openverse.org/v1/images
+    aiSemanticProvider.ts    // Lovable AI chat, expands query → related terms
+  ai/
+    generateSymbol.ts        // calls /api/aac-generate-image (server route)
+  ui/
+    SmartKeyboard.tsx        // input + Speak
+    SentenceStrip.tsx        // chips, reorder, tap-to-edit
+    ResultsGrid.tsx          // tiles + Generate-with-AI CTA
+    CoreRow.tsx              // shown when input empty
+    VocabEditorSheet.tsx     // rename/upload/replace/favorite/delete
+  hooks/
+    useInstantSearch.ts      // debounced 120ms, aborts stale requests
+    useOnline.ts (reuse)
+    useVocabSync.ts          // realtime Supabase subscription
+  types.ts
+```
 
-### 1. New Capacitor-only SPA build
+The existing `/clinical-tools/aac` route swaps its component to `<SmartKeyboard />`. Nothing else in the app changes.
 
-- Add `vite.capacitor.config.ts` that builds a plain React SPA (no TanStack Start SSR plugin) into `dist/capacitor/`.
-- Entry `src/capacitor-main.tsx` mounts the same route tree using `createRouter` in a **memory-history / client-only** mode (no SSR, no loaders that require server functions).
-- Emit a real static `index.html` referencing the hashed JS/CSS bundles — no redirect script.
+## Backend
 
-### 2. Replace server functions with direct Supabase calls in the mobile bundle
+New migration (single call, includes GRANTs + RLS):
 
-- Introduce a thin `src/lib/data-access.ts` layer used by routes for reads/writes.
-- Web build: keeps calling existing `createServerFn` wrappers.
-- Capacitor build: swapped via Vite alias to a version that calls `supabase` (browser client) directly with the user's session. AI analysis calls the Lovable AI Gateway directly using a per-user session token from Supabase Edge Function (`analyze-case`) — no server functions available.
-- Move the AI prompt/normalisation helpers into a shared module usable from both.
+- `aac_vocabulary` — user-owned words: `label`, `keywords[]`, `category`, `image_path` (storage), `image_url` (external cache), `source` (`user|ai|openverse|core`), `is_favorite`, `pinned`, `use_count`, `last_used_at`.
+- `aac_search_history` — for prediction: `user_id`, `query`, `chosen_vocab_id`, `created_at`.
+- `aac_settings` — per user: `voice_rate`, `voice_pitch`, `high_contrast`, `large_targets`.
+- Reuse existing `uploads` bucket under a `aac/{user_id}/` prefix for user photos and AI-generated PNGs.
+- Realtime enabled on `aac_vocabulary` for cross-device sync.
 
-Trade-off: AI analysis on mobile must go through an existing/new Supabase Edge Function endpoint (`/functions/v1/analyze-case`) because we can't hide `LOVABLE_API_KEY` in the APK. Keep the current server-function path for web.
+New server route `src/routes/api/aac-generate-image.ts` (public /api/, bearer-verified):
+- Calls Lovable AI `openai/gpt-image-1-mini` with a locked flat-symbol style prompt (white bg, bold outline, single centered object, no text, no copyrighted characters).
+- Uploads PNG to `uploads` bucket, inserts into `aac_vocabulary` with `source='ai'`, returns the row.
 
-### 3. Offline data for Games / Knowledge Base
+## Search priority (engine/search.ts)
 
-- Games already read from `src/lib/games-data.ts` — pure JSON, works offline.
-- Knowledge Base and disorder catalog currently query Supabase. Add a build step `scripts/snapshot-clinical-data.mjs` that exports disorders/assessments/materials/therapy_goals/clinical_sources to `src/generated/clinical-snapshot.json` at build time.
-- Data access layer: try Supabase when online, fall back to the bundled snapshot when offline. Saved Reports read from a local IndexedDB cache (`idb-keyval`) populated whenever the app is online; writes queue locally and sync when back online.
+For every keystroke (debounced 120ms, previous request aborted):
 
-### 4. Network detection + AI gating
+1. `userVocabProvider` — exact + fuzzy on label/keywords.
+2. `cache` — recent Openverse results keyed by normalized query.
+3. `coreProvider` — matches from core-word list.
+4. `openverseProvider` — online only; `page_size=12`, license=CC0/CC-BY, safe search on.
+5. `aiSemanticProvider` — only when < 3 results after 400ms: asks Lovable AI (`google/gemini-3.1-flash-lite`) to return 6 related concepts as JSON, each re-queried through Openverse. Cheap, cached per query.
 
-- Add `src/hooks/useOnlineStatus.ts` using `@capacitor/network` on native and `navigator.onLine` + `online`/`offline` events on web.
-- New-case page: when offline, disable the "Analyze" button, show inline banner "Internet required for AI analysis". Everything else on the page stays interactive.
-- Add a small offline indicator in `AppShell`.
+Never auto-inserts. Grid always shows a "Generate with AI" tile as the last cell when online and < 8 results.
 
-### 5. Capacitor wiring
+`ranker.ts` combines: exact-prefix > fuzzy score > frecency (use_count × recency decay) > pinned > favorite.
 
-- `capacitor.config.ts`: `webDir: 'dist/capacitor'`, remove `server.url` env override (no live-reload to hosted site by default), keep `androidScheme: 'https'`.
-- Install `@capacitor/network`.
-- Replace `scripts/prepare-capacitor-web.mjs` with `scripts/build-capacitor.mjs` that runs `vite build -c vite.capacitor.config.ts` and copies `public/manifest.webmanifest`, icons, etc. into `dist/capacitor/`.
-- Update `package.json` scripts: `build:capacitor`, `cap:sync` runs `build:capacitor && cap sync android`.
+## Native keyboard fix (Phase 1)
 
-### 6. GitHub Actions
+Replaces the current broken input with a controlled `<input type="text" inputMode="search" autoCapitalize="none" autoCorrect="off" enterKeyHint="search" />` inside a fixed bottom bar. `useInstantSearch` runs on `onChange` — no Enter needed. On Capacitor: `Keyboard.setResizeMode({ mode: 'body' })` (already configured) + `Keyboard.setAccessoryBarVisible({ isVisible: false })`. Verified on Android WebView, iOS Safari, desktop.
 
-- `.github/workflows/build-aab.yml`:
-  - `bun run build` (web SSR, unchanged) — keep for parity.
-  - `bun run build:capacitor` (new SPA bundle).
-  - `bunx cap sync android`.
-  - `./gradlew bundleRelease` — already wired to `android/key.properties` + `slpassistai-release.jks`, produces signed AAB artifact suitable for Play Internal Testing.
+## Sentence builder
 
-### 7. Auth on device
+`SentenceStrip` state = `{ id, label, emoji|image_url, speak }[]`.
+- Tap tile in results → append + speak the single word.
+- Tap chip → open edit menu (replace image, edit text, remove).
+- Long-press chip → drag to reorder (dnd-kit, already viable in project size).
+- Speak button uses existing `speakText()` from `src/lib/native.ts` on the joined sentence.
 
-- Google OAuth via Supabase works in the WebView using the existing publishable key; redirect URL uses `capacitor://localhost` scheme registered as a Supabase allowed redirect. Guest mode continues to work.
-- (Documented: user must add `capacitor://localhost` to Supabase Auth redirect URLs — I'll surface this after implementation.)
+## Offline
 
-## Deliverables
+- `core-words.ts` is bundled (no network).
+- `aac_vocabulary` + recent Openverse thumbs cached in IndexedDB via `idb-keyval` (small dep) with an LRU cap (300 items).
+- `useOnline()` hides Openverse/AI providers; shows "Offline" chip; disables Generate button with tooltip.
+- Existing `kb-snapshot` build already ships offline core; we hook into the same pattern.
 
-- New `vite.capacitor.config.ts`, `src/capacitor-main.tsx`, `src/lib/data-access.ts` + Vite alias.
-- Bundled clinical snapshot + Games/KB routes reading from it when offline.
-- `useOnlineStatus` hook + AI gating UI on `new-case`.
-- Updated `capacitor.config.ts`, `package.json` scripts, removed hosted-redirect shell.
-- Updated CI producing a signed AAB from the bundled SPA.
+## Cloud sync
 
-## Out of scope
+- All mutations go through `createServerFn` with `requireSupabaseAuth`.
+- `useVocabSync` subscribes to `postgres_changes` on `aac_vocabulary` filtered by `user_id` — favorites, uploads, AI images, deletes propagate instantly to other devices.
+- Settings stored in `aac_settings`, hydrated once on mount.
 
-- No changes to Gemini prompt, JSON schema, ranking, PDF logic, or existing web SSR routes.
-- No native plugins beyond `@capacitor/network`.
-- No Play Store listing assets — only the signed AAB.
+## Accessibility
 
-## Confirm before I build
+- Min 56px touch targets, 64px in "large targets" mode.
+- High-contrast theme via existing tokens (`--aac-*` added to `src/styles.css`).
+- `aria-label` on every tile, `role="listbox"` on results grid.
+- Screen reader announces chip additions.
 
-This is a large refactor (new build pipeline + data-access abstraction + snapshotting clinical data). Two questions before I start:
+## Performance targets
 
-1. **AI on mobile**: OK to route mobile AI calls through a Supabase Edge Function so `LOVABLE_API_KEY` stays server-side? (Required — we can't ship the key in the APK.)
-2. **Auth on mobile**: OK to require adding `capacitor://localhost` to Supabase Auth allowed redirects (one-time setting) so Google sign-in works inside the app? Guest mode works regardless.
+- Debounce 120ms; cached results < 50ms; Openverse < 800ms typical.
+- Openverse thumbnails only (200px); full-res fetched only when saved to vocab.
+- `React.lazy` split for `VocabEditorSheet`.
+- Aborted fetches on new keystroke.
+
+## Dependencies to add
+
+- `idb-keyval` (small IndexedDB helper)
+- `@dnd-kit/core` + `@dnd-kit/sortable` (chip reorder)
+- `fuse.js` (fuzzy matching on local vocab)
+- No new native plugins.
+
+## Rollout order
+
+1. **Phase A — DB + backend**: migration for the 3 tables + storage prefix + server route for AI generation.
+2. **Phase B — Engine + providers**: search orchestrator, Openverse client, cache, ranker (with unit-style manual verification via preview).
+3. **Phase C — UI**: SmartKeyboard, SentenceStrip, ResultsGrid, CoreRow, VocabEditorSheet. Wire into existing `/clinical-tools/aac` route.
+4. **Phase D — Offline + sync**: IndexedDB layer, `useVocabSync`, offline indicator.
+5. **Phase E — Polish**: accessibility pass, settings, Android version bump (`versionCode 8 → 9`, `versionName 1.0.7 → 1.0.8`) and AAB trigger.
+
+## Out of scope (explicit)
+
+- Role-based Therapist/Parent/Child modes — architecture supports it (permissions on `aac_vocabulary`), but no UI in this pass; documented as future switch on `aac_settings.mode`.
+- Pixabay/Unsplash — Openverse only per your choice; adding another provider is a single new file in `providers/` later.
+
+Approve to build in the order above; I'll ship each phase end-to-end before moving to the next.
