@@ -4,9 +4,9 @@ import { Disclaimer } from "@/components/Disclaimer";
 import { BrandMark } from "@/components/BrandMark";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getAppVersion } from "@/lib/native";
 import {
   ChevronRight,
-  FileText,
   Info,
   LogOut,
   Mail,
