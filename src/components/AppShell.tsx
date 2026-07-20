@@ -49,20 +49,16 @@ export function AppShell({ title, subtitle, back, right, children, hideNav }: Pr
             </button>
           ) : (
             <button
-              onClick={() => navigate({ to: "/settings" })}
-              aria-label="Open profile & settings"
-              className="grid h-9 w-9 place-items-center overflow-hidden rounded-xl bg-gradient-primary text-primary-foreground shadow-card"
+              onClick={() => navigate({ to: "/profile" })}
+              aria-label="Open profile"
+              className="grid h-9 w-9 place-items-center overflow-hidden rounded-xl"
             >
-              {avatar ? (
-                <img
-                  src={avatar}
-                  alt="Profile"
-                  referrerPolicy="no-referrer"
-                  className="h-full w-full rounded-xl object-cover"
-                />
-              ) : (
-                <BrandMark />
-              )}
+              <UserAvatar
+                src={profile?.avatarUrl}
+                name={profile?.displayName}
+                email={profile?.email}
+                className="h-9 w-9"
+              />
             </button>
           )}
           <div className="min-w-0 flex-1">

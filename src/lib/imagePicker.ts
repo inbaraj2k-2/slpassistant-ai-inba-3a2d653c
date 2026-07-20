@@ -46,7 +46,7 @@ export async function pickProfileImage(source: PickerSource): Promise<PickedImag
     const mime = `image/${(photo.format || "jpeg").toLowerCase()}`;
     const bytes = base64ToBytes(photo.base64String);
     return {
-      blob: new Blob([bytes], { type: mime }),
+      blob: new Blob([bytes.buffer as ArrayBuffer], { type: mime }),
       mimeType: mime,
       extension: (photo.format || "jpg").toLowerCase(),
     };
