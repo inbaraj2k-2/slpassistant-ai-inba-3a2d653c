@@ -1,8 +1,9 @@
-import { Link, useRouter } from "@tanstack/react-router";
+import { Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { ArrowLeft, BookOpen, FolderClock, Home, Settings, WifiOff } from "lucide-react";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { BrandMark } from "@/components/BrandMark";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
   title: string;
@@ -11,6 +12,26 @@ interface Props {
   right?: ReactNode;
   children: ReactNode;
   hideNav?: boolean;
+}
+
+function useUserAvatar() {
+  const [avatar, setAvatar] = useState<string | null>(null);
+  useEffect(() => {
+    let mounted = true;
+    supabase.auth.getUser().then(({ data }) => {
+      if (!mounted) return;
+      const m = (data.user?.user_metadata ?? {}) as Record<string, unknown>;
+      const url =
+        (typeof m.avatar_url === "string" && m.avatar_url) ||
+        (typeof m.picture === "string" && m.picture) ||
+        null;
+      setAvatar(url);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+  return avatar;
 }
 
 export function AppShell({ title, subtitle, back, right, children, hideNav }: Props) {
