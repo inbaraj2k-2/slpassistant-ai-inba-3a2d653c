@@ -40,13 +40,14 @@ function AuthPage() {
       }
     }
 
-    supabase.auth.getUser().then(async ({ data }) => {
-      if (data.user) {
+    supabase.auth.getSession().then(async ({ data }) => {
+      const user = data.session?.user;
+      if (user) {
         try {
-          await ensureUserProfile(data.user);
+          await ensureUserProfile(user);
         } catch (e) {
           console.error("[auth] ensureUserProfile failed", e);
-          setError("Google signed in, but your profile could not be saved. Please try again.");
+          setError("Signed in, but your profile could not be saved. Please try again.");
           return;
         }
         navigate({ to: "/home", replace: true });

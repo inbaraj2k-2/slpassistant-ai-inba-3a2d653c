@@ -13,8 +13,9 @@ export function BrandMark({ className = "h-full w-full" }: BrandMarkProps) {
     queryKey: ["brand-mark"],
     queryFn: async () => {
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
+        data: { session },
+      } = await supabase.auth.getSession();
+      const user = session?.user;
       if (!user || user.is_anonymous) return null;
 
       const { data, error } = await supabase

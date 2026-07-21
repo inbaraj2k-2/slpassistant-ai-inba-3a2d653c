@@ -16,7 +16,10 @@ export interface UserProfile {
 }
 
 async function loadProfile(): Promise<UserProfile | null> {
-  const { data: { user } } = await supabase.auth.getUser();
+  // Read local session — getUser() forces a network hit that stalls avatar
+  // rendering across the app on flaky mobile networks.
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
   if (!user) return null;
 
   const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
