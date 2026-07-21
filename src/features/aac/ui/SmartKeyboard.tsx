@@ -37,9 +37,25 @@ export function SmartKeyboard() {
   const [generating, setGenerating] = useState(false);
   const [editing, setEditing] = useState<VocabRow | null>(null);
   const [banner, setBanner] = useState<string | null>(null);
+  const [boardKey, setBoardKey] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useVocabSync(); // hydrates user vocab index in the background
+
+  const refreshBoard = useCallback(async () => {
+    setBoardKey((k) => k + 1);
+    try {
+      const { data } = await supabase
+        .from("aac_vocabulary")
+        .select("*")
+        .order("updated_at", { ascending: false })
+        .limit(2000);
+      if (data) {
+        indexVocab(data as unknown as VocabRow[]);
+        setBoardKey((k) => k + 1);
+      }
+    } catch { /* noop */ }
+  }, []);
 
   const { results, loading, online } = useInstantSearch(query);
 
