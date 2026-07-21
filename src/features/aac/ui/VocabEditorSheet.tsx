@@ -1,5 +1,5 @@
 import { Heart, Pin, Star, Trash2, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { deleteVocab, upsertVocab } from "@/lib/aac.functions";
 import type { VocabRow } from "../types";
@@ -14,6 +14,14 @@ export function VocabEditorSheet({ row, onClose }: Props) {
   const [keywords, setKeywords] = useState((row.keywords ?? []).join(", "));
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !busy) onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [busy, onClose]);
 
   async function save(patch: Partial<VocabRow>) {
     setBusy(true);
@@ -95,7 +103,9 @@ export function VocabEditorSheet({ row, onClose }: Props) {
       role="dialog"
       aria-modal="true"
       className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 p-3"
-      onClick={onClose}
+      onClick={() => {
+        if (!busy) onClose();
+      }}
     >
       <div
         className="w-full max-w-md rounded-2xl bg-card p-4 shadow-2xl"

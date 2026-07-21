@@ -1,5 +1,5 @@
 import { Sparkles, Trash2, WifiOff } from "lucide-react";
-import { memo } from "react";
+import { memo, useRef } from "react";
 import type { AacResult } from "../types";
 
 interface Props {
@@ -76,23 +76,34 @@ interface TileProps {
 }
 
 function Tile({ result, onPick, onLongPress }: TileProps) {
-  let pressTimer: ReturnType<typeof setTimeout> | null = null;
+  const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressed = useRef(false);
 
   const startPress = () => {
     if (result.source !== "user" && result.source !== "ai") return;
-    pressTimer = setTimeout(() => onLongPress(result), 500);
+    longPressed.current = false;
+    pressTimer.current = setTimeout(() => {
+      longPressed.current = true;
+      onLongPress(result);
+    }, 550);
   };
   const cancelPress = () => {
-    if (pressTimer) {
-      clearTimeout(pressTimer);
-      pressTimer = null;
+    if (pressTimer.current) {
+      clearTimeout(pressTimer.current);
+      pressTimer.current = null;
     }
   };
 
   return (
     <button
       role="option"
-      onClick={() => onPick(result)}
+      onClick={() => {
+        if (longPressed.current) {
+          longPressed.current = false;
+          return;
+        }
+        onPick(result);
+      }}
       onPointerDown={startPress}
       onPointerUp={cancelPress}
       onPointerLeave={cancelPress}

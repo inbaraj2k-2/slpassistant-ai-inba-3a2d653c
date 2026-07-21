@@ -29,8 +29,12 @@ export async function searchOpenverse(
     `${ENDPOINT}?q=${encodeURIComponent(q)}` +
     `&page_size=${pageSize}` +
     `&mature=false&license_type=all-cc&format=json`;
+  const timeout = new AbortController();
+  const timeoutId = setTimeout(() => timeout.abort(), 6000);
+  const abort = () => timeout.abort();
+  signal?.addEventListener("abort", abort, { once: true });
   try {
-    const res = await fetch(url, { signal, headers: { Accept: "application/json" } });
+    const res = await fetch(url, { signal: timeout.signal, headers: { Accept: "application/json" } });
     if (!res.ok) return [];
     const data = (await res.json()) as OVResponse;
     const items = data.results ?? [];
@@ -48,6 +52,9 @@ export async function searchOpenverse(
     }));
   } catch {
     return [];
+  } finally {
+    clearTimeout(timeoutId);
+    signal?.removeEventListener("abort", abort);
   }
 }
 

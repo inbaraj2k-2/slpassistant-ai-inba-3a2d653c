@@ -39,6 +39,18 @@ export async function speakText(text: string) {
   }
 }
 
+function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) => {
+      timer = setTimeout(() => reject(new Error(message)), ms);
+    }),
+  ]).finally(() => {
+    if (timer) clearTimeout(timer);
+  });
+}
+
 export interface AppVersionInfo {
   versionName: string;
   versionCode: string;
@@ -74,17 +86,17 @@ export async function getAppVersion(): Promise<AppVersionInfo> {
 export async function downloadToDevice(url: string, fileName: string): Promise<string> {
   if (isNative()) {
     const { Filesystem, Directory } = await import("@capacitor/filesystem");
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`Download failed: ${res.status}`);
-    const buf = await res.arrayBuffer();
-    const base64 = arrayBufferToBase64(buf);
     const safeName = fileName.replace(/[/\\?%*:|"<>]/g, "_");
-    await Filesystem.writeFile({
-      path: safeName,
-      data: base64,
-      directory: Directory.Documents,
-      recursive: true,
-    });
+    await withTimeout(
+      Filesystem.downloadFile({
+        url,
+        path: safeName,
+        directory: Directory.Documents,
+        recursive: true,
+      }),
+      120_000,
+      "Download timed out",
+    );
     return `Documents/${safeName}`;
   }
   // Web: force a normal download via an anchor tag.
@@ -116,15 +128,4 @@ export async function openInAppBrowser(url: string) {
   window.open(url, "_blank", "noopener");
 }
 
-function arrayBufferToBase64(buffer: ArrayBuffer): string {
-  const bytes = new Uint8Array(buffer);
-  let binary = "";
-  const chunkSize = 0x8000;
-  for (let i = 0; i < bytes.length; i += chunkSize) {
-    binary += String.fromCharCode.apply(
-      null,
-      Array.from(bytes.subarray(i, i + chunkSize)) as unknown as number[],
-    );
-  }
-  return btoa(binary);
-}
+export { withTimeout as nativeTimeout };

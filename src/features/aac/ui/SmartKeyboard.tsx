@@ -59,7 +59,7 @@ export function SmartKeyboard() {
         vocabId: r.vocabId,
       };
       setChips((s) => [...s, chip]);
-      speakText(chip.speak ?? chip.label);
+      void speakText(chip.speak ?? chip.label);
       // record use / promote to user vocabulary
       if (r.vocabId) {
         recordUse({ data: { id: r.vocabId } }).catch(() => {});
@@ -136,32 +136,6 @@ export function SmartKeyboard() {
     return () => {
       void dismissSoftKeyboard();
     };
-  }, []);
-
-  // Handle the Android hardware Back button as a two-step exit:
-  //   1) if the software keyboard is open, close it first
-  //   2) otherwise navigate back
-  // Without this, some Android IMEs would swallow the Back press.
-  useEffect(() => {
-    let remove: (() => void) | null = null;
-    (async () => {
-      try {
-        // @ts-expect-error - injected by Capacitor at runtime.
-        if (!(typeof window !== "undefined" && window.Capacitor?.isNativePlatform?.())) return;
-        const { App } = await import("@capacitor/app");
-        const handle = await App.addListener("backButton", async () => {
-          const active = document.activeElement as HTMLElement | null;
-          if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA")) {
-            await dismissSoftKeyboard();
-            return;
-          }
-          await dismissSoftKeyboard();
-          window.history.back();
-        });
-        remove = () => { handle.remove().catch(() => {}); };
-      } catch { /* not on native */ }
-    })();
-    return () => { remove?.(); };
   }, []);
 
   const emptyQuery = !query.trim();

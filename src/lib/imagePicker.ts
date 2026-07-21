@@ -2,7 +2,7 @@
 // native @capacitor/camera plugin (Gallery + Camera). On the web falls back
 // to a hidden <input type="file"> with `capture` for camera access.
 
-import { isNative } from "@/lib/native";
+import { isNative, nativeTimeout } from "@/lib/native";
 
 export type PickerSource = "gallery" | "camera";
 
@@ -33,15 +33,19 @@ export async function pickProfileImage(source: PickerSource): Promise<PickedImag
   if (!isNative()) return pickWithFileInput(source);
   try {
     const { Camera, CameraResultType, CameraSource } = await import("@capacitor/camera");
-    const photo = await Camera.getPhoto({
-      quality: 85,
-      allowEditing: true,
-      resultType: CameraResultType.Base64,
-      source: source === "camera" ? CameraSource.Camera : CameraSource.Photos,
-      correctOrientation: true,
-      width: 512,
-      height: 512,
-    });
+    const photo = await nativeTimeout(
+      Camera.getPhoto({
+        quality: 85,
+        allowEditing: true,
+        resultType: CameraResultType.Base64,
+        source: source === "camera" ? CameraSource.Camera : CameraSource.Photos,
+        correctOrientation: true,
+        width: 512,
+        height: 512,
+      }),
+      45_000,
+      "Image picker timed out",
+    );
     if (!photo.base64String) return null;
     const mime = `image/${(photo.format || "jpeg").toLowerCase()}`;
     const bytes = base64ToBytes(photo.base64String);
@@ -52,7 +56,7 @@ export async function pickProfileImage(source: PickerSource): Promise<PickedImag
     };
   } catch (err) {
     console.warn("[imagePicker] native picker failed", err);
-    return pickWithFileInput(source);
+    return null;
   }
 }
 

@@ -10,6 +10,7 @@ export function useVocabSync() {
 
   useEffect(() => {
     let alive = true;
+    let loading = false;
 
     // 1) Warm from offline snapshot
     (async () => {
@@ -22,17 +23,25 @@ export function useVocabSync() {
 
     // 2) Fetch fresh
     const load = async () => {
-      const { data } = await supabase
-        .from("aac_vocabulary")
-        .select("*")
-        .order("updated_at", { ascending: false })
-        .limit(2000);
-      if (!alive) return;
-      const list = (data ?? []) as unknown as VocabRow[];
-      setRows(list);
-      indexVocab(list);
-      saveVocabSnapshot(list);
-      setLoaded(true);
+      if (loading) return;
+      loading = true;
+      try {
+        const { data } = await supabase
+          .from("aac_vocabulary")
+          .select("*")
+          .order("updated_at", { ascending: false })
+          .limit(2000);
+        if (!alive) return;
+        const list = (data ?? []) as unknown as VocabRow[];
+        setRows(list);
+        indexVocab(list);
+        void saveVocabSnapshot(list);
+      } catch {
+        // Offline or transient auth/network errors should not block the AAC UI.
+      } finally {
+        loading = false;
+        if (alive) setLoaded(true);
+      }
     };
     load();
 
