@@ -26,33 +26,43 @@ const REMOTE_ORIGIN = "https://slpassistant-ai-inba.lovable.app";
 // Rewrite any request that targets a TanStack Start server-function endpoint
 // (`/_serverFn/...`) to the published origin so it actually reaches the
 // Cloudflare Worker instead of Capacitor's local file scheme.
+//
+// Every fetch is also wrapped in a 25s AbortController timeout — flaky
+// mobile networks would otherwise let promises hang forever, which is a
+// major source of the "screen becomes unresponsive" symptom on Android
+// (the UI stays in a loading state that never resolves).
 if (typeof window !== "undefined") {
   const originalFetch = window.fetch.bind(window);
+  const FETCH_TIMEOUT_MS = 25_000;
   window.fetch = (input, init) => {
+    let url: string | undefined;
     try {
-      let url: string | undefined;
       if (typeof input === "string") url = input;
       else if (input instanceof URL) url = input.toString();
       else if (input instanceof Request) url = input.url;
+    } catch { /* ignore */ }
 
-      if (url) {
-        // Match both same-origin ("http://localhost/_serverFn/...") and
-        // relative ("/_serverFn/...") server-fn RPC calls.
-        const match = url.match(/(?:^|\/\/[^/]+)(\/_serverFn\/.*)$/);
-        if (match) {
-          const rewritten = REMOTE_ORIGIN + match[1];
-          if (input instanceof Request) {
-            return originalFetch(new Request(rewritten, input), init);
-          }
-          return originalFetch(rewritten, init);
-        }
+    let finalInput: RequestInfo | URL = input as RequestInfo;
+    if (url) {
+      const match = url.match(/(?:^|\/\/[^/]+)(\/_serverFn\/.*)$/);
+      if (match) {
+        const rewritten = REMOTE_ORIGIN + match[1];
+        finalInput = input instanceof Request ? new Request(rewritten, input) : rewritten;
       }
-    } catch {
-      // fall through to normal fetch
     }
-    return originalFetch(input as RequestInfo, init);
+
+    // Attach a timeout unless the caller already provided a signal.
+    const existingSignal = (init as RequestInit | undefined)?.signal
+      ?? (input instanceof Request ? input.signal : undefined);
+    if (existingSignal) return originalFetch(finalInput, init);
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+    const nextInit: RequestInit = { ...(init ?? {}), signal: controller.signal };
+    return originalFetch(finalInput, nextInit).finally(() => clearTimeout(timer));
   };
 }
+
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -68,7 +78,12 @@ const router = createRouter({
   context: { queryClient },
   scrollRestoration: true,
   defaultPreloadStaleTime: 0,
+  // On Android WebView, hover-intent preloading fires on every touchstart
+  // and piles up route loaders (Supabase calls) that block the main thread
+  // and freeze touches. Disable preloading in the Capacitor build.
+  defaultPreload: false,
 });
+
 
 declare module "@tanstack/react-router" {
   interface Register {
@@ -92,9 +107,15 @@ createRoot(container).render(<App />);
 
 // Deep-link handler for the Google OAuth callback returning from Chrome
 // Custom Tab as app.lovable.slpassistant://auth-callback#access_token=...
+// AND a global hardware Back-button handler so navigation never gets stuck
+// on any screen. Without this, some Android IMEs and route loaders swallow
+// the Back press and users are forced to close the app.
+const ROOT_ROUTES = new Set(["/", "/home", "/auth"]);
+
 (async () => {
   try {
     const { App: CapApp } = await import("@capacitor/app");
+
     CapApp.addListener("appUrlOpen", async (event: { url: string }) => {
       try {
         const consumed = await completeCapacitorOAuthFromUrl(event.url);
@@ -105,10 +126,43 @@ createRoot(container).render(<App />);
         console.error("[capacitor] OAuth deep-link failed", err);
       }
     });
+
+    CapApp.addListener("backButton", async () => {
+      // 1) If the soft keyboard is up, drop focus + hide it and stop here.
+      try {
+        const active = document.activeElement as HTMLElement | null;
+        if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA")) {
+          active.blur();
+          const { Keyboard } = await import("@capacitor/keyboard");
+          await Keyboard.hide().catch(() => {});
+          return;
+        }
+      } catch { /* ignore */ }
+
+      // 2) If any dialog / sheet / modal is open, close it via Escape.
+      const overlay = document.querySelector<HTMLElement>(
+        '[role="dialog"], [data-state="open"][role="alertdialog"], [data-radix-portal] [role="dialog"]',
+      );
+      if (overlay) {
+        document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+        return;
+      }
+
+      // 3) At a root screen → exit the app cleanly.
+      const path = window.location.pathname || "/";
+      if (ROOT_ROUTES.has(path) || window.history.length <= 1) {
+        try { await CapApp.exitApp(); } catch { /* ignore */ }
+        return;
+      }
+
+      // 4) Otherwise, navigate back.
+      router.history.back();
+    });
   } catch {
     // Not running under Capacitor — ignore.
   }
 })();
+
 
 // Configure the Android system status bar so it stays visible above the
 // WebView (matches Google Drive / Chrome behaviour). Any failure here is
