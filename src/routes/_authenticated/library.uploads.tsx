@@ -16,6 +16,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { FileText, ImageIcon, Loader2, Trash2, UploadCloud } from "lucide-react";
+import { openInAppBrowser } from "@/lib/native";
 
 const CATEGORIES = ["Assessment", "Therapy Materials", "Research", "Books", "Other"] as const;
 
@@ -149,7 +150,7 @@ function UploadsPage() {
       .from("uploads")
       .createSignedUrl(row.file_path, 60 * 10);
     if (error || !data) return toast.error("Could not open file.");
-    window.open(data.signedUrl, "_blank", "noopener");
+    await openInAppBrowser(data.signedUrl);
   };
 
   const removeFile = async (row: UploadRow) => {

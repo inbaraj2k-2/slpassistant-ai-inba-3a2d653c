@@ -31,6 +31,10 @@ export function useOnlineStatus(): boolean {
         const handle = await Network.addListener("networkStatusChange", (s) => {
           setOnline(s.connected);
         });
+        if (cancelled) {
+          handle.remove().catch(() => {});
+          return;
+        }
         cleanupNative = () => {
           handle.remove().catch(() => {});
         };

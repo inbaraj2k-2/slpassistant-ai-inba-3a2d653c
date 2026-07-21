@@ -37,6 +37,7 @@ function VoiceAnalysisPage() {
   const chunksRef = useRef<Float32Array[]>([]);
   const startTsRef = useRef<number>(0);
   const timerRef = useRef<number | null>(null);
+  const analysisTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     return () => {
@@ -62,6 +63,10 @@ function VoiceAnalysisPage() {
       window.clearInterval(timerRef.current);
       timerRef.current = null;
     }
+    if (analysisTimerRef.current) {
+      window.clearTimeout(analysisTimerRef.current);
+      analysisTimerRef.current = null;
+    }
   }
 
   async function start() {
@@ -69,11 +74,16 @@ function VoiceAnalysisPage() {
     setResult(null);
     chunksRef.current = [];
     try {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        throw new Error("Microphone recording is not available on this device.");
+      }
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
       });
       streamRef.current = stream;
-      const ctx = new AudioContext();
+      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!AudioCtx) throw new Error("Audio analysis is not available on this device.");
+      const ctx = new AudioCtx();
       if (ctx.state === "suspended") await ctx.resume();
       ctxRef.current = ctx;
       const source = ctx.createMediaStreamSource(stream);
@@ -82,6 +92,7 @@ function VoiceAnalysisPage() {
       const proc = ctx.createScriptProcessor(4096, 1, 1);
       processorRef.current = proc;
       proc.onaudioprocess = (e) => {
+        if (chunksRef.current.length > 900) return;
         const ch = e.inputBuffer.getChannelData(0);
         chunksRef.current.push(new Float32Array(ch));
       };
@@ -128,10 +139,11 @@ function VoiceAnalysisPage() {
       timerRef.current = null;
     }
     // analyze off the main render tick
-    setTimeout(() => {
+    analysisTimerRef.current = window.setTimeout(() => {
       const analysis = analyze(buf, sampleRate);
       setResult(analysis);
       setStatus("done");
+      analysisTimerRef.current = null;
     }, 0);
   }
 

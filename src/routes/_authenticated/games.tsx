@@ -261,6 +261,7 @@ function MemoryMatch() {
   const [elapsed, setElapsed] = useState(0);
   const [running, setRunning] = useState(false);
   const timerRef = useRef<number | null>(null);
+  const flipTimerRef = useRef<number | null>(null);
 
   const won = useMemo(() => cards.length > 0 && cards.every((c) => c.matched), [cards]);
 
@@ -283,6 +284,12 @@ function MemoryMatch() {
       if (timerRef.current) window.clearInterval(timerRef.current);
     };
   }, [running]);
+
+  useEffect(() => {
+    return () => {
+      if (flipTimerRef.current) window.clearTimeout(flipTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     if (won) {
@@ -322,7 +329,8 @@ function MemoryMatch() {
       const [a, b] = next;
       const av = cards.find((c) => c.id === a)?.value;
       const bv = cards.find((c) => c.id === b)?.value;
-      setTimeout(() => {
+      if (flipTimerRef.current) window.clearTimeout(flipTimerRef.current);
+      flipTimerRef.current = window.setTimeout(() => {
         setCards((cs) =>
           cs.map((c) => {
             if (c.id === a || c.id === b) {
@@ -334,6 +342,7 @@ function MemoryMatch() {
           }),
         );
         setPick([]);
+        flipTimerRef.current = null;
       }, 700);
     }
   };
