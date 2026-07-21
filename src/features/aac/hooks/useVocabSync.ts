@@ -1,29 +1,29 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { saveVocabSnapshot, readVocabSnapshot } from "../engine/cache";
 import { indexVocab } from "../providers/userVocabProvider";
 import type { VocabRow } from "../types";
 
+/**
+ * Hydrates the in-memory user vocab index from the offline snapshot first,
+ * then refreshes it from Supabase. Kept side-effect only (no React state) so
+ * every load doesn't rerender the SmartKeyboard subtree — a hot path on
+ * Android where extra renders were compounding jank.
+ */
 export function useVocabSync() {
-  const [rows, setRows] = useState<VocabRow[]>([]);
-  const [loaded, setLoaded] = useState(false);
-
   useEffect(() => {
     let alive = true;
     let loading = false;
 
-    // 1) Warm from offline snapshot
+    // 1) Warm from offline snapshot.
     (async () => {
       const snap = await readVocabSnapshot<VocabRow[]>();
-      if (snap && alive) {
-        setRows(snap);
-        indexVocab(snap);
-      }
+      if (snap && alive) indexVocab(snap);
     })();
 
-    // 2) Fetch fresh
+    // 2) Fetch fresh.
     const load = async () => {
-      if (loading) return;
+      if (loading || !alive) return;
       loading = true;
       try {
         const { data } = await supabase
@@ -33,33 +33,29 @@ export function useVocabSync() {
           .limit(2000);
         if (!alive) return;
         const list = (data ?? []) as unknown as VocabRow[];
-        setRows(list);
         indexVocab(list);
         void saveVocabSnapshot(list);
       } catch {
-        // Offline or transient auth/network errors should not block the AAC UI.
+        // Offline or transient auth/network errors should not block the UI.
       } finally {
         loading = false;
-        if (alive) setLoaded(true);
       }
     };
-    load();
+    void load();
 
-    // 3) Realtime cross-device sync — track channel in a ref-like local so
-    //    the outer cleanup below always removes it. (Returning cleanup from
-    //    a Promise callback does nothing and leaks a channel per mount,
-    //    which piled up over time and froze the WebView on Android.)
+    // 3) Realtime cross-device sync — track channel locally so cleanup
+    //    always removes it even if the auth lookup hasn't resolved yet.
     let channel: ReturnType<typeof supabase.channel> | null = null;
-    supabase.auth.getUser().then(({ data }) => {
+    supabase.auth.getSession().then(({ data }) => {
       if (!alive) return;
-      const uid = data.user?.id;
+      const uid = data.session?.user?.id;
       if (!uid) return;
       channel = supabase
         .channel(`aac_vocab_${uid}`)
         .on(
           "postgres_changes",
           { event: "*", schema: "public", table: "aac_vocabulary", filter: `user_id=eq.${uid}` },
-          () => load(),
+          () => void load(),
         )
         .subscribe();
     });
@@ -69,7 +65,6 @@ export function useVocabSync() {
       if (channel) supabase.removeChannel(channel).catch(() => {});
     };
   }, []);
-
-  return { rows, loaded };
 }
+
 
