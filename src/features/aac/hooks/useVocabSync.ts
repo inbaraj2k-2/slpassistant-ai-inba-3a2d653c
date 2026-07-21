@@ -36,11 +36,16 @@ export function useVocabSync() {
     };
     load();
 
-    // 3) Realtime cross-device sync
+    // 3) Realtime cross-device sync — track channel in a ref-like local so
+    //    the outer cleanup below always removes it. (Returning cleanup from
+    //    a Promise callback does nothing and leaks a channel per mount,
+    //    which piled up over time and froze the WebView on Android.)
+    let channel: ReturnType<typeof supabase.channel> | null = null;
     supabase.auth.getUser().then(({ data }) => {
+      if (!alive) return;
       const uid = data.user?.id;
       if (!uid) return;
-      const channel = supabase
+      channel = supabase
         .channel(`aac_vocab_${uid}`)
         .on(
           "postgres_changes",
@@ -48,15 +53,14 @@ export function useVocabSync() {
           () => load(),
         )
         .subscribe();
-      return () => {
-        supabase.removeChannel(channel);
-      };
     });
 
     return () => {
       alive = false;
+      if (channel) supabase.removeChannel(channel).catch(() => {});
     };
   }, []);
 
   return { rows, loaded };
 }
+
