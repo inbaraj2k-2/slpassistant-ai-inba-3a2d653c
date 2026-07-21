@@ -78,7 +78,12 @@ const router = createRouter({
   context: { queryClient },
   scrollRestoration: true,
   defaultPreloadStaleTime: 0,
+  // On Android WebView, hover-intent preloading fires on every touchstart
+  // and piles up route loaders (Supabase calls) that block the main thread
+  // and freeze touches. Disable preloading in the Capacitor build.
+  defaultPreload: false,
 });
+
 
 declare module "@tanstack/react-router" {
   interface Register {
