@@ -26,33 +26,43 @@ const REMOTE_ORIGIN = "https://slpassistant-ai-inba.lovable.app";
 // Rewrite any request that targets a TanStack Start server-function endpoint
 // (`/_serverFn/...`) to the published origin so it actually reaches the
 // Cloudflare Worker instead of Capacitor's local file scheme.
+//
+// Every fetch is also wrapped in a 25s AbortController timeout — flaky
+// mobile networks would otherwise let promises hang forever, which is a
+// major source of the "screen becomes unresponsive" symptom on Android
+// (the UI stays in a loading state that never resolves).
 if (typeof window !== "undefined") {
   const originalFetch = window.fetch.bind(window);
+  const FETCH_TIMEOUT_MS = 25_000;
   window.fetch = (input, init) => {
+    let url: string | undefined;
     try {
-      let url: string | undefined;
       if (typeof input === "string") url = input;
       else if (input instanceof URL) url = input.toString();
       else if (input instanceof Request) url = input.url;
+    } catch { /* ignore */ }
 
-      if (url) {
-        // Match both same-origin ("http://localhost/_serverFn/...") and
-        // relative ("/_serverFn/...") server-fn RPC calls.
-        const match = url.match(/(?:^|\/\/[^/]+)(\/_serverFn\/.*)$/);
-        if (match) {
-          const rewritten = REMOTE_ORIGIN + match[1];
-          if (input instanceof Request) {
-            return originalFetch(new Request(rewritten, input), init);
-          }
-          return originalFetch(rewritten, init);
-        }
+    let finalInput: RequestInfo | URL = input as RequestInfo;
+    if (url) {
+      const match = url.match(/(?:^|\/\/[^/]+)(\/_serverFn\/.*)$/);
+      if (match) {
+        const rewritten = REMOTE_ORIGIN + match[1];
+        finalInput = input instanceof Request ? new Request(rewritten, input) : rewritten;
       }
-    } catch {
-      // fall through to normal fetch
     }
-    return originalFetch(input as RequestInfo, init);
+
+    // Attach a timeout unless the caller already provided a signal.
+    const existingSignal = (init as RequestInit | undefined)?.signal
+      ?? (input instanceof Request ? input.signal : undefined);
+    if (existingSignal) return originalFetch(finalInput, init);
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+    const nextInit: RequestInit = { ...(init ?? {}), signal: controller.signal };
+    return originalFetch(finalInput, nextInit).finally(() => clearTimeout(timer));
   };
 }
+
 
 const queryClient = new QueryClient({
   defaultOptions: {
