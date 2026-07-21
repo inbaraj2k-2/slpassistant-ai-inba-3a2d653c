@@ -15,6 +15,7 @@ interface UpsertInput {
     source?: "user" | "ai" | "openverse" | "core";
     is_favorite?: boolean;
     pinned?: boolean;
+    sort_order?: number;
   };
 }
 

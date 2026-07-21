@@ -13,6 +13,7 @@ export interface VocabRow {
   is_favorite: boolean;
   pinned: boolean;
   use_count: number;
+  sort_order?: number;
   last_used_at: string | null;
   created_at: string;
   updated_at: string;
