@@ -37,7 +37,7 @@ export function AppShell({ title, subtitle, back, right, children, hideNav }: Pr
           Offline — AI features disabled. Saved data still available.
         </div>
       )}
-      <header className="sticky top-0 z-20 border-b border-border/70 bg-background/85 backdrop-blur">
+      <header className="sticky top-0 z-20 border-b border-border/70 bg-background">
         <div className="flex items-center gap-3 px-4 pb-3 pt-5">
           {back ? (
             <button
