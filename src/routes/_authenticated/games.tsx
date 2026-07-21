@@ -310,6 +310,10 @@ function MemoryMatch() {
   }, [won]);
 
   const reset = (l: Level = level) => {
+    if (flipTimerRef.current) {
+      window.clearTimeout(flipTimerRef.current);
+      flipTimerRef.current = null;
+    }
     setLevel(l);
     setCards(shuffleDeck(l));
     setPick([]);
