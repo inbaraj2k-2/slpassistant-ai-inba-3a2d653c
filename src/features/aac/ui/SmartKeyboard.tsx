@@ -8,9 +8,11 @@ import { getAllVocab, indexVocab } from "../providers/userVocabProvider";
 import { upsertVocab, recordUse } from "@/lib/aac.functions";
 import type { AacResult, SentenceChip, VocabRow } from "../types";
 import { CoreRow } from "./CoreRow";
+import { MyBoard } from "./MyBoard";
 import { ResultsGrid } from "./ResultsGrid";
 import { SentenceStrip } from "./SentenceStrip";
 import { VocabEditorSheet } from "./VocabEditorSheet";
+import { supabase } from "@/integrations/supabase/client";
 
 // Best-effort helper to close the on-screen keyboard on Android/iOS. On the
 // web the blur() call is enough; on Capacitor we also ask the OS to dismiss
