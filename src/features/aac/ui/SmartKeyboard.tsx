@@ -224,9 +224,12 @@ export function SmartKeyboard() {
         </div>
       )}
 
-      {/* Results OR core */}
+      {/* Results OR (My Board + core) */}
       {emptyQuery ? (
-        <CoreRow onPick={addChip} />
+        <>
+          <MyBoard onPick={addChip} refreshKey={boardKey} onChanged={refreshBoard} />
+          <CoreRow onPick={addChip} />
+        </>
       ) : (
         <ResultsGrid
           results={results}
@@ -240,7 +243,15 @@ export function SmartKeyboard() {
         />
       )}
 
-      {editing && <VocabEditorSheet row={editing} onClose={() => setEditing(null)} />}
+      {editing && (
+        <VocabEditorSheet
+          row={editing}
+          onClose={() => {
+            setEditing(null);
+            void refreshBoard();
+          }}
+        />
+      )}
     </div>
   );
 }
