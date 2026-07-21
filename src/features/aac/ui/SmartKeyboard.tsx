@@ -185,7 +185,7 @@ export function SmartKeyboard() {
       />
 
       {/* Search input + Speak */}
-      <div className="sticky top-16 z-10 rounded-2xl border border-border bg-card/95 p-2 shadow-card backdrop-blur">
+      <div className="sticky top-16 z-10 rounded-2xl border border-border bg-card p-2 shadow-card">
         <div className="flex items-center gap-2">
           <div className="flex flex-1 items-center gap-2 rounded-xl bg-secondary/50 px-3">
             <Search className="h-4 w-4 text-muted-foreground" />

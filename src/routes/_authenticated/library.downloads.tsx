@@ -5,11 +5,13 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Download, FileText, ImageIcon, Loader2 } from "lucide-react";
+import { downloadToDevice, isNative } from "@/lib/native";
 
 export const Route = createFileRoute("/_authenticated/library/downloads")({
   head: () => ({ meta: [{ title: "Downloads — Library" }] }),
   component: DownloadsPage,
 });
+
 
 type Row = {
   id: string;
@@ -41,13 +43,14 @@ function DownloadsPage() {
       .from("uploads")
       .createSignedUrl(r.file_path, 60 * 10, { download: r.file_name });
     if (error || !data) return toast.error("Could not prepare download.");
-    const a = document.createElement("a");
-    a.href = data.signedUrl;
-    a.download = r.file_name;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+    try {
+      const dest = await downloadToDevice(data.signedUrl, r.file_name);
+      if (isNative()) toast.success(`Saved to ${dest}`);
+    } catch {
+      toast.error("Could not save file.");
+    }
   };
+
 
   return (
     <AppShell title="Downloads" subtitle="Your saved offline files" back>

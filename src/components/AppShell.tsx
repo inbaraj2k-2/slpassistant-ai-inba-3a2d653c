@@ -75,9 +75,10 @@ export function AppShell({ title, subtitle, back, right, children, hideNav }: Pr
 
       {!hideNav && (
         <nav
-          className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background/95 backdrop-blur"
+          className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background"
           style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
         >
+
           <div className="mx-auto flex max-w-md items-center justify-around px-2 py-2">
             <NavItem to="/home" icon={<Home className="h-5 w-5" />} label="Home" />
             <NavItem to="/cases" icon={<FolderClock className="h-5 w-5" />} label="Cases" />
