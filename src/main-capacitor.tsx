@@ -107,9 +107,15 @@ createRoot(container).render(<App />);
 
 // Deep-link handler for the Google OAuth callback returning from Chrome
 // Custom Tab as app.lovable.slpassistant://auth-callback#access_token=...
+// AND a global hardware Back-button handler so navigation never gets stuck
+// on any screen. Without this, some Android IMEs and route loaders swallow
+// the Back press and users are forced to close the app.
+const ROOT_ROUTES = new Set(["/", "/home", "/auth"]);
+
 (async () => {
   try {
     const { App: CapApp } = await import("@capacitor/app");
+
     CapApp.addListener("appUrlOpen", async (event: { url: string }) => {
       try {
         const consumed = await completeCapacitorOAuthFromUrl(event.url);
@@ -120,10 +126,43 @@ createRoot(container).render(<App />);
         console.error("[capacitor] OAuth deep-link failed", err);
       }
     });
+
+    CapApp.addListener("backButton", async () => {
+      // 1) If the soft keyboard is up, drop focus + hide it and stop here.
+      try {
+        const active = document.activeElement as HTMLElement | null;
+        if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA")) {
+          active.blur();
+          const { Keyboard } = await import("@capacitor/keyboard");
+          await Keyboard.hide().catch(() => {});
+          return;
+        }
+      } catch { /* ignore */ }
+
+      // 2) If any dialog / sheet / modal is open, close it via Escape.
+      const overlay = document.querySelector<HTMLElement>(
+        '[role="dialog"], [data-state="open"][role="alertdialog"], [data-radix-portal] [role="dialog"]',
+      );
+      if (overlay) {
+        document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+        return;
+      }
+
+      // 3) At a root screen → exit the app cleanly.
+      const path = window.location.pathname || "/";
+      if (ROOT_ROUTES.has(path) || window.history.length <= 1) {
+        try { await CapApp.exitApp(); } catch { /* ignore */ }
+        return;
+      }
+
+      // 4) Otherwise, navigate back.
+      router.history.back();
+    });
   } catch {
     // Not running under Capacitor — ignore.
   }
 })();
+
 
 // Configure the Android system status bar so it stays visible above the
 // WebView (matches Google Drive / Chrome behaviour). Any failure here is
