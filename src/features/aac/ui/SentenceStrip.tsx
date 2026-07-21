@@ -101,18 +101,18 @@ export const SentenceStrip = memo(function SentenceStrip({
 
       <div className="mt-2 flex items-center justify-between gap-2">
         <button
+          onClick={onClear}
+          className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-secondary px-3 text-xs font-semibold text-secondary-foreground"
+          aria-label="Clear all words"
+        >
+          <Trash2 className="h-4 w-4" /> Clear All
+        </button>
+        <button
           onClick={onBackspace}
           className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-secondary px-3 text-xs font-semibold text-secondary-foreground"
           aria-label="Delete last word"
         >
-          <Delete className="h-4 w-4" /> Delete
-        </button>
-        <button
-          onClick={onClear}
-          className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-secondary px-3 text-xs font-semibold text-secondary-foreground"
-          aria-label="Clear sentence"
-        >
-          <Trash2 className="h-4 w-4" /> Clear
+          <Delete className="h-4 w-4" /> Delete Last
         </button>
       </div>
     </div>
