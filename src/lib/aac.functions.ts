@@ -15,6 +15,7 @@ const UpsertSchema = z.object({
   source: z.enum(["user", "ai", "openverse", "core"]).default("user"),
   is_favorite: z.boolean().optional(),
   pinned: z.boolean().optional(),
+  sort_order: z.number().int().optional(),
 });
 
 export const upsertVocab = createServerFn({ method: "POST" })

@@ -8,9 +8,11 @@ import { getAllVocab, indexVocab } from "../providers/userVocabProvider";
 import { upsertVocab, recordUse } from "@/lib/aac.functions";
 import type { AacResult, SentenceChip, VocabRow } from "../types";
 import { CoreRow } from "./CoreRow";
+import { MyBoard } from "./MyBoard";
 import { ResultsGrid } from "./ResultsGrid";
 import { SentenceStrip } from "./SentenceStrip";
 import { VocabEditorSheet } from "./VocabEditorSheet";
+import { supabase } from "@/integrations/supabase/client";
 
 // Best-effort helper to close the on-screen keyboard on Android/iOS. On the
 // web the blur() call is enough; on Capacitor we also ask the OS to dismiss
@@ -35,9 +37,25 @@ export function SmartKeyboard() {
   const [generating, setGenerating] = useState(false);
   const [editing, setEditing] = useState<VocabRow | null>(null);
   const [banner, setBanner] = useState<string | null>(null);
+  const [boardKey, setBoardKey] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useVocabSync(); // hydrates user vocab index in the background
+
+  const refreshBoard = useCallback(async () => {
+    setBoardKey((k) => k + 1);
+    try {
+      const { data } = await supabase
+        .from("aac_vocabulary")
+        .select("*")
+        .order("updated_at", { ascending: false })
+        .limit(2000);
+      if (data) {
+        indexVocab(data as unknown as VocabRow[]);
+        setBoardKey((k) => k + 1);
+      }
+    } catch { /* noop */ }
+  }, []);
 
   const { results, loading, online } = useInstantSearch(query);
 
@@ -206,9 +224,12 @@ export function SmartKeyboard() {
         </div>
       )}
 
-      {/* Results OR core */}
+      {/* Results OR (My Board + core) */}
       {emptyQuery ? (
-        <CoreRow onPick={addChip} />
+        <>
+          <MyBoard onPick={addChip} refreshKey={boardKey} onChanged={refreshBoard} />
+          <CoreRow onPick={addChip} />
+        </>
       ) : (
         <ResultsGrid
           results={results}
@@ -222,7 +243,15 @@ export function SmartKeyboard() {
         />
       )}
 
-      {editing && <VocabEditorSheet row={editing} onClose={() => setEditing(null)} />}
+      {editing && (
+        <VocabEditorSheet
+          row={editing}
+          onClose={() => {
+            setEditing(null);
+            void refreshBoard();
+          }}
+        />
+      )}
     </div>
   );
 }
