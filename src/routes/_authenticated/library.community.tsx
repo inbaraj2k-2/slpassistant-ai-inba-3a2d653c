@@ -241,9 +241,14 @@ function CommunityLibraryPage() {
                     variant="outline"
                     className="rounded-xl"
                     onClick={() => download(r)}
+                    disabled={busyId === r.id}
                   >
-                    <Download className="h-4 w-4" />
-                    Download
+                    {busyId === r.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Download className="h-4 w-4" />
+                    )}
+                    {busyId === r.id ? "Saving…" : "Download"}
                   </Button>
                   {me === r.user_id && (
                     <Button
