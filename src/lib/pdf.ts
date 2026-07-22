@@ -1,5 +1,6 @@
 import jsPDF from "jspdf";
 import type { AnalysisResult } from "./analyze.functions";
+import { downloadToDevice, isNative } from "./native";
 
 interface CaseLike {
   name: string;
@@ -20,7 +21,7 @@ interface CaseLike {
   created_at: string;
 }
 
-export function exportCasePDF(c: CaseLike) {
+export async function exportCasePDF(c: CaseLike) {
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const W = doc.internal.pageSize.getWidth();
   const H = doc.internal.pageSize.getHeight();
@@ -137,7 +138,18 @@ export function exportCasePDF(c: CaseLike) {
   );
   doc.text(disc, M, y);
 
-  doc.save(`SLP-Assist-${c.name.replace(/\s+/g, "_")}.pdf`);
+  const fileName = `SLP-Assist-${c.name.replace(/\s+/g, "_")}.pdf`;
+
+  // On Android WebView `doc.save()` triggers a browser download that is
+  // silently dropped (no host UI + no permission). Route through the
+  // native filesystem helper instead so the file actually lands in
+  // Documents/. On the web it still uses a normal browser download.
+  if (isNative()) {
+    const dataUri = doc.output("datauristring");
+    await downloadToDevice(dataUri, fileName);
+    return;
+  }
+  doc.save(fileName);
 }
 
 function sectionHeader(
