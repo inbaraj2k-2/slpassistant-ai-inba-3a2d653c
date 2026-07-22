@@ -182,10 +182,11 @@ function CaseDetail() {
               </button>
               <button
                 onClick={onExportPDF}
-                className="flex h-11 items-center justify-center gap-2 rounded-xl bg-gradient-primary text-sm font-semibold text-primary-foreground shadow-card"
+                disabled={exporting}
+                className="flex h-11 items-center justify-center gap-2 rounded-xl bg-gradient-primary text-sm font-semibold text-primary-foreground shadow-card disabled:opacity-60"
               >
                 <Download className="h-4 w-4" />
-                Export PDF
+                {exporting ? "Exporting…" : "Export PDF"}
               </button>
             </div>
           )}
