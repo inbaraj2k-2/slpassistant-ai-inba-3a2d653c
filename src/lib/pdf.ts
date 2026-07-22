@@ -138,7 +138,18 @@ export async function exportCasePDF(c: CaseLike) {
   );
   doc.text(disc, M, y);
 
-  doc.save(`SLP-Assist-${c.name.replace(/\s+/g, "_")}.pdf`);
+  const fileName = `SLP-Assist-${c.name.replace(/\s+/g, "_")}.pdf`;
+
+  // On Android WebView `doc.save()` triggers a browser download that is
+  // silently dropped (no host UI + no permission). Route through the
+  // native filesystem helper instead so the file actually lands in
+  // Documents/. On the web it still uses a normal browser download.
+  if (isNative()) {
+    const dataUri = doc.output("datauristring");
+    await downloadToDevice(dataUri, fileName);
+    return;
+  }
+  doc.save(fileName);
 }
 
 function sectionHeader(
