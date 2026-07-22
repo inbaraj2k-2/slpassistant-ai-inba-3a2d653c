@@ -87,6 +87,24 @@ export async function downloadToDevice(url: string, fileName: string): Promise<s
   if (isNative()) {
     const { Filesystem, Directory } = await import("@capacitor/filesystem");
     const safeName = fileName.replace(/[/\\?%*:|"<>]/g, "_");
+
+    // Data URIs (e.g. jsPDF output) can't be streamed by downloadFile
+    // reliably on Android — write the decoded base64 directly instead.
+    const dataMatch = url.match(/^data:([^;]+);base64,(.*)$/);
+    if (dataMatch) {
+      await withTimeout(
+        Filesystem.writeFile({
+          path: safeName,
+          data: dataMatch[2],
+          directory: Directory.Documents,
+          recursive: true,
+        }),
+        60_000,
+        "Save timed out",
+      );
+      return `Documents/${safeName}`;
+    }
+
     await withTimeout(
       Filesystem.downloadFile({
         url,
