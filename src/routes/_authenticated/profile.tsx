@@ -96,8 +96,14 @@ function ProfilePage() {
   }
 
   async function saveProfile() {
-    if (!profile) return;
+    if (!profile || saving) return;
     setSaving(true);
+    // Watchdog: never let the Save button hang forever on Android when
+    // the network stalls — Capacitor has no host-level UI to break out.
+    const watchdog = setTimeout(() => {
+      flash("err", "Save is taking longer than expected. Please try again.");
+      setSaving(false);
+    }, 25_000);
     try {
       const { error } = await supabase
         .from("profiles")
@@ -114,6 +120,7 @@ function ProfilePage() {
     } catch (err) {
       flash("err", err instanceof Error ? err.message : "Failed to save profile.");
     } finally {
+      clearTimeout(watchdog);
       setSaving(false);
     }
   }
