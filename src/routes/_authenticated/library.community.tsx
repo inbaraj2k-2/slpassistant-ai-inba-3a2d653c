@@ -96,16 +96,24 @@ function CommunityLibraryPage() {
     setLoadingMore(false);
   };
 
+  const [busyId, setBusyId] = useState<string | null>(null);
   const download = async (r: Row) => {
-    const { data, error } = await supabase.storage
-      .from("uploads")
-      .createSignedUrl(r.file_path, 60 * 10, { download: r.file_name });
-    if (error || !data) return toast.error("Could not download file.");
+    if (busyId) return;
+    setBusyId(r.id);
     try {
+      const { data, error } = await supabase.storage
+        .from("uploads")
+        .createSignedUrl(r.file_path, 60 * 10, { download: r.file_name });
+      if (error || !data) {
+        toast.error("Could not download file.");
+        return;
+      }
       const dest = await downloadToDevice(data.signedUrl, r.file_name);
-      if (isNative()) toast.success(`Saved to ${dest}`);
-    } catch {
-      toast.error("Could not save file.");
+      toast.success(isNative() ? `Saved to ${dest}` : "Download started");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Could not save file.");
+    } finally {
+      setBusyId(null);
     }
   };
 
