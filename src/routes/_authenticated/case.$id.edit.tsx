@@ -65,10 +65,26 @@ function EditCasePage() {
   async function save() {
     setError(null);
     if (!f.name.trim()) { setError("Patient name is required."); return; }
+    if (busy) return;
     setBusy(true);
-    const { error } = await supabase.from("cases").update({ ...f, updated_at: new Date().toISOString() }).eq("id", id);
-    if (error) { setError(error.message); setBusy(false); return; }
-    navigate({ to: "/case/$id", params: { id }, replace: true });
+    // Guard against the Save button freezing forever on a stalled network.
+    let watchdog: ReturnType<typeof setTimeout> | null = setTimeout(() => {
+      setError("Save is taking longer than expected. Please try again.");
+      setBusy(false);
+    }, 25_000);
+    try {
+      const { error } = await supabase
+        .from("cases")
+        .update({ ...f, updated_at: new Date().toISOString() })
+        .eq("id", id);
+      if (watchdog) { clearTimeout(watchdog); watchdog = null; }
+      if (error) { setError(error.message); setBusy(false); return; }
+      navigate({ to: "/case/$id", params: { id }, replace: true });
+    } catch (e) {
+      if (watchdog) { clearTimeout(watchdog); watchdog = null; }
+      setError(e instanceof Error ? e.message : "Save failed");
+      setBusy(false);
+    }
   }
 
   if (loading) {
