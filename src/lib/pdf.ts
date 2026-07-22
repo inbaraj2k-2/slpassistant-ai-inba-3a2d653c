@@ -21,7 +21,7 @@ interface CaseLike {
   created_at: string;
 }
 
-export function exportCasePDF(c: CaseLike) {
+export async function exportCasePDF(c: CaseLike) {
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const W = doc.internal.pageSize.getWidth();
   const H = doc.internal.pageSize.getHeight();
