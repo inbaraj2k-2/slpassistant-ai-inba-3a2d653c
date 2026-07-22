@@ -96,10 +96,23 @@ function CaseDetail() {
     navigate({ to: "/cases", replace: true });
   }
 
+  const [exporting, setExporting] = useState(false);
   async function onExportPDF() {
-    if (!row) return;
-    const { exportCasePDF } = await import("@/lib/pdf");
-    exportCasePDF(row);
+    if (!row || exporting) return;
+    setExporting(true);
+    try {
+      const { exportCasePDF } = await import("@/lib/pdf");
+      await exportCasePDF(row);
+      if (typeof window !== "undefined" && (window as any).Capacitor?.isNativePlatform?.()) {
+        const { toast } = await import("sonner");
+        toast.success("PDF saved to Documents");
+      }
+    } catch (e) {
+      const { toast } = await import("sonner");
+      toast.error(e instanceof Error ? e.message : "Could not export PDF");
+    } finally {
+      setExporting(false);
+    }
   }
 
   return (
