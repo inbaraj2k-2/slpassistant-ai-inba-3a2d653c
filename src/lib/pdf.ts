@@ -1,5 +1,6 @@
 import jsPDF from "jspdf";
 import type { AnalysisResult } from "./analyze.functions";
+import { downloadToDevice, isNative } from "./native";
 
 interface CaseLike {
   name: string;
