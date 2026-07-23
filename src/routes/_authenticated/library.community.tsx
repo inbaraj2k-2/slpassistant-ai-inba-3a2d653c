@@ -129,7 +129,7 @@ function CommunityLibraryPage() {
   };
 
   const removeOwn = async (r: Row) => {
-    if (!confirm(`Delete "${r.title}" from community?`)) return;
+    if (!(await confirmAsync(`Delete "${r.title}" from community?`, "Delete upload"))) return;
     const { error: sErr } = await supabase.storage.from("uploads").remove([r.file_path]);
     if (sErr) return toast.error("Could not delete file.");
     const { error: dErr } = await (supabase as any)
