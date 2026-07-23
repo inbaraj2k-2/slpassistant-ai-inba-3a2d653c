@@ -17,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { FileText, ImageIcon, Loader2, Trash2, UploadCloud } from "lucide-react";
 import { openInAppBrowser } from "@/lib/native";
+import { confirmAsync } from "@/lib/confirm";
 
 const CATEGORIES = ["Assessment", "Therapy Materials", "Research", "Books", "Other"] as const;
 
