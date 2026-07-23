@@ -2,6 +2,7 @@ import { Heart, Pin, Star, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { deleteVocab, upsertVocab } from "@/lib/aac.functions";
+import { confirmAsync } from "@/lib/confirm";
 import type { VocabRow } from "../types";
 
 interface Props {
