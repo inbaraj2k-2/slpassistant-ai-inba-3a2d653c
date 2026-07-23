@@ -1,6 +1,7 @@
 import { ChevronLeft, ChevronRight, Heart, MoreVertical, Pencil, Plus, Trash2 } from "lucide-react";
 import { memo, useMemo, useRef, useState } from "react";
 import { deleteVocab, upsertVocab } from "@/lib/aac.functions";
+import { confirmAsync } from "@/lib/confirm";
 import { getAllVocab } from "../providers/userVocabProvider";
 import type { AacResult, VocabRow } from "../types";
 import { AddCardSheet } from "./AddCardSheet";
