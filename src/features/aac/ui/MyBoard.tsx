@@ -114,7 +114,7 @@ export const MyBoard = memo(function MyBoard({ onPick, refreshKey, onChanged }: 
   }
 
   async function remove(row: VocabRow) {
-    if (!confirm(`Delete "${row.label}"?`)) return;
+    if (!(await confirmAsync(`Delete "${row.label}"?`, "Delete card"))) return;
     try {
       await deleteVocab({ data: { id: row.id } });
       onChanged();
