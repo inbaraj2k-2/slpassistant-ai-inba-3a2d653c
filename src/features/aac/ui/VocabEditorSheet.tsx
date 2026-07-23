@@ -88,7 +88,7 @@ export function VocabEditorSheet({ row, onClose }: Props) {
   }
 
   async function remove() {
-    if (!confirm(`Delete "${row.label}"?`)) return;
+    if (!(await confirmAsync(`Delete "${row.label}"?`, "Delete card"))) return;
     setBusy(true);
     try {
       await deleteVocab({ data: { id: row.id } });
