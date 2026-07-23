@@ -91,7 +91,8 @@ function CaseDetail() {
   }, [row, run, mutate, id, navigate]);
 
   async function onDelete() {
-    if (!confirm("Delete this case? This cannot be undone.")) return;
+    const { confirmAsync } = await import("@/lib/confirm");
+    if (!(await confirmAsync("Delete this case? This cannot be undone.", "Delete case"))) return;
     await supabase.from("cases").delete().eq("id", id);
     navigate({ to: "/cases", replace: true });
   }

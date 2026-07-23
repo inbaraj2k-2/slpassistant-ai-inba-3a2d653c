@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Download, Eye, FileText, ImageIcon, Loader2, Search, Trash2, Users } from "lucide-react";
 import { downloadToDevice, isNative, openInAppBrowser } from "@/lib/native";
+import { confirmAsync } from "@/lib/confirm";
 
 export const Route = createFileRoute("/_authenticated/library/community")({
   head: () => ({ meta: [{ title: "Community Library" }] }),
@@ -128,7 +129,7 @@ function CommunityLibraryPage() {
   };
 
   const removeOwn = async (r: Row) => {
-    if (!confirm(`Delete "${r.title}" from community?`)) return;
+    if (!(await confirmAsync(`Delete "${r.title}" from community?`, "Delete upload"))) return;
     const { error: sErr } = await supabase.storage.from("uploads").remove([r.file_path]);
     if (sErr) return toast.error("Could not delete file.");
     const { error: dErr } = await (supabase as any)

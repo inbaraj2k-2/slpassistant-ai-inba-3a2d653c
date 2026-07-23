@@ -17,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { FileText, ImageIcon, Loader2, Trash2, UploadCloud } from "lucide-react";
 import { openInAppBrowser } from "@/lib/native";
+import { confirmAsync } from "@/lib/confirm";
 
 const CATEGORIES = ["Assessment", "Therapy Materials", "Research", "Books", "Other"] as const;
 
@@ -154,7 +155,7 @@ function UploadsPage() {
   };
 
   const removeFile = async (row: UploadRow) => {
-    if (!confirm(`Delete "${row.file_name}"?`)) return;
+    if (!(await confirmAsync(`Delete "${row.file_name}"?`, "Delete upload"))) return;
     const { error: sErr } = await supabase.storage.from("uploads").remove([row.file_path]);
     if (sErr) return toast.error("Could not delete file.");
     const { error: dErr } = await (supabase as any)
