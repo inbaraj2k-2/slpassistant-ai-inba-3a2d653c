@@ -25,8 +25,8 @@ function ClinicalToolsPage() {
         <ToolCard
           to="/clinical-tools/voice-analysis"
           icon={<Mic className="h-5 w-5" />}
-          title="Voice Analysis"
-          desc="Record and measure pitch (F0), intensity (dB), and duration. Runs in-browser."
+          title="Voice Assessment"
+          desc="Clinical acoustic analysis: F0, jitter, shimmer, HNR, CPP, MPT, spectrogram + AI report."
         />
       </div>
     </AppShell>
