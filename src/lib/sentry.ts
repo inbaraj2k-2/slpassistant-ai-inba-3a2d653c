@@ -34,16 +34,10 @@ export function initSentry() {
       autoSessionTracking: true,
       // Keep breadcrumbs generous so we can see everything before a freeze.
       maxBreadcrumbs: 200,
-      integrations: [
-        SentryReact.browserTracingIntegration({ enableInp: true }),
-        SentryReact.replayIntegration({
-          maskAllText: false,
-          blockAllMedia: false,
-        }),
-        SentryReact.httpClientIntegration(),
-      ],
-      replaysSessionSampleRate: 0.0,
-      replaysOnErrorSampleRate: 1.0,
+      // Rely on default integrations from @sentry/capacitor (includes
+      // browser tracing, breadcrumbs, global handlers). Avoid mixing
+      // integration instances from @sentry/react — versions can diverge
+      // and TS rejects the cross-package Client type.
       beforeSend(event) {
         try {
           event.tags = {
