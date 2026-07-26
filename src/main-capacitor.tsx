@@ -9,6 +9,12 @@
 // and localStorage caches.
 
 import "./styles.css";
+import { initSentry } from "./lib/sentry";
+
+// Initialize Sentry BEFORE any other module runs, so we catch import-time
+// errors, long-task events during hydration, and unhandled rejections
+// from the very first tick.
+initSentry();
 
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
