@@ -31,7 +31,7 @@ export function initSentry() {
       tracesSampleRate: 1.0,
       sampleRate: 1.0,
       attachStacktrace: true,
-      autoSessionTracking: true,
+      enableAutoSessionTracking: true,
       // Keep breadcrumbs generous so we can see everything before a freeze.
       maxBreadcrumbs: 200,
       // Rely on default integrations from @sentry/capacitor (includes
