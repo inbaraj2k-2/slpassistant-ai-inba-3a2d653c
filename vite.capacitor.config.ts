@@ -43,6 +43,7 @@ export default defineConfig({
       { find: "@/lib/account.functions", replacement: resolve(__dirname, "src/capacitor/shims/account.functions.ts") },
       { find: "@/lib/aac.functions", replacement: resolve(__dirname, "src/capacitor/shims/aac.functions.ts") },
       { find: "@/lib/clinical.functions", replacement: resolve(__dirname, "src/capacitor/shims/clinical.functions.ts") },
+      { find: "@/lib/voice-summary.functions", replacement: resolve(__dirname, "src/capacitor/shims/voice-summary.functions.ts") },
       { find: "@/lib/api/example.functions", replacement: resolve(__dirname, "src/capacitor/stub-empty.ts") },
       { find: "@/integrations/supabase/client.server", replacement: resolve(__dirname, "src/capacitor/stub-empty.ts") },
       { find: "@/integrations/supabase/auth-middleware", replacement: resolve(__dirname, "src/capacitor/stub-empty.ts") },
