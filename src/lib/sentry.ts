@@ -49,7 +49,7 @@ export function initSentry() {
         return event;
       },
     },
-    SentryReact.init,
+    SentryReact.init as any,
   );
 
   installLongTaskObserver();
