@@ -18,3 +18,12 @@ export function runDeleteMyAccount(): never {
 }
 export const AnalysisSchema = undefined as unknown;
 export type AnalysisResult = unknown;
+
+// Server-only auth middleware placeholder. Server functions are replaced by
+// client RPC stubs in the mobile bundle, so this is never invoked.
+export const requireSupabaseAuth = {
+  _types: undefined as unknown,
+  middleware: () => requireSupabaseAuth,
+  server: () => requireSupabaseAuth,
+  client: () => requireSupabaseAuth,
+} as any;
