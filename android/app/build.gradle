@@ -58,6 +58,10 @@ android {
     // `lintVitalRelease`, which aborts the build on any fatal lint issue.
     // Capacitor's generated manifest/resources are outside our control, so
     // release packaging must not be gated on lint.
+    lint {
+        checkReleaseBuilds false
+        abortOnError false
+    }
     buildTypes {
         release {
             minifyEnabled false
