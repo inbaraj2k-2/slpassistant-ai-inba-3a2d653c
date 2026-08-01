@@ -88,19 +88,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         property: "og:description",
         content:
-          "AI-powered clinical decision support for Speech-Language Pathologists and Audiologists.",
+          "AI-powered clinical decision support for Speech-Language Pathologists, Audiologists, and BASLP students.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:image", content: "/slp-splash-logo.png" },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/RuPOM5yt85cyY7RC1P04YmWZTbx1/social-images/social-1785557122694-social-image.webp" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:title", content: "SLP Assist AI Inba" },
-      { name: "twitter:description", content: "AI-powered clinical decision support for Speech-Language Pathologists and Audiologists." },
-      { name: "twitter:image", content: "/slp-splash-logo.png" },
+      { name: "twitter:description", content: "AI-powered clinical decision support for Speech-Language Pathologists, Audiologists, and BASLP students." },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/RuPOM5yt85cyY7RC1P04YmWZTbx1/social-images/social-1785557122694-social-image.webp" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/favicon.ico", sizes: "any" },
-      { rel: "icon", type: "image/png", href: "/favicon.png" },
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
       { rel: "manifest", href: "/manifest.webmanifest" },
       {
