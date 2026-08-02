@@ -13,15 +13,31 @@ let initialized = false;
 
 export function initSentry() {
   if (initialized) return;
+
+  const envDsn = (import.meta as any).env?.VITE_SENTRY_DSN as string | undefined;
   const dsn =
-    ((import.meta as any).env?.VITE_SENTRY_DSN as string | undefined) ||
+    envDsn ||
     "https://b91aa1be33208d35de72ef8a7995b597@o4511836157313024.ingest.us.sentry.io/4511836178284544";
+
+  const isNative = !!(globalThis as any).Capacitor?.isNativePlatform?.();
+  const status: Record<string, unknown> = {
+    envDsnDefined: typeof envDsn === "string" && envDsn.length > 0,
+    dsnSource: envDsn ? "VITE_SENTRY_DSN" : "hardcoded-fallback",
+    dsnTail: dsn ? dsn.slice(-12) : null,
+    native: isNative,
+    initCalled: false,
+    initError: null as string | null,
+  };
+  (globalThis as any).__SENTRY_STATUS__ = status;
+  console.log("[sentry] pre-init", status);
+
   if (!dsn) {
     console.warn("[sentry] VITE_SENTRY_DSN not set — Sentry disabled");
     return;
   }
   const release = (import.meta as any).env?.VITE_APP_RELEASE ?? "slp-assist-ai@debug";
   const environment = (import.meta as any).env?.VITE_SENTRY_ENV ?? "debug";
+
 
   Sentry.init(
     {
