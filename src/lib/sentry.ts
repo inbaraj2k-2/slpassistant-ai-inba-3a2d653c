@@ -48,7 +48,7 @@ export function initSentry() {
       // browser tracing, breadcrumbs, global handlers). Avoid mixing
       // integration instances from @sentry/react — versions can diverge
       // and TS rejects the cross-package Client type.
-      beforeSend(event) {
+      beforeSend(event: any) {
         try {
           event.tags = {
             ...(event.tags ?? {}),
