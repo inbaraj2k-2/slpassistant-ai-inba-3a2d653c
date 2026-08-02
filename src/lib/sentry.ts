@@ -13,7 +13,9 @@ let initialized = false;
 
 export function initSentry() {
   if (initialized) return;
-  const dsn = (import.meta as any).env?.VITE_SENTRY_DSN as string | undefined;
+  const dsn =
+    ((import.meta as any).env?.VITE_SENTRY_DSN as string | undefined) ||
+    "https://b91aa1be33208d35de72ef8a7995b597@o4511836157313024.ingest.us.sentry.io/4511836178284544";
   if (!dsn) {
     console.warn("[sentry] VITE_SENTRY_DSN not set — Sentry disabled");
     return;
@@ -32,8 +34,16 @@ export function initSentry() {
       sampleRate: 1.0,
       attachStacktrace: true,
       enableAutoSessionTracking: true,
+      // Native Android: crash reporting + ANR (Application Not Responding)
+      // detection. These are forwarded to the sentry-android SDK.
+      enableNative: true,
+      enableNativeCrashHandling: true,
+      enableNativeNagger: false,
+      anrEnabled: true,
+      anrTimeoutIntervalMillis: 5000,
+      attachThreads: true,
       // Keep breadcrumbs generous so we can see everything before a freeze.
-      maxBreadcrumbs: 200,
+      maxBreadcrumbs: 300,
       // Rely on default integrations from @sentry/capacitor (includes
       // browser tracing, breadcrumbs, global handlers). Avoid mixing
       // integration instances from @sentry/react — versions can diverge
@@ -48,13 +58,17 @@ export function initSentry() {
         } catch { /* noop */ }
         return event;
       },
-    },
+    } as any,
     SentryReact.init as any,
   );
 
   installLongTaskObserver();
   installGlobalTraps();
   installRouteBreadcrumbs();
+  installInteractionBreadcrumbs();
+  installKeyboardBreadcrumbs();
+  installDialogBreadcrumbs();
+  installFetchBreadcrumbs();
   initialized = true;
   Sentry.addBreadcrumb({ category: "app", level: "info", message: "sentry initialized" });
 }
