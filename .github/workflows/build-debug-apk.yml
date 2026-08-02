@@ -46,6 +46,8 @@ jobs:
         run: bun install
 
       - name: Build standalone Capacitor SPA bundle
+        env:
+          VITE_SENTRY_DSN: https://b91aa1be33208d35de72ef8a7995b597@o4511836157313024.ingest.us.sentry.io/4511836178284544
         run: bun run build:capacitor
 
       - name: Verify Capacitor web entrypoint
