@@ -91,11 +91,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "AI-powered clinical decision support for Speech-Language Pathologists, Audiologists, and BASLP students.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/77e7370b-a0d9-4378-a341-14e0d5118177/id-preview-27bb6a4a--bed48580-3714-4d69-b449-e93a64f9c4c8.lovable.app-1785563454226.png" },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/RuPOM5yt85cyY7RC1P04YmWZTbx1/social-images/social-1785639268010-social-image.webp" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:title", content: "SLP Assist AI Inba" },
       { name: "twitter:description", content: "AI-powered clinical decision support for Speech-Language Pathologists, Audiologists, and BASLP students." },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/77e7370b-a0d9-4378-a341-14e0d5118177/id-preview-27bb6a4a--bed48580-3714-4d69-b449-e93a64f9c4c8.lovable.app-1785563454226.png" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/RuPOM5yt85cyY7RC1P04YmWZTbx1/social-images/social-1785639268010-social-image.webp" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
