@@ -39,44 +39,63 @@ export function initSentry() {
   const environment = (import.meta as any).env?.VITE_SENTRY_ENV ?? "debug";
 
 
-  Sentry.init(
-    {
-      dsn,
-      release,
-      environment,
-      debug: environment !== "production",
-      // High sample rate for the debug hunt; drop later.
-      tracesSampleRate: 1.0,
-      sampleRate: 1.0,
-      attachStacktrace: true,
-      enableAutoSessionTracking: true,
-      // Native Android: crash reporting + ANR (Application Not Responding)
-      // detection. These are forwarded to the sentry-android SDK.
-      enableNative: true,
-      enableNativeCrashHandling: true,
-      enableNativeNagger: false,
-      anrEnabled: true,
-      anrTimeoutIntervalMillis: 5000,
-      attachThreads: true,
-      // Keep breadcrumbs generous so we can see everything before a freeze.
-      maxBreadcrumbs: 300,
-      // Rely on default integrations from @sentry/capacitor (includes
-      // browser tracing, breadcrumbs, global handlers). Avoid mixing
-      // integration instances from @sentry/react — versions can diverge
-      // and TS rejects the cross-package Client type.
-      beforeSend(event: any) {
-        try {
-          event.tags = {
-            ...(event.tags ?? {}),
-            route: typeof window !== "undefined" ? window.location.pathname : "unknown",
-            native: String(!!(globalThis as any).Capacitor?.isNativePlatform?.()),
-          };
-        } catch { /* noop */ }
-        return event;
-      },
-    } as any,
-    SentryReact.init as any,
-  );
+  const options = {
+    dsn,
+    release,
+    environment,
+    debug: environment !== "production",
+    // High sample rate for the debug hunt; drop later.
+    tracesSampleRate: 1.0,
+    sampleRate: 1.0,
+    attachStacktrace: true,
+    enableAutoSessionTracking: true,
+    // Native Android: crash reporting + ANR (Application Not Responding)
+    // detection. These are forwarded to the sentry-android SDK.
+    enableNative: true,
+    enableNativeCrashHandling: true,
+    enableNativeNagger: false,
+    anrEnabled: true,
+    anrTimeoutIntervalMillis: 5000,
+    attachThreads: true,
+    // Keep breadcrumbs generous so we can see everything before a freeze.
+    maxBreadcrumbs: 300,
+    // Rely on default integrations from @sentry/capacitor (includes
+    // browser tracing, breadcrumbs, global handlers). Avoid mixing
+    // integration instances from @sentry/react — versions can diverge
+    // and TS rejects the cross-package Client type.
+    beforeSend(event: any) {
+      try {
+        event.tags = {
+          ...(event.tags ?? {}),
+          route: typeof window !== "undefined" ? window.location.pathname : "unknown",
+          native: String(!!(globalThis as any).Capacitor?.isNativePlatform?.()),
+        };
+        console.log("[sentry] beforeSend", event.event_id, event.message ?? event.exception?.values?.[0]?.type);
+      } catch { /* noop */ }
+      return event;
+    },
+  } as any;
+
+  try {
+    Sentry.init(options, SentryReact.init as any);
+    status.initCalled = true;
+    console.log("[sentry] init OK (capacitor wrapper)");
+  } catch (err: any) {
+    status.initError = String(err?.message ?? err);
+    console.error("[sentry] capacitor init failed — falling back to browser SDK", err);
+    // Fallback: the pure-JS SDK uploads over HTTPS without the native layer,
+    // so we still get JS errors/breadcrumbs even if the native plugin is
+    // unavailable in this build.
+    try {
+      SentryReact.init({ ...options, enableNative: false } as any);
+      status.initCalled = true;
+      console.log("[sentry] init OK (react fallback)");
+    } catch (err2: any) {
+      status.initError = `${status.initError} | fallback: ${String(err2?.message ?? err2)}`;
+      console.error("[sentry] browser SDK init also failed", err2);
+      return;
+    }
+  }
 
   installLongTaskObserver();
   installGlobalTraps();
@@ -87,7 +106,23 @@ export function initSentry() {
   installFetchBreadcrumbs();
   initialized = true;
   Sentry.addBreadcrumb({ category: "app", level: "info", message: "sentry initialized" });
+
+  // Immediate connectivity probe: one test event + explicit flush, with the
+  // result logged so `adb logcat` shows whether the upload actually left the
+  // device.
+  void (async () => {
+    try {
+      const id = Sentry.captureMessage("Sentry Android test", "info" as any);
+      console.log("[sentry] test event queued", id, JSON.stringify(status));
+      const flushed = await Sentry.flush(8000);
+      console.log("[sentry] flush result", flushed);
+      (globalThis as any).__SENTRY_STATUS__ = { ...status, testEventId: id, flushed };
+    } catch (err) {
+      console.error("[sentry] test event failed", err);
+    }
+  })();
 }
+
 
 // A "freeze" in a Capacitor WebView is almost always a JS long task blocking
 // the main thread. PerformanceObserver('longtask') surfaces every task >50ms;
