@@ -36,7 +36,7 @@ function AuthPage() {
       window.location.href = next;
       return;
     }
-    navigate({ to: "/home", replace: true });
+    goAfterAuth();
   };
 
   const [busy, setBusy] = useState<null | "google" | "guest">(null);
@@ -64,7 +64,7 @@ function AuthPage() {
           setError("Signed in, but your profile could not be saved. Please try again.");
           return;
         }
-        navigate({ to: "/home", replace: true });
+        goAfterAuth();
       }
     });
   }, [navigate]);
@@ -83,7 +83,7 @@ function AuthPage() {
       }
 
       const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+        redirect_uri: next ? window.location.href : window.location.origin,
         extraParams: { prompt: "select_account" },
       });
       if (result.error) {
@@ -95,7 +95,7 @@ function AuthPage() {
       const { data, error: userError } = await supabase.auth.getUser();
       if (userError || !data.user) throw userError ?? new Error("Google session was not created");
       await ensureUserProfile(data.user);
-      navigate({ to: "/home", replace: true });
+      goAfterAuth();
     } catch (e) {
       setError(getGoogleAuthError(e));
       setBusy(null);
@@ -108,7 +108,7 @@ function AuthPage() {
     try {
       const { error } = await supabase.auth.signInAnonymously();
       if (error) throw error;
-      navigate({ to: "/home", replace: true });
+      goAfterAuth();
     } catch (e) {
       console.error(e);
       setError("Could not start guest session. Please try again.");
