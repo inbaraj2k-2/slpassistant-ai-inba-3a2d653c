@@ -1,0 +1,182 @@
+{
+  "version": 1,
+  "sdk_version": "0.26.1",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://secxdvsiifksotorhcub.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "slp-assist-ai",
+      "version": "0.1.0",
+      "title": "SLP Assist AI"
+    },
+    "tools": [
+      {
+        "name": "list_cases",
+        "title": "List clinical cases",
+        "description": "List the signed-in clinician's saved SLP cases, most recently updated first. Returns id, client name, age, gender, chief complaint and whether an AI analysis exists.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "limit": {
+              "description": "Max cases to return (default 20).",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "search": {
+              "description": "Optional case-name substring filter.",
+              "type": "string"
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_case",
+        "title": "Get a clinical case",
+        "description": "Fetch one of the signed-in clinician's cases by id, including the full case history and the stored AI clinical analysis if present.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "case_id": {
+              "type": "string",
+              "description": "The case id returned by list_cases."
+            }
+          },
+          "required": [
+            "case_id"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_case",
+        "title": "Create a clinical case",
+        "description": "Create a new SLP case record for the signed-in clinician. Only the client name is required; every history field is optional.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Client / case name."
+            },
+            "age": {
+              "type": "string"
+            },
+            "gender": {
+              "type": "string"
+            },
+            "chief_complaint": {
+              "type": "string"
+            },
+            "speech_milestones": {
+              "type": "string"
+            },
+            "language_history": {
+              "type": "string"
+            },
+            "hearing_history": {
+              "type": "string"
+            },
+            "family_history": {
+              "type": "string"
+            },
+            "education_history": {
+              "type": "string"
+            },
+            "additional_notes": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "search_disorders",
+        "title": "Search the clinical disorder catalog",
+        "description": "Search the app's speech-language disorder catalog by name, category or symptom text. Returns disorder name, category, symptoms and red flags.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Search text, e.g. 'apraxia' or 'stuttering'."
+            },
+            "limit": {
+              "description": "Max results (default 10).",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            }
+          },
+          "required": [
+            "query"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_therapy_goals",
+        "title": "List therapy goals for a disorder",
+        "description": "List evidence-based therapy goals from the app's clinical catalog, optionally filtered by disorder name.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "disorder": {
+              "description": "Disorder name substring, e.g. 'dysarthria'.",
+              "type": "string"
+            },
+            "limit": {
+              "description": "Max goals to return (default 25).",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
