@@ -36,7 +36,7 @@ function AuthPage() {
       window.location.href = next;
       return;
     }
-    goAfterAuth();
+    navigate({ to: "/home", replace: true });
   };
 
   const [busy, setBusy] = useState<null | "google" | "guest">(null);
