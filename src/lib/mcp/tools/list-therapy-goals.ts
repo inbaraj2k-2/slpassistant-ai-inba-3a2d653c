@@ -17,8 +17,28 @@ export default defineTool({
       return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
     }
     const supabase = supabaseForUser(ctx);
-    let query = supabase.from("therapy_goals").select("*").limit(limit ?? 25);
-    if (disorder?.trim()) query = query.ilike("disorder_name", `%${disorder.trim()}%`);
+
+    let disorderIds: string[] | null = null;
+    if (disorder?.trim()) {
+      const { data: matches, error: matchError } = await supabase
+        .from("disorders")
+        .select("id")
+        .ilike("name", `%${disorder.trim()}%`);
+      if (matchError) return { content: [{ type: "text", text: matchError.message }], isError: true };
+      disorderIds = (matches ?? []).map((d) => d.id);
+      if (disorderIds.length === 0) {
+        return {
+          content: [{ type: "text", text: `No disorder matched "${disorder}".` }],
+          structuredContent: { goals: [] },
+        };
+      }
+    }
+
+    let query = supabase
+      .from("therapy_goals")
+      .select("id, goal, source_reference, disorder_id, disorders(name)")
+      .limit(limit ?? 25);
+    if (disorderIds) query = query.in("disorder_id", disorderIds);
     const { data, error } = await query;
     if (error) return { content: [{ type: "text", text: error.message }], isError: true };
     return {
