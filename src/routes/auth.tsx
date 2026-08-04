@@ -197,7 +197,20 @@ function AuthPage() {
   );
 }
 
+function getGuestAuthError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  const lower = message.toLowerCase();
+  if (lower.includes("anonymous")) {
+    return "Guest access is currently unavailable on this account. Please sign in with Google.";
+  }
+  if (lower.includes("network") || lower.includes("fetch") || lower.includes("timeout")) {
+    return "No internet connection. Connect to a network and try Continue as Guest again.";
+  }
+  return `Could not start guest session: ${message}`;
+}
+
 function getGoogleAuthError(error: unknown) {
+
   const message = error instanceof Error ? error.message : String(error);
   const lower = message.toLowerCase();
 
