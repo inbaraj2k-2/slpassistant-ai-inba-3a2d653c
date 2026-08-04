@@ -106,15 +106,26 @@ function AuthPage() {
     setError(null);
     setBusy("guest");
     try {
-      const { error } = await supabase.auth.signInAnonymously();
+      console.info("[auth] guest sign-in: starting");
+      const { data, error } = await supabase.auth.signInAnonymously();
       if (error) throw error;
+      const user = data.user;
+      if (!user) throw new Error("Guest session was not created");
+      console.info("[auth] guest sign-in: session created", user.id);
+      try {
+        await ensureUserProfile(user);
+      } catch (e) {
+        // Profile row is best-effort for guests — never block entry.
+        console.warn("[auth] guest profile sync failed", e);
+      }
       goAfterAuth();
     } catch (e) {
-      console.error(e);
-      setError("Could not start guest session. Please try again.");
+      console.error("[auth] guest sign-in failed", e);
+      setError(getGuestAuthError(e));
       setBusy(null);
     }
   }
+
 
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-md flex-col bg-gradient-soft px-5 pb-10 pt-14">
@@ -186,7 +197,20 @@ function AuthPage() {
   );
 }
 
+function getGuestAuthError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  const lower = message.toLowerCase();
+  if (lower.includes("anonymous")) {
+    return "Guest access is currently unavailable on this account. Please sign in with Google.";
+  }
+  if (lower.includes("network") || lower.includes("fetch") || lower.includes("timeout")) {
+    return "No internet connection. Connect to a network and try Continue as Guest again.";
+  }
+  return `Could not start guest session: ${message}`;
+}
+
 function getGoogleAuthError(error: unknown) {
+
   const message = error instanceof Error ? error.message : String(error);
   const lower = message.toLowerCase();
 
