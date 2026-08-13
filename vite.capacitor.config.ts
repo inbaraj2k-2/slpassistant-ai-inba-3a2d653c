@@ -51,6 +51,10 @@ export default defineConfig({
       { find: "@/lib/analyze-core.server", replacement: resolve(__dirname, "src/capacitor/stub-empty.ts") },
       { find: "@/lib/config.server", replacement: resolve(__dirname, "src/capacitor/stub-empty.ts") },
       { find: "@/lib/error-capture", replacement: resolve(__dirname, "src/capacitor/stub-empty.ts") },
+      // Server-only MCP entry points are never executed inside the APK; their
+      // Cloudflare Workers runtime import cannot resolve in a browser bundle.
+      { find: "cloudflare:workers", replacement: resolve(__dirname, "src/capacitor/stub-empty.ts") },
+      { find: "@/lib/mcp/index", replacement: resolve(__dirname, "src/capacitor/stub-empty.ts") },
     ],
   },
 });
