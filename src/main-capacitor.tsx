@@ -23,6 +23,7 @@ import { RouterProvider, createRouter } from "@tanstack/react-router";
 
 import { routeTree } from "./routeTree.gen";
 import { completeCapacitorOAuthFromUrl } from "./lib/capacitor-auth";
+import { installKeyboardViewportHandling } from "./lib/keyboard-viewport";
 
 // Absolute origin of the published web app that hosts the server functions.
 // The mobile app talks to it only for AI analysis and other privileged RPC
@@ -106,6 +107,9 @@ function App() {
     </StrictMode>
   );
 }
+
+// Keep the focused input visible when the native keyboard opens (Android only).
+installKeyboardViewportHandling();
 
 const container = document.getElementById("root");
 if (!container) throw new Error("Missing #root element");
