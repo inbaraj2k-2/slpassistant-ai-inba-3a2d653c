@@ -1,4 +1,4 @@
-name: Build Signed Android AAB
+name: Build Signed Android AAB + APK
 
 on:
   push:
@@ -11,7 +11,7 @@ on:
 
 jobs:
   build:
-    name: Build web app, sync Capacitor, and assemble Android release
+    name: Build web app, sync Capacitor, and assemble Android release APK + AAB
     runs-on: ubuntu-latest
 
     steps:
@@ -40,16 +40,11 @@ jobs:
           echo "JAVA_HOME=${{ steps.setup-java.outputs.path }}" >> "$GITHUB_ENV"
           echo "org.gradle.java.home=${{ steps.setup-java.outputs.path }}" >> android/gradle.properties
 
-      - name: Verify Java version
-        run: java -version
-
-      - name: Print JAVA_HOME
-        run: echo "JAVA_HOME=$JAVA_HOME"
-
-      - name: Verify Gradle uses Java 21
+      - name: Verify Java and Gradle
         working-directory: android
-        run: ./gradlew --version
-
+        run: |
+          java -version
+          ./gradlew --version
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
@@ -73,14 +68,22 @@ jobs:
       - name: Sync Capacitor Android project
         run: bunx cap sync android
 
-      - name: Bundle Android App Bundle (AAB)
+      - name: Assemble signed release APK
         working-directory: android
-        # Release signing reads android/key.properties + the committed keystore.
-        # validateReleaseSigning fails the job loudly if either is missing, so
-        # this never silently produces an unsigned "release" artifact.
+        run: ./gradlew assembleRelease --no-daemon --stacktrace
+
+      - name: Bundle signed release AAB
+        working-directory: android
         run: ./gradlew bundleRelease --no-daemon --stacktrace
 
-      - name: Upload release AAB artifact
+      - name: Upload signed release APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-apk
+          path: android/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+
+      - name: Upload signed release AAB artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-release-aab
