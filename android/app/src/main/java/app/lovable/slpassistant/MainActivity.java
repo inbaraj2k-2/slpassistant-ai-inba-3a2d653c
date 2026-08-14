@@ -1,25 +1,13 @@
 package app.lovable.slpassistant;
 
-import android.os.Bundle;
-import android.webkit.WebView;
-
 import com.getcapacitor.BridgeActivity;
 
-public class MainActivity extends BridgeActivity {
-
-  @Override
-  public void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-
-    // Let Chromium own the input connection. We only make sure the WebView
-    // container can take touch focus normally — no manual requestFocus() and
-    // no manual showSoftInput(), because poking the IME on the container view
-    // raises the keyboard without an editable DOM node attached, so typed
-    // characters never reach the focused <input>.
-    final WebView webView = getBridge() != null ? getBridge().getWebView() : null;
-    if (webView != null) {
-      webView.setFocusable(true);
-      webView.setFocusableInTouchMode(true);
-    }
-  }
-}
+/**
+ * Keep the Android activity as a plain Capacitor BridgeActivity.
+ *
+ * Chromium/WebView must own the IME InputConnection for HTML inputs. Do not
+ * force focus on the WebView container, install touch listeners, or call
+ * InputMethodManager.showSoftInput() from here; those operations can make the
+ * keyboard visible while leaving the DOM input without the active connection.
+ */
+public class MainActivity extends BridgeActivity {}
