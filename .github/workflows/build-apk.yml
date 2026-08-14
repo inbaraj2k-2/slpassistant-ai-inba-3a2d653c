@@ -1,14 +1,20 @@
-name: Build Debug Android APK
+name: Build Signed Android APK
+
+# Dedicated APK pipeline. Kept intentionally SEPARATE from build-aab.yml so
+# both run independently from the same commit and upload their own artifact.
 
 on:
   push:
+    branches:
+      - '**'
+  pull_request:
     branches:
       - '**'
   workflow_dispatch:
 
 jobs:
   build:
-    name: Build web app, sync Capacitor, and assemble Android debug APK
+    name: Build web app, sync Capacitor, and assemble Android release APK
     runs-on: ubuntu-latest
 
     steps:
@@ -56,13 +62,16 @@ jobs:
       - name: Sync Capacitor Android project
         run: bunx cap sync android
 
-      - name: Assemble Debug APK
+      - name: Assemble Release APK
         working-directory: android
-        run: ./gradlew assembleDebug --no-daemon --stacktrace
+        # Uses the same signing source as the AAB workflow:
+        # android/key.properties + the committed keystore.
+        # validateReleaseSigning fails loudly if signing is unavailable.
+        run: ./gradlew assembleRelease --no-daemon --stacktrace
 
-      - name: Upload debug APK artifact
+      - name: Upload release APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: app-debug-apk
-          path: android/app/build/outputs/apk/debug/*.apk
+          name: app-release-apk
+          path: android/app/build/outputs/apk/release/*.apk
           if-no-files-found: error
