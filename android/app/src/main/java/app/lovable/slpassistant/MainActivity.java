@@ -1,4 +1,4 @@
-package app.lovable.slpassant;
+package app.lovable.slpassistant;
 
 import android.os.Bundle;
 
