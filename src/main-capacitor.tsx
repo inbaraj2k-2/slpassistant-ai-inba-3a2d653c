@@ -50,7 +50,7 @@ if (typeof window !== "undefined") {
 
     let finalInput: RequestInfo | URL = input as RequestInfo;
     if (url) {
-      const match = url.match(/(?:^|\\/\\/[^/]+)(\\/_serverFn\\/.*)$/);
+      const match = url.match(/(?:^|\/\/[^/]+)(\/_serverFn\/.*)$/);
       if (match) {
         const rewritten = REMOTE_ORIGIN + match[1];
         finalInput = input instanceof Request ? new Request(rewritten, input) : rewritten;
