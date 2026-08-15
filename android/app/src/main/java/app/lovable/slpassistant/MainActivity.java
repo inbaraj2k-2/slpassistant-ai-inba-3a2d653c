@@ -2,22 +2,22 @@ package app.lovable.slpassistant;
 
 import android.os.Bundle;
 
-import androidx.core.view.WindowCompat;
+import androidx.activity.EdgeToEdge;
 
 import com.getcapacitor.BridgeActivity;
 
 /**
  * Minimal IME-safe Capacitor activity.
  *
- * Chromium/WebView must own the IME InputConnection for HTML inputs.
- * Do not force WebView focus, invoke the IME manually, or intercept WebView
- * touch/insets callbacks here.
+ * Chromium/WebView owns the IME InputConnection for HTML inputs. No manual
+ * focus, IME invocation, WebView touch interception, or custom inset listener
+ * is installed here.
  */
 public class MainActivity extends BridgeActivity {
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
+    EdgeToEdge.enable(this);
   }
 }
