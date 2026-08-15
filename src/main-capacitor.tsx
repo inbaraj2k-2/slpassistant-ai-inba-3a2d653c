@@ -111,6 +111,62 @@ const container = document.getElementById("root");
 if (!container) throw new Error("Missing #root element");
 createRoot(container).render(<App />);
 
+// Diagnostic-only instrumentation for the global Android keyboard failure.
+// It observes the DOM input/event side without changing focus, keyboard
+// visibility, values, or layout. The logs deliberately omit typed text.
+if (typeof window !== "undefined") {
+  const isNative = !!(window as unknown as {
+    Capacitor?: { isNativePlatform?: () => boolean };
+  }).Capacitor?.isNativePlatform?.();
+
+  if (isNative) {
+    const describeTarget = (target: EventTarget | null) => {
+      const el = target instanceof HTMLElement ? target : null;
+      if (!el) return "none";
+      const tag = el.tagName.toLowerCase();
+      const id = el.id ? `#${el.id}` : "";
+      const name = el.getAttribute("name") ? `[name=${el.getAttribute("name")}]` : "";
+      const role = el.getAttribute("role") ? `[role=${el.getAttribute("role")}]` : "";
+      return `${tag}${id}${name}${role}`;
+    };
+
+    const logInputEvent = (event: Event) => {
+      const input = event as InputEvent;
+      const target = event.target instanceof HTMLElement ? event.target : null;
+      const valueLength = target && "value" in target && typeof target.value === "string"
+        ? target.value.length
+        : -1;
+      console.info(
+        `[SLPKeyboardDiag] DOM_${event.type}`,
+        `target=${describeTarget(event.target)}`,
+        `inputType=${input.inputType || "-"}`,
+        `dataLength=${typeof input.data === "string" ? input.data.length : 0}`,
+        `valueLength=${valueLength}`,
+      );
+    };
+
+    ["focusin", "focusout", "beforeinput", "input", "compositionstart", "compositionupdate", "compositionend", "keydown", "keyup"]
+      .forEach((type) => document.addEventListener(type, logInputEvent, true));
+
+    const logResize = (source: string) => {
+      const vv = window.visualViewport;
+      console.info(
+        `[SLPKeyboardDiag] ${source}`,
+        `inner=${window.innerWidth}x${window.innerHeight}`,
+        `visual=${vv ? `${Math.round(vv.width)}x${Math.round(vv.height)}` : "none"}`,
+        `visualOffset=${vv ? `${Math.round(vv.offsetLeft)},${Math.round(vv.offsetTop)}` : "none"}`,
+        `active=${describeTarget(document.activeElement)}`,
+      );
+    };
+
+    window.addEventListener("resize", () => logResize("WINDOW_RESIZE"), { passive: true });
+    window.visualViewport?.addEventListener("resize", () => logResize("VISUAL_VIEWPORT_RESIZE"), { passive: true });
+    window.visualViewport?.addEventListener("scroll", () => logResize("VISUAL_VIEWPORT_SCROLL"), { passive: true });
+
+    console.info("[SLPKeyboardDiag] DOM_DIAGNOSTICS_INSTALLED");
+  }
+}
+
 // Deep-link handler for the Google OAuth callback returning from Chrome
 // Custom Tab as app.lovable.slpassistant://auth-callback#access_token=...
 // AND a global hardware Back-button handler so navigation never gets stuck
