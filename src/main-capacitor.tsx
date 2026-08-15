@@ -1,19 +1,10 @@
 // Client entrypoint for the Capacitor Android app.
 // Mounts the TanStack Router in browser mode using the shared routeTree, so
 // the entire frontend runs from bundled assets inside the APK/AAB.
-//
-// Server-function RPC calls (AI analysis, account deletion) are transparently
-// proxied over HTTPS to the published Lovable app origin, since Cloudflare
-// Workers infrastructure hosts them. All other screens (Games, Knowledge Base,
-// Saved Reports, Legal, Clinical Tools) work fully offline via bundled data
-// and localStorage caches.
 
 import "./styles.css";
 import { initSentry } from "./lib/sentry";
 
-// Initialize Sentry BEFORE any other module runs, so we catch import-time
-// errors, long-task events during hydration, and unhandled rejections
-// from the very first tick.
 initSentry();
 
 import { StrictMode } from "react";
@@ -24,19 +15,8 @@ import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
 import { completeCapacitorOAuthFromUrl } from "./lib/capacitor-auth";
 
-// Absolute origin of the published web app that hosts the server functions.
-// The mobile app talks to it only for AI analysis and other privileged RPC
-// calls; all UI + local data comes from the bundled assets.
 const REMOTE_ORIGIN = "https://slpassistant-ai-inba.lovable.app";
 
-// Rewrite any request that targets a TanStack Start server-function endpoint
-// (`/_serverFn/...`) to the published origin so it actually reaches the
-// Cloudflare Worker instead of Capacitor's local file scheme.
-//
-// Every fetch is also wrapped in a 25s AbortController timeout — flaky
-// mobile networks would otherwise let promises hang forever, which is a
-// major source of the "screen becomes unresponsive" symptom on Android
-// (the UI stays in a loading state that never resolves).
 if (typeof window !== "undefined") {
   const originalFetch = window.fetch.bind(window);
   const FETCH_TIMEOUT_MS = 25_000;
@@ -57,7 +37,6 @@ if (typeof window !== "undefined") {
       }
     }
 
-    // Attach a timeout unless the caller already provided a signal.
     const existingSignal = (init as RequestInit | undefined)?.signal
       ?? (input instanceof Request ? input.signal : undefined);
     if (existingSignal) return originalFetch(finalInput, init);
@@ -69,13 +48,9 @@ if (typeof window !== "undefined") {
   };
 }
 
-
 const queryClient = new QueryClient({
   defaultOptions: {
-    queries: {
-      retry: 1,
-      staleTime: 30_000,
-    },
+    queries: { retry: 1, staleTime: 30_000 },
   },
 });
 
@@ -84,12 +59,8 @@ const router = createRouter({
   context: { queryClient },
   scrollRestoration: true,
   defaultPreloadStaleTime: 0,
-  // On Android WebView, hover-intent preloading fires on every touchstart
-  // and piles up route loaders (Supabase calls) that block the main thread
-  // and freeze touches. Disable preloading in the Capacitor build.
   defaultPreload: false,
 });
-
 
 declare module "@tanstack/react-router" {
   interface Register {
@@ -111,67 +82,6 @@ const container = document.getElementById("root");
 if (!container) throw new Error("Missing #root element");
 createRoot(container).render(<App />);
 
-// Diagnostic-only instrumentation for the global Android keyboard failure.
-// It observes the DOM input/event side without changing focus, keyboard
-// visibility, values, or layout. The logs deliberately omit typed text.
-if (typeof window !== "undefined") {
-  const isNative = !!(window as unknown as {
-    Capacitor?: { isNativePlatform?: () => boolean };
-  }).Capacitor?.isNativePlatform?.();
-
-  if (isNative) {
-    const describeTarget = (target: EventTarget | null) => {
-      const el = target instanceof HTMLElement ? target : null;
-      if (!el) return "none";
-      const tag = el.tagName.toLowerCase();
-      const id = el.id ? `#${el.id}` : "";
-      const name = el.getAttribute("name") ? `[name=${el.getAttribute("name")}]` : "";
-      const role = el.getAttribute("role") ? `[role=${el.getAttribute("role")}]` : "";
-      return `${tag}${id}${name}${role}`;
-    };
-
-    const logInputEvent = (event: Event) => {
-      const input = event as InputEvent;
-      const target = event.target instanceof HTMLElement ? event.target : null;
-      const valueLength = target && "value" in target && typeof target.value === "string"
-        ? target.value.length
-        : -1;
-      console.info(
-        `[SLPKeyboardDiag] DOM_${event.type}`,
-        `target=${describeTarget(event.target)}`,
-        `inputType=${input.inputType || "-"}`,
-        `dataLength=${typeof input.data === "string" ? input.data.length : 0}`,
-        `valueLength=${valueLength}`,
-      );
-    };
-
-    ["focusin", "focusout", "beforeinput", "input", "compositionstart", "compositionupdate", "compositionend", "keydown", "keyup"]
-      .forEach((type) => document.addEventListener(type, logInputEvent, true));
-
-    const logResize = (source: string) => {
-      const vv = window.visualViewport;
-      console.info(
-        `[SLPKeyboardDiag] ${source}`,
-        `inner=${window.innerWidth}x${window.innerHeight}`,
-        `visual=${vv ? `${Math.round(vv.width)}x${Math.round(vv.height)}` : "none"}`,
-        `visualOffset=${vv ? `${Math.round(vv.offsetLeft)},${Math.round(vv.offsetTop)}` : "none"}`,
-        `active=${describeTarget(document.activeElement)}`,
-      );
-    };
-
-    window.addEventListener("resize", () => logResize("WINDOW_RESIZE"), { passive: true });
-    window.visualViewport?.addEventListener("resize", () => logResize("VISUAL_VIEWPORT_RESIZE"), { passive: true });
-    window.visualViewport?.addEventListener("scroll", () => logResize("VISUAL_VIEWPORT_SCROLL"), { passive: true });
-
-    console.info("[SLPKeyboardDiag] DOM_DIAGNOSTICS_INSTALLED");
-  }
-}
-
-// Deep-link handler for the Google OAuth callback returning from Chrome
-// Custom Tab as app.lovable.slpassistant://auth-callback#access_token=...
-// AND a global hardware Back-button handler so navigation never gets stuck
-// on any screen. Without this, some Android IMEs and route loaders swallow
-// the Back press and users are forced to close the app.
 const ROOT_ROUTES = new Set(["/", "/home", "/auth"]);
 
 (async () => {
@@ -181,16 +91,13 @@ const ROOT_ROUTES = new Set(["/", "/home", "/auth"]);
     CapApp.addListener("appUrlOpen", async (event: { url: string }) => {
       try {
         const consumed = await completeCapacitorOAuthFromUrl(event.url);
-        if (consumed) {
-          router.navigate({ to: "/home", replace: true });
-        }
+        if (consumed) router.navigate({ to: "/home", replace: true });
       } catch (err) {
         console.error("[capacitor] OAuth deep-link failed", err);
       }
     });
 
     CapApp.addListener("backButton", async () => {
-      // 1) If the soft keyboard is up, drop focus + hide it and stop here.
       try {
         const active = document.activeElement as HTMLElement | null;
         if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA")) {
@@ -201,7 +108,6 @@ const ROOT_ROUTES = new Set(["/", "/home", "/auth"]);
         }
       } catch { /* ignore */ }
 
-      // 2) If any dialog / sheet / modal is open, close it via Escape.
       const overlay = document.querySelector<HTMLElement>(
         '[role="dialog"], [data-state="open"][role="alertdialog"], [data-radix-portal] [role="dialog"]',
       );
@@ -210,14 +116,12 @@ const ROOT_ROUTES = new Set(["/", "/home", "/auth"]);
         return;
       }
 
-      // 3) At a root screen → exit the app cleanly.
       const path = window.location.pathname || "/";
       if (ROOT_ROUTES.has(path) || window.history.length <= 1) {
         try { await CapApp.exitApp(); } catch { /* ignore */ }
         return;
       }
 
-      // 4) Otherwise, navigate back.
       router.history.back();
     });
   } catch {
@@ -225,10 +129,6 @@ const ROOT_ROUTES = new Set(["/", "/home", "/auth"]);
   }
 })();
 
-
-// Configure the Android system status bar so it stays visible above the
-// WebView (matches Google Drive / Chrome behaviour). Any failure here is
-// non-fatal — on web this simply no-ops.
 (async () => {
   try {
     const { StatusBar, Style } = await import("@capacitor/status-bar");
