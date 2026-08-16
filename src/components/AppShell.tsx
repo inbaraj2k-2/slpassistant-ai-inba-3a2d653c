@@ -22,21 +22,21 @@ export function AppShell({ title, subtitle, back, backTo, right, children, hideN
 
   const goBack = () => {
     if (backTo) {
-      navigate({ to: backTo });
+      window.location.assign(backTo);
       return;
     }
 
     if (window.history.length > 1) {
       window.history.back();
     } else {
-      navigate({ to: "/home" });
+      window.location.assign("/home");
     }
   };
 
   const handleBackPointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
     // Android WebView can keep the focused HTML input/IME active after typing.
-    // Navigate on pointer-down instead of waiting for click/blur so the Back
-    // button stays responsive while the software keyboard is open.
+    // Handle the navigation at pointer-down, before the normal click/blur
+    // sequence, so the Back control remains responsive while the keyboard is open.
     event.preventDefault();
     goBack();
   };
@@ -63,14 +63,24 @@ export function AppShell({ title, subtitle, back, backTo, right, children, hideN
       <header className="sticky top-0 z-20 border-b border-border/70 bg-background">
         <div className="flex items-center gap-3 px-4 pb-3 pt-5">
           {back ? (
-            <button
-              type="button"
-              onPointerDown={handleBackPointerDown}
-              className="grid h-9 w-9 place-items-center rounded-full bg-secondary text-secondary-foreground transition hover:bg-accent"
-              aria-label="Back"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </button>
+            backTo ? (
+              <a
+                href={backTo}
+                className="grid h-9 w-9 place-items-center rounded-full bg-secondary text-secondary-foreground transition hover:bg-accent"
+                aria-label="Back"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </a>
+            ) : (
+              <button
+                type="button"
+                onPointerDown={handleBackPointerDown}
+                className="grid h-9 w-9 place-items-center rounded-full bg-secondary text-secondary-foreground transition hover:bg-accent"
+                aria-label="Back"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </button>
+            )
           ) : (
             <button
               type="button"
