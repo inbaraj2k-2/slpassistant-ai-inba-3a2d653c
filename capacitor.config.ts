@@ -7,24 +7,25 @@ const config: CapacitorConfig = {
   appId: 'app.lovable.slpassistant',
   appName: 'SLP Assist AI',
   webDir: 'dist/capacitor',
+
   server: {
     androidScheme: 'https',
     url: process.env.CAP_SERVER_URL,
     cleartext: false,
   },
+
   android: {
     allowMixedContent: false,
-    // Keep native Android/WebView input handling. Do not enable input capture.
-    captureInput: false,
+    captureInput: true,
     webContentsDebuggingEnabled: true,
   },
+
   plugins: {
     Keyboard: {
-      // Let Android's adjustResize path handle the IME without a second
-      // fullscreen resize workaround that can interfere with WebView input.
       resize: 'native',
       resizeOnFullScreen: false,
     },
+
     StatusBar: {
       overlaysWebView: false,
       style: 'LIGHT',
