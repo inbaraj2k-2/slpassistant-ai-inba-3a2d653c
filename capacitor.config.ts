@@ -16,16 +16,14 @@ const config: CapacitorConfig = {
 
   android: {
     allowMixedContent: false,
+    // Keep Android's standard WebView IME/InputConnection. Capacitor's
+    // captureInput mode replaces it with a simpler keyboard and is known to
+    // have input limitations, so it must remain disabled.
     captureInput: false,
     webContentsDebuggingEnabled: true,
   },
 
   plugins: {
-    Keyboard: {
-      resize: 'native',
-      resizeOnFullScreen: false,
-    },
-
     StatusBar: {
       overlaysWebView: false,
       style: 'LIGHT',
