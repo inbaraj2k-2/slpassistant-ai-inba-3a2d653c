@@ -89,7 +89,7 @@ function NewCasePage() {
   }
 
   return (
-    <AppShell title="New Case" subtitle="Collect case history" back hideNav>
+    <AppShell title="New Case" subtitle="Collect case history" back backTo="/home" hideNav>
       <Disclaimer compact />
 
       <div className="mt-4 space-y-5">
