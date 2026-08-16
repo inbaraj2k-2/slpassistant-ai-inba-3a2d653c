@@ -20,13 +20,7 @@ export function AppShell({ title, subtitle, back, backTo, right, children, hideN
   const online = useOnlineStatus();
   const { data: profile } = useProfile();
 
-  const handleBack = () => {
-    // Do not await Keyboard.hide(): on Android/WebView an async keyboard call
-    // can consume the navigation click after an input was edited. Blur first,
-    // then navigate synchronously.
-    const active = document.activeElement as HTMLElement | null;
-    active?.blur();
-
+  const goBack = () => {
     if (backTo) {
       navigate({ to: backTo });
       return;
@@ -37,6 +31,14 @@ export function AppShell({ title, subtitle, back, backTo, right, children, hideN
     } else {
       navigate({ to: "/home" });
     }
+  };
+
+  const handleBackPointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
+    // Android WebView can keep the focused HTML input/IME active after typing.
+    // Navigate on pointer-down instead of waiting for click/blur so the Back
+    // button stays responsive while the software keyboard is open.
+    event.preventDefault();
+    goBack();
   };
 
   return (
@@ -63,7 +65,7 @@ export function AppShell({ title, subtitle, back, backTo, right, children, hideN
           {back ? (
             <button
               type="button"
-              onClick={handleBack}
+              onPointerDown={handleBackPointerDown}
               className="grid h-9 w-9 place-items-center rounded-full bg-secondary text-secondary-foreground transition hover:bg-accent"
               aria-label="Back"
             >
