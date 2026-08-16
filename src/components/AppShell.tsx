@@ -19,6 +19,7 @@ export function AppShell({ title, subtitle, back, right, children, hideNav }: Pr
   const navigate = useNavigate();
   const online = useOnlineStatus();
   const { data: profile } = useProfile();
+
   return (
     <div
       className="mx-auto flex min-h-screen w-full max-w-md flex-col bg-background"
@@ -37,11 +38,19 @@ export function AppShell({ title, subtitle, back, right, children, hideNav }: Pr
           Offline — AI features disabled. Saved data still available.
         </div>
       )}
+
       <header className="sticky top-0 z-20 border-b border-border/70 bg-background">
         <div className="flex items-center gap-3 px-4 pb-3 pt-5">
           {back ? (
             <button
-              onClick={() => router.history.back()}
+              type="button"
+              onClick={() => {
+                if (window.history.length > 1) {
+                  router.history.back();
+                } else {
+                  navigate({ to: "/home" });
+                }
+              }}
               className="grid h-9 w-9 place-items-center rounded-full bg-secondary text-secondary-foreground transition hover:bg-accent"
               aria-label="Back"
             >
@@ -49,6 +58,7 @@ export function AppShell({ title, subtitle, back, right, children, hideNav }: Pr
             </button>
           ) : (
             <button
+              type="button"
               onClick={() => navigate({ to: "/profile" })}
               aria-label="Open profile"
               className="grid h-9 w-9 place-items-center overflow-hidden rounded-xl"
@@ -61,29 +71,56 @@ export function AppShell({ title, subtitle, back, right, children, hideNav }: Pr
               />
             </button>
           )}
+
           <div className="min-w-0 flex-1">
-            <h1 className="truncate text-base font-semibold tracking-tight">{title}</h1>
+            <h1 className="truncate text-base font-semibold tracking-tight">
+              {title}
+            </h1>
+
             {subtitle ? (
-              <p className="truncate text-xs text-muted-foreground">{subtitle}</p>
+              <p className="truncate text-xs text-muted-foreground">
+                {subtitle}
+              </p>
             ) : null}
           </div>
+
           {right}
         </div>
       </header>
 
-      <main className="flex-1 px-4 pb-28 pt-4">{children}</main>
+      <main className="flex-1 px-4 pb-28 pt-4">
+        {children}
+      </main>
 
       {!hideNav && (
         <nav
           className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background"
           style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
         >
-
           <div className="mx-auto flex max-w-md items-center justify-around px-2 py-2">
-            <NavItem to="/home" icon={<Home className="h-5 w-5" />} label="Home" />
-            <NavItem to="/cases" icon={<FolderClock className="h-5 w-5" />} label="Cases" />
-            <NavItem to="/library" icon={<BookOpen className="h-5 w-5" />} label="Library" />
-            <NavItem to="/settings" icon={<Settings className="h-5 w-5" />} label="Settings" />
+            <NavItem
+              to="/home"
+              icon={<Home className="h-5 w-5" />}
+              label="Home"
+            />
+
+            <NavItem
+              to="/cases"
+              icon={<FolderClock className="h-5 w-5" />}
+              label="Cases"
+            />
+
+            <NavItem
+              to="/library"
+              icon={<BookOpen className="h-5 w-5" />}
+              label="Library"
+            />
+
+            <NavItem
+              to="/settings"
+              icon={<Settings className="h-5 w-5" />}
+              label="Settings"
+            />
           </div>
         </nav>
       )}
@@ -91,7 +128,15 @@ export function AppShell({ title, subtitle, back, right, children, hideNav }: Pr
   );
 }
 
-function NavItem({ to, icon, label }: { to: string; icon: ReactNode; label: string }) {
+function NavItem({
+  to,
+  icon,
+  label,
+}: {
+  to: string;
+  icon: ReactNode;
+  label: string;
+}) {
   return (
     <Link
       to={to}
