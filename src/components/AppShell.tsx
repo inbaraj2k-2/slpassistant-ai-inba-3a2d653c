@@ -20,6 +20,30 @@ export function AppShell({ title, subtitle, back, right, children, hideNav }: Pr
   const online = useOnlineStatus();
   const { data: profile } = useProfile();
 
+  const handleBack = async () => {
+    // On Android/Capacitor the IME can keep the focused input active and
+    // consume the navigation gesture/click. Clear focus and hide the keyboard
+    // before changing the route so Back works even after typing.
+    try {
+      const active = document.activeElement as HTMLElement | null;
+      if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA")) {
+        active.blur();
+      }
+
+      const { Keyboard } = await import("@capacitor/keyboard");
+      await Keyboard.hide().catch(() => {});
+    } catch {
+      // Not running in Capacitor, or the Keyboard plugin is unavailable.
+    }
+
+    if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      // Keep a deterministic fallback when this screen has no browser history.
+      navigate({ to: "/home" });
+    }
+  };
+
   return (
     <div
       className="mx-auto flex min-h-screen w-full max-w-md flex-col bg-background"
@@ -44,13 +68,7 @@ export function AppShell({ title, subtitle, back, right, children, hideNav }: Pr
           {back ? (
             <button
               type="button"
-              onClick={() => {
-                if (window.history.length > 1) {
-                  router.history.back();
-                } else {
-                  navigate({ to: "/home" });
-                }
-              }}
+              onClick={handleBack}
               className="grid h-9 w-9 place-items-center rounded-full bg-secondary text-secondary-foreground transition hover:bg-accent"
               aria-label="Back"
             >
@@ -73,14 +91,9 @@ export function AppShell({ title, subtitle, back, right, children, hideNav }: Pr
           )}
 
           <div className="min-w-0 flex-1">
-            <h1 className="truncate text-base font-semibold tracking-tight">
-              {title}
-            </h1>
-
+            <h1 className="truncate text-base font-semibold tracking-tight">{title}</h1>
             {subtitle ? (
-              <p className="truncate text-xs text-muted-foreground">
-                {subtitle}
-              </p>
+              <p className="truncate text-xs text-muted-foreground">{subtitle}</p>
             ) : null}
           </div>
 
@@ -88,9 +101,7 @@ export function AppShell({ title, subtitle, back, right, children, hideNav }: Pr
         </div>
       </header>
 
-      <main className="flex-1 px-4 pb-28 pt-4">
-        {children}
-      </main>
+      <main className="flex-1 px-4 pb-28 pt-4">{children}</main>
 
       {!hideNav && (
         <nav
@@ -98,29 +109,10 @@ export function AppShell({ title, subtitle, back, right, children, hideNav }: Pr
           style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
         >
           <div className="mx-auto flex max-w-md items-center justify-around px-2 py-2">
-            <NavItem
-              to="/home"
-              icon={<Home className="h-5 w-5" />}
-              label="Home"
-            />
-
-            <NavItem
-              to="/cases"
-              icon={<FolderClock className="h-5 w-5" />}
-              label="Cases"
-            />
-
-            <NavItem
-              to="/library"
-              icon={<BookOpen className="h-5 w-5" />}
-              label="Library"
-            />
-
-            <NavItem
-              to="/settings"
-              icon={<Settings className="h-5 w-5" />}
-              label="Settings"
-            />
+            <NavItem to="/home" icon={<Home className="h-5 w-5" />} label="Home" />
+            <NavItem to="/cases" icon={<FolderClock className="h-5 w-5" />} label="Cases" />
+            <NavItem to="/library" icon={<BookOpen className="h-5 w-5" />} label="Library" />
+            <NavItem to="/settings" icon={<Settings className="h-5 w-5" />} label="Settings" />
           </div>
         </nav>
       )}
@@ -128,15 +120,7 @@ export function AppShell({ title, subtitle, back, right, children, hideNav }: Pr
   );
 }
 
-function NavItem({
-  to,
-  icon,
-  label,
-}: {
-  to: string;
-  icon: ReactNode;
-  label: string;
-}) {
+function NavItem({ to, icon, label }: { to: string; icon: ReactNode; label: string }) {
   return (
     <Link
       to={to}
