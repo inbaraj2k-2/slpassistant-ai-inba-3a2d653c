@@ -1,4 +1,4 @@
-import { Link, useNavigate, useRouter } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, BookOpen, FolderClock, Home, Settings, WifiOff } from "lucide-react";
 import { type ReactNode } from "react";
 import { UserAvatar } from "@/components/UserAvatar";
@@ -9,39 +9,29 @@ interface Props {
   title: string;
   subtitle?: string;
   back?: boolean;
+  backTo?: string;
   right?: ReactNode;
   children: ReactNode;
   hideNav?: boolean;
 }
 
-export function AppShell({ title, subtitle, back, right, children, hideNav }: Props) {
-  const router = useRouter();
+export function AppShell({ title, subtitle, back, backTo, right, children, hideNav }: Props) {
   const navigate = useNavigate();
   const online = useOnlineStatus();
   const { data: profile } = useProfile();
 
-  const handleBack = async () => {
-    // On Android/Capacitor the IME can keep the focused input active and
-    // consume the navigation gesture/click. Clear focus and hide the keyboard
-    // before changing the route so Back works even after typing.
-    try {
-      const active = document.activeElement as HTMLElement | null;
-      if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA")) {
-        active.blur();
-      }
+  const handleBack = () => {
+    // Keep navigation synchronous. Waiting for Keyboard.hide() before routing
+    // can let Android/WebView consume the click after an input was edited.
+    const active = document.activeElement as HTMLElement | null;
+    active?.blur();
 
-      const { Keyboard } = await import("@capacitor/keyboard");
-      await Keyboard.hide().catch(() => {});
-    } catch {
-      // Not running in Capacitor, or the Keyboard plugin is unavailable.
+    if (backTo) {
+      navigate({ to: backTo });
+      return;
     }
 
-    if (window.history.length > 1) {
-      window.history.back();
-    } else {
-      // Keep a deterministic fallback when this screen has no browser history.
-      navigate({ to: "/home" });
-    }
+    navigate({ to: "/home" });
   };
 
   return (
