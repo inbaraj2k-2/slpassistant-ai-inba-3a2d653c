@@ -21,8 +21,9 @@ export function AppShell({ title, subtitle, back, backTo, right, children, hideN
   const { data: profile } = useProfile();
 
   const handleBack = () => {
-    // Keep navigation synchronous. Waiting for Keyboard.hide() before routing
-    // can let Android/WebView consume the click after an input was edited.
+    // Do not await Keyboard.hide(): on Android/WebView an async keyboard call
+    // can consume the navigation click after an input was edited. Blur first,
+    // then navigate synchronously.
     const active = document.activeElement as HTMLElement | null;
     active?.blur();
 
@@ -31,7 +32,11 @@ export function AppShell({ title, subtitle, back, backTo, right, children, hideN
       return;
     }
 
-    navigate({ to: "/home" });
+    if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      navigate({ to: "/home" });
+    }
   };
 
   return (
