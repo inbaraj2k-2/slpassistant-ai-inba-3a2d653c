@@ -22,29 +22,22 @@ export function AppShell({ title, subtitle, back, backTo, right, children, hideN
 
   const goBack = () => {
     if (backTo) {
-      window.location.assign(backTo);
+      navigate({ to: backTo });
       return;
     }
 
     if (window.history.length > 1) {
       window.history.back();
     } else {
-      window.location.assign("/home");
+      navigate({ to: "/home" });
     }
-  };
-
-  const handleBackPointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
-    // Android WebView can keep the focused HTML input/IME active after typing.
-    // Handle the navigation at pointer-down, before the normal click/blur
-    // sequence, so the Back control remains responsive while the keyboard is open.
-    event.preventDefault();
-    goBack();
   };
 
   return (
     <div
       className="mx-auto flex min-h-screen w-full max-w-md flex-col bg-background"
       style={{
+        minHeight: "100dvh",
         paddingTop: "env(safe-area-inset-top)",
         paddingBottom: "env(safe-area-inset-bottom)",
       }}
@@ -64,17 +57,17 @@ export function AppShell({ title, subtitle, back, backTo, right, children, hideN
         <div className="flex items-center gap-3 px-4 pb-3 pt-5">
           {back ? (
             backTo ? (
-              <a
-                href={backTo}
+              <Link
+                to={backTo}
                 className="grid h-9 w-9 place-items-center rounded-full bg-secondary text-secondary-foreground transition hover:bg-accent"
                 aria-label="Back"
               >
                 <ArrowLeft className="h-4 w-4" />
-              </a>
+              </Link>
             ) : (
               <button
                 type="button"
-                onPointerDown={handleBackPointerDown}
+                onClick={goBack}
                 className="grid h-9 w-9 place-items-center rounded-full bg-secondary text-secondary-foreground transition hover:bg-accent"
                 aria-label="Back"
               >
