@@ -102,11 +102,19 @@
 
 @layer base {
   * { border-color: var(--color-border); }
-  html, body { -webkit-font-smoothing: antialiased; }
+  html, body {
+    -webkit-font-smoothing: antialiased;
+    min-height: 100%;
+  }
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+  #root {
+    min-height: 100%;
   }
 }
 
