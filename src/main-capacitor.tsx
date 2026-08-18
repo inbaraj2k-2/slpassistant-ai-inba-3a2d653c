@@ -100,12 +100,16 @@ const ROOT_ROUTES = new Set(["/", "/home", "/auth"]);
     CapApp.addListener("backButton", async () => {
       try {
         const active = document.activeElement as HTMLElement | null;
-        if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA")) {
-          active.blur();
-          const { Keyboard } = await import("@capacitor/keyboard");
-          await Keyboard.hide().catch(() => {});
-          return;
-        }
+        const isEditable =
+          active instanceof HTMLInputElement ||
+          active instanceof HTMLTextAreaElement ||
+          active?.isContentEditable === true;
+
+        // Let Android/WebView own the IME lifecycle. Never blur(), focus(),
+        // Keyboard.hide(), or otherwise mutate the focused editor here.
+        // If the IME is active, the native back gesture/button should dismiss
+        // it before application navigation is considered.
+        if (isEditable) return;
       } catch { /* ignore */ }
 
       const overlay = document.querySelector<HTMLElement>(
