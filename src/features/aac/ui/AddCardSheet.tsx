@@ -95,6 +95,7 @@ export function AddCardSheet({ onClose, onSaved, nextSortOrder }: Props) {
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold">New card</h2>
           <button
+            type="button"
             onClick={onClose}
             aria-label="Close"
             className="grid h-8 w-8 place-items-center rounded-full bg-secondary"
@@ -117,6 +118,7 @@ export function AddCardSheet({ onClose, onSaved, nextSortOrder }: Props) {
           )}
           <div className="flex flex-col gap-2">
             <button
+              type="button"
               onClick={() => chooseImage("gallery")}
               disabled={busy}
               className="inline-flex items-center gap-1.5 rounded-lg bg-secondary px-3 py-1.5 text-xs font-semibold disabled:opacity-60"
@@ -124,6 +126,7 @@ export function AddCardSheet({ onClose, onSaved, nextSortOrder }: Props) {
               <ImageIcon className="h-3.5 w-3.5" /> Gallery
             </button>
             <button
+              type="button"
               onClick={() => chooseImage("camera")}
               disabled={busy}
               className="inline-flex items-center gap-1.5 rounded-lg bg-secondary px-3 py-1.5 text-xs font-semibold disabled:opacity-60"
@@ -142,7 +145,6 @@ export function AddCardSheet({ onClose, onSaved, nextSortOrder }: Props) {
               className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm normal-case"
               maxLength={80}
               placeholder="e.g. Mom, Water, Play"
-              autoFocus
             />
           </label>
           <label className="block text-[11px] font-semibold uppercase text-muted-foreground">
@@ -158,6 +160,7 @@ export function AddCardSheet({ onClose, onSaved, nextSortOrder }: Props) {
 
         <div className="mt-3 flex items-center gap-2">
           <button
+            type="button"
             onClick={() => label.trim() && speakText(label.trim())}
             disabled={!label.trim() || busy}
             className="inline-flex items-center gap-1.5 rounded-lg bg-secondary px-3 py-2 text-xs font-semibold disabled:opacity-40"
@@ -165,6 +168,7 @@ export function AddCardSheet({ onClose, onSaved, nextSortOrder }: Props) {
             <Play className="h-3.5 w-3.5" /> Preview
           </button>
           <button
+            type="button"
             onClick={save}
             disabled={busy || !label.trim()}
             className="ml-auto inline-flex items-center gap-1.5 rounded-lg bg-gradient-primary px-4 py-2 text-xs font-semibold text-primary-foreground shadow-card disabled:opacity-60"
