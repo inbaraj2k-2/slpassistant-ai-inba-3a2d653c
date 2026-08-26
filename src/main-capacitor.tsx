@@ -14,6 +14,7 @@ import { RouterProvider, createRouter } from "@tanstack/react-router";
 
 import { routeTree } from "./routeTree.gen";
 import { completeCapacitorOAuthFromUrl } from "./lib/capacitor-auth";
+import { PhoneInputDiagnostics } from "./debug/phone-input-diagnostics";
 
 const REMOTE_ORIGIN = "https://slpassistant-ai-inba.lovable.app";
 
@@ -28,7 +29,7 @@ if (typeof window !== "undefined") {
       else if (input instanceof Request) url = input.url;
     } catch { /* ignore */ }
 
-    let finalInput: RequestInfo | URL = input as RequestInfo;
+    let finalInput: RequestInfo | URL = input as RequestInfo | URL;
     if (url) {
       const match = url.match(/(?:^|\/\/[^/]+)(\/_serverFn\/.*)$/);
       if (match) {
@@ -73,6 +74,7 @@ function App() {
     <StrictMode>
       <QueryClientProvider client={queryClient}>
         <RouterProvider router={router} />
+        <PhoneInputDiagnostics />
       </QueryClientProvider>
     </StrictMode>
   );
