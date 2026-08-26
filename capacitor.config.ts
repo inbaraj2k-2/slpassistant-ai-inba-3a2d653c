@@ -16,9 +16,11 @@ const config: CapacitorConfig = {
 
   android: {
     allowMixedContent: false,
-    // Keep Chromium/WebView as the owner of DOM focus and the Android
-    // InputConnection. Never replace it with Capacitor's capture-input path.
-    captureInput: false,
+    // The tested device can show the IME and accepts native EditText text, but
+    // WebView's normal InputConnection path delivers no DOM beforeinput/input
+    // events. Use Capacitor's supported alternate InputConnection so IME text
+    // is captured by the WebView instead of relying on that failing path.
+    captureInput: true,
     // Android 15/16 edge-to-edge needs native margins applied at the WebView
     // boundary. This prevents system/IME insets from producing stale hit-test
     // regions over the web content.
