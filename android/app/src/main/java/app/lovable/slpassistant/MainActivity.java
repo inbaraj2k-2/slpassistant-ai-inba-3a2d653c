@@ -1,17 +1,15 @@
 package app.lovable.slpassistant;
 
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.webkit.WebView;
@@ -36,22 +34,14 @@ public class MainActivity extends BridgeActivity {
     button.setTextSize(12);
     button.setOnClickListener(v -> showNativeInputDialog());
 
-    ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(
+    FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
         ViewGroup.LayoutParams.WRAP_CONTENT,
-        ViewGroup.LayoutParams.WRAP_CONTENT
+        ViewGroup.LayoutParams.WRAP_CONTENT,
+        Gravity.TOP | Gravity.END
     );
+    params.topMargin = 12;
+    params.rightMargin = 12;
     addContentView(button, params);
-
-    button.post(() -> {
-      if (button.getLayoutParams() instanceof android.widget.FrameLayout.LayoutParams) {
-        android.widget.FrameLayout.LayoutParams frameParams =
-            (android.widget.FrameLayout.LayoutParams) button.getLayoutParams();
-        frameParams.gravity = Gravity.TOP | Gravity.END;
-        frameParams.topMargin = 12;
-        frameParams.rightMargin = 12;
-        button.setLayoutParams(frameParams);
-      }
-    });
   }
 
   private void showNativeInputDialog() {
@@ -89,20 +79,11 @@ public class MainActivity extends BridgeActivity {
         ViewGroup.LayoutParams.WRAP_CONTENT
     ));
 
-    AlertDialog dialog = new AlertDialog.Builder(this)
+    new AlertDialog.Builder(this)
         .setTitle("NATIVE ANDROID INPUT TEST")
         .setView(content)
         .setPositiveButton("Close", null)
-        .create();
-
-    dialog.setOnShowListener(ignored -> {
-      Window window = dialog.getWindow();
-      if (window != null) {
-        window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-      }
-    });
-
-    dialog.show();
+        .show();
   }
 
   private String getDeviceInfo() {
@@ -111,7 +92,6 @@ public class MainActivity extends BridgeActivity {
 
     try {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        android.content.pm.PackageManager pm = getPackageManager();
         PackageInfo info = WebView.getCurrentWebViewPackage();
         if (info != null) {
           webViewPackage = info.packageName;
