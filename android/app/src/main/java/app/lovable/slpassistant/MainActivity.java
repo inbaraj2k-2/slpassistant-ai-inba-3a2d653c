@@ -29,6 +29,7 @@ public class MainActivity extends BridgeActivity {
   }
 
   private void addNativeInputDiagnosticButton() {
+    // PHONE-ONLY NATIVE EDITTEXT DIAGNOSTIC — TEMPORARY INSTRUMENTATION.
     Button button = new Button(this);
     button.setText("Native input test");
     button.setTextSize(12);
