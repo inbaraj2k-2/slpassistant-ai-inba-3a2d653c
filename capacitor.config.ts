@@ -34,6 +34,9 @@ const config: CapacitorConfig = {
       resize: 'none',
       resizeOnFullScreen: false,
     },
+    SystemBars: {
+      insetsHandling: 'disable',
+    },
     StatusBar: {
       overlaysWebView: false,
       style: 'LIGHT',
