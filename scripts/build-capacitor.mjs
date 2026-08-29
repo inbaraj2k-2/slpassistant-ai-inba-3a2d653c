@@ -68,27 +68,33 @@ function instrumentCapacitorInputConnection() {
     return;
   }
 
-  const expectedMethod = `    @Override
-    public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
-        CapConfig config;
-        if (bridge != null) {
-            config = bridge.getConfig();
-        } else {
-            config = CapConfig.loadDefault(getContext());
-        }
-        boolean captureInput = config.isInputCaptured();
-        if (captureInput) {
-            if (capInputConnection == null) {
-                capInputConnection = new BaseInputConnection(this, false);
-            }
-            return capInputConnection;
-        }
-        return super.onCreateInputConnection(outAttrs);
-    }`;
+  const requiredAnchors = [
+    "@Override",
+    "public InputConnection onCreateInputConnection(EditorInfo outAttrs)",
+    "CapConfig config;",
+    "config.isInputCaptured()",
+    "if (captureInput)",
+    "new BaseInputConnection(this, false)",
+    "return super.onCreateInputConnection(outAttrs)",
+  ];
+  for (const anchor of requiredAnchors) {
+    if (!source.includes(anchor)) {
+      throw new Error(
+        "[SLP_INPUT_CONNECTION_DIAG] CapacitorWebView.java is missing required 8.4.1 InputConnection anchor: " +
+          anchor +
+          "; refusing to instrument.",
+      );
+    }
+  }
 
-  if (!source.includes(expectedMethod)) {
+  // Match only the known Capacitor 8.4.1 onCreateInputConnection implementation.
+  // Whitespace may vary, but every semantic branch and return path is required.
+  const inputConnectionMethodPattern =
+    /    @Override\s+public InputConnection onCreateInputConnection\(EditorInfo outAttrs\) \{\s+CapConfig config;\s+if \(bridge != null\) \{\s+config = bridge\.getConfig\(\);\s+\} else \{\s+config = CapConfig\.loadDefault\(getContext\(\)\);\s+\}\s+boolean captureInput = config\.isInputCaptured\(\);\s+if \(captureInput\) \{\s+if \(capInputConnection == null\) \{\s+capInputConnection = new BaseInputConnection\(this, false\);\s+\}\s+return capInputConnection;\s+\}\s+return super\.onCreateInputConnection\(outAttrs\);\s+\}/;
+
+  if (!inputConnectionMethodPattern.test(source)) {
     throw new Error(
-      "[SLP_INPUT_CONNECTION_DIAG] CapacitorWebView.java does not contain the expected 8.4.1 onCreateInputConnection signature/body; refusing to instrument.",
+      "[SLP_INPUT_CONNECTION_DIAG] CapacitorWebView.java does not contain the expected 8.4.1 onCreateInputConnection implementation; refusing to instrument.",
     );
   }
 
@@ -147,7 +153,7 @@ function instrumentCapacitorInputConnection() {
     }
     // SLP_INPUT_CONNECTION_DIAG_END`;
 
-  source = source.replace(expectedMethod, instrumentedMethod);
+  source = source.replace(inputConnectionMethodPattern, instrumentedMethod);
 
   const classAnchor = `    @Override
     @SuppressWarnings("deprecation")
