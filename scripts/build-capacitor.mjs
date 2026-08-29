@@ -7,11 +7,359 @@
  * no SSR runtime — the app launches directly from local files.
  */
 import { execSync } from "node:child_process";
-import { cpSync, existsSync, mkdirSync, readdirSync, renameSync, statSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, readdirSync, renameSync, statSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve, join } from "node:path";
 
 const root = process.cwd();
 const outDir = resolve(root, "dist/capacitor");
+
+/**
+ * TEMPORARY FORENSIC DIAGNOSTIC ONLY.
+ *
+ * The Android Gradle project compiles :capacitor-android directly from
+ * node_modules/@capacitor/android/capacitor (see android/capacitor.settings.gradle).
+ * This deterministic step verifies the lockfile's exact 8.4.1 package integrity
+ * record and the installed package version, then instruments only
+ * CapacitorWebView.onCreateInputConnection(). It deliberately fails closed if the
+ * expected source shape is not present.
+ */
+function instrumentCapacitorInputConnection() {
+  const expectedVersion = "8.4.1";
+  const expectedIntegrity =
+    "sha512-igtDCJ7QQn0P2qHFD9p4KXaa6V1b2PRNt+MxjVwtjTm/BJvqmiazOJq6rPjwFSZnfHm6iFoZk8TfzHd44pyBGw==";
+  const lockPath = join(root, "bun.lock");
+  const packagePath = join(root, "node_modules/@capacitor/android/package.json");
+  const sourcePath = join(
+    root,
+    "node_modules/@capacitor/android/android/capacitor/src/main/java/com/getcapacitor/CapacitorWebView.java",
+  );
+
+  if (!existsSync(lockPath) || !existsSync(packagePath) || !existsSync(sourcePath)) {
+    throw new Error(
+      "[SLP_INPUT_CONNECTION_DIAG] Required Capacitor 8.4.1 lock/package/source file is missing; refusing to instrument.",
+    );
+  }
+
+  const lock = readFileSync(lockPath, "utf8");
+  const lockEntry =
+    /"@capacitor\/android":\s*\["@capacitor\/android@8\.4\.1",[\s\S]*?"sha512-igtDCJ7QQn0P2qHFD9p4KXaa6V1b2PRNt\+MxjVwtjTm\/BJvqmiazOJq6rPjwFSZnfHm6iFoZk8TfzHd44pyBGw=="\]/.test(
+      lock,
+    );
+  if (!lockEntry) {
+    throw new Error(
+      "[SLP_INPUT_CONNECTION_DIAG] bun.lock does not prove the expected @capacitor/android@8.4.1 integrity; refusing to instrument.",
+    );
+  }
+
+  const installedPackage = JSON.parse(readFileSync(packagePath, "utf8"));
+  if (installedPackage.version !== expectedVersion) {
+    throw new Error(
+      "[SLP_INPUT_CONNECTION_DIAG] Installed @capacitor/android is " +
+        installedPackage.version +
+        ", expected " +
+        expectedVersion +
+        "; refusing to instrument.",
+    );
+  }
+
+  let source = readFileSync(sourcePath, "utf8");
+  if (source.includes("SLP_INPUT_CONNECTION_DIAG_BEGIN")) {
+    console.log("[SLP_INPUT_CONNECTION_DIAG] Exact 8.4.1 source is already instrumented.");
+    return;
+  }
+
+  const expectedMethod = `    @Override
+    public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
+        CapConfig config;
+        if (bridge != null) {
+            config = bridge.getConfig();
+        } else {
+            config = CapConfig.loadDefault(getContext());
+        }
+        boolean captureInput = config.isInputCaptured();
+        if (captureInput) {
+            if (capInputConnection == null) {
+                capInputConnection = new BaseInputConnection(this, false);
+            }
+            return capInputConnection;
+        }
+        return super.onCreateInputConnection(outAttrs);
+    }`;
+
+  if (!source.includes(expectedMethod)) {
+    throw new Error(
+      "[SLP_INPUT_CONNECTION_DIAG] CapacitorWebView.java does not contain the expected 8.4.1 onCreateInputConnection signature/body; refusing to instrument.",
+    );
+  }
+
+  source = source.replace(
+    "import android.view.inputmethod.InputConnection;",
+    "import android.view.inputmethod.InputConnection;\n\nimport android.view.inputmethod.InputConnectionWrapper;\n\nimport android.util.Log;",
+  );
+
+  const instrumentedMethod = `    // SLP_INPUT_CONNECTION_DIAG_BEGIN
+    // Temporary forensic instrumentation. It preserves the original 8.4.1
+    // selection logic and wraps only the exact InputConnection returned.
+    @Override
+    public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
+        logInputDiag(
+            "onCreateInputConnection ts=" + System.currentTimeMillis() +
+            " inputType=" + outAttrs.inputType +
+            " imeOptions=" + outAttrs.imeOptions +
+            " initialSelStart=" + outAttrs.initialSelStart +
+            " initialSelEnd=" + outAttrs.initialSelEnd
+        );
+
+        CapConfig config;
+        if (bridge != null) {
+            config = bridge.getConfig();
+        } else {
+            config = CapConfig.loadDefault(getContext());
+        }
+
+        boolean captureInput = config.isInputCaptured();
+        InputConnection original;
+        if (captureInput) {
+            if (capInputConnection == null) {
+                capInputConnection = new BaseInputConnection(this, false);
+            }
+            original = capInputConnection;
+        } else {
+            original = super.onCreateInputConnection(outAttrs);
+        }
+
+        String originalClass = original == null ? "null" : original.getClass().getName();
+        logInputDiag(
+            "onCreateInputConnection returnedClass=" + originalClass +
+            " captureInput=" + captureInput
+        );
+
+        if (original == null) {
+            return null;
+        }
+
+        InputConnection wrapper = new LoggingInputConnection(original);
+        logInputDiag(
+            "onCreateInputConnection wrapperClass=" + wrapper.getClass().getName() +
+            " delegateClass=" + originalClass
+        );
+        return wrapper;
+    }
+    // SLP_INPUT_CONNECTION_DIAG_END`;
+
+  source = source.replace(expectedMethod, instrumentedMethod);
+
+  const classAnchor = `    @Override
+    @SuppressWarnings("deprecation")
+    public boolean dispatchKeyEvent(KeyEvent event) {`;
+
+  if (!source.includes(classAnchor)) {
+    throw new Error(
+      "[SLP_INPUT_CONNECTION_DIAG] Expected dispatchKeyEvent anchor is missing; refusing to instrument.",
+    );
+  }
+
+  const wrapper = `    private static final String INPUT_DIAG_TAG = "SLP_INPUT_CONNECTION_DIAG";
+
+    private static void logInputDiag(String message) {
+        Log.d(INPUT_DIAG_TAG, message);
+    }
+
+    private static final class LoggingInputConnection extends InputConnectionWrapper {
+        private final InputConnection delegate;
+        private final String delegateClass;
+
+        LoggingInputConnection(InputConnection delegate) {
+            super(delegate, false);
+            this.delegate = delegate;
+            this.delegateClass = delegate.getClass().getName();
+        }
+
+        private void log(String method, String details) {
+            logInputDiag(
+                "ts=" + System.currentTimeMillis() +
+                " method=" + method +
+                " delegateClass=" + delegateClass +
+                (details.isEmpty() ? "" : " " + details)
+            );
+        }
+
+        private RuntimeException logAndRethrow(String method, RuntimeException exception) {
+            log(method, "exception=" + exception.getClass().getName());
+            return exception;
+        }
+
+        @Override
+        public boolean commitText(CharSequence text, int newCursorPosition) {
+            try {
+                boolean result = delegate.commitText(text, newCursorPosition);
+                log("commitText", "length=" + (text == null ? -1 : text.length()) + " newCursorPosition=" + newCursorPosition + " result=" + result);
+                return result;
+            } catch (RuntimeException exception) {
+                throw logAndRethrow("commitText", exception);
+            }
+        }
+
+        @Override
+        public boolean setComposingText(CharSequence text, int newCursorPosition) {
+            try {
+                boolean result = delegate.setComposingText(text, newCursorPosition);
+                log("setComposingText", "length=" + (text == null ? -1 : text.length()) + " newCursorPosition=" + newCursorPosition + " result=" + result);
+                return result;
+            } catch (RuntimeException exception) {
+                throw logAndRethrow("setComposingText", exception);
+            }
+        }
+
+        @Override
+        public boolean setComposingRegion(int start, int end) {
+            try {
+                boolean result = delegate.setComposingRegion(start, end);
+                log("setComposingRegion", "start=" + start + " end=" + end + " result=" + result);
+                return result;
+            } catch (RuntimeException exception) {
+                throw logAndRethrow("setComposingRegion", exception);
+            }
+        }
+
+        @Override
+        public boolean deleteSurroundingText(int beforeLength, int afterLength) {
+            try {
+                boolean result = delegate.deleteSurroundingText(beforeLength, afterLength);
+                log("deleteSurroundingText", "beforeLength=" + beforeLength + " afterLength=" + afterLength + " result=" + result);
+                return result;
+            } catch (RuntimeException exception) {
+                throw logAndRethrow("deleteSurroundingText", exception);
+            }
+        }
+
+        @Override
+        public boolean deleteSurroundingTextInCodePoints(int beforeLength, int afterLength) {
+            try {
+                boolean result = delegate.deleteSurroundingTextInCodePoints(beforeLength, afterLength);
+                log("deleteSurroundingTextInCodePoints", "beforeLength=" + beforeLength + " afterLength=" + afterLength + " result=" + result);
+                return result;
+            } catch (RuntimeException exception) {
+                throw logAndRethrow("deleteSurroundingTextInCodePoints", exception);
+            }
+        }
+
+        @Override
+        public boolean sendKeyEvent(KeyEvent event) {
+            try {
+                boolean result = delegate.sendKeyEvent(event);
+                log("sendKeyEvent", "action=" + event.getAction() + " keyCode=" + event.getKeyCode() + " result=" + result);
+                return result;
+            } catch (RuntimeException exception) {
+                throw logAndRethrow("sendKeyEvent", exception);
+            }
+        }
+
+        @Override
+        public boolean finishComposingText() {
+            try {
+                boolean result = delegate.finishComposingText();
+                log("finishComposingText", "result=" + result);
+                return result;
+            } catch (RuntimeException exception) {
+                throw logAndRethrow("finishComposingText", exception);
+            }
+        }
+
+        @Override
+        public boolean beginBatchEdit() {
+            try {
+                boolean result = delegate.beginBatchEdit();
+                log("beginBatchEdit", "result=" + result);
+                return result;
+            } catch (RuntimeException exception) {
+                throw logAndRethrow("beginBatchEdit", exception);
+            }
+        }
+
+        @Override
+        public boolean endBatchEdit() {
+            try {
+                boolean result = delegate.endBatchEdit();
+                log("endBatchEdit", "result=" + result);
+                return result;
+            } catch (RuntimeException exception) {
+                throw logAndRethrow("endBatchEdit", exception);
+            }
+        }
+
+        @Override
+        public boolean setSelection(int start, int end) {
+            try {
+                boolean result = delegate.setSelection(start, end);
+                log("setSelection", "start=" + start + " end=" + end + " result=" + result);
+                return result;
+            } catch (RuntimeException exception) {
+                throw logAndRethrow("setSelection", exception);
+            }
+        }
+
+        @Override
+        public boolean performEditorAction(int editorAction) {
+            try {
+                boolean result = delegate.performEditorAction(editorAction);
+                log("performEditorAction", "editorAction=" + editorAction + " result=" + result);
+                return result;
+            } catch (RuntimeException exception) {
+                throw logAndRethrow("performEditorAction", exception);
+            }
+        }
+
+        @Override
+        public boolean performContextMenuAction(int id) {
+            try {
+                boolean result = delegate.performContextMenuAction(id);
+                log("performContextMenuAction", "id=" + id + " result=" + result);
+                return result;
+            } catch (RuntimeException exception) {
+                throw logAndRethrow("performContextMenuAction", exception);
+            }
+        }
+
+        @Override
+        public CharSequence getTextBeforeCursor(int length, int flags) {
+            try {
+                CharSequence result = delegate.getTextBeforeCursor(length, flags);
+                log("getTextBeforeCursor", "requestedLength=" + length + " resultLength=" + (result == null ? -1 : result.length()));
+                return result;
+            } catch (RuntimeException exception) {
+                throw logAndRethrow("getTextBeforeCursor", exception);
+            }
+        }
+
+        @Override
+        public CharSequence getTextAfterCursor(int length, int flags) {
+            try {
+                CharSequence result = delegate.getTextAfterCursor(length, flags);
+                log("getTextAfterCursor", "requestedLength=" + length + " resultLength=" + (result == null ? -1 : result.length()));
+                return result;
+            } catch (RuntimeException exception) {
+                throw logAndRethrow("getTextAfterCursor", exception);
+            }
+        }
+    }
+
+`;
+
+  source = source.replace(classAnchor, wrapper + classAnchor);
+  writeFileSync(sourcePath, source, "utf8");
+
+  const verification = readFileSync(sourcePath, "utf8");
+  if (!verification.includes("SLP_INPUT_CONNECTION_DIAG_BEGIN") || !verification.includes("LoggingInputConnection")) {
+    throw new Error("[SLP_INPUT_CONNECTION_DIAG] Post-write verification failed.");
+  }
+
+  console.log(
+    "[SLP_INPUT_CONNECTION_DIAG] Applied exact Capacitor 8.4.1 InputConnection instrumentation; " +
+      "packageIntegrity=" +
+      expectedIntegrity,
+  );
+}
 
 console.log("[build-capacitor] Building Capacitor SPA bundle...");
 execSync("bunx vite build -c vite.capacitor.config.ts", {
@@ -50,4 +398,7 @@ if (!existsSync(indexPath)) {
   console.error(`[build-capacitor] Expected ${indexPath} to exist after build.`);
   process.exit(1);
 }
+
+instrumentCapacitorInputConnection();
+
 console.log(`[build-capacitor] Done. Bundle ready at ${outDir}`);
