@@ -31,7 +31,7 @@ function instrumentCapacitorInputConnection() {
   const packagePath = join(root, "node_modules/@capacitor/android/package.json");
   const sourcePath = join(
     root,
-    "node_modules/@capacitor/android/android/capacitor/src/main/java/com/getcapacitor/CapacitorWebView.java",
+    "node_modules/@capacitor/android/capacitor/src/main/java/com/getcapacitor/CapacitorWebView.java",
   );
 
   if (!existsSync(lockPath) || !existsSync(packagePath) || !existsSync(sourcePath)) {
