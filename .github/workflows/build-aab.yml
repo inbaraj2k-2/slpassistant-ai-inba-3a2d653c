@@ -1,4 +1,4 @@
-name: Build Signed Android AAB + APK
+name: Build Signed Android AAB
 
 on:
   push:
@@ -11,7 +11,7 @@ on:
 
 jobs:
   build:
-    name: Build web app, sync Capacitor, and assemble Android release APK + AAB
+    name: Build web app, sync Capacitor, and bundle Android release AAB
     runs-on: ubuntu-latest
 
     steps:
@@ -68,20 +68,9 @@ jobs:
       - name: Sync Capacitor Android project
         run: bunx cap sync android
 
-      - name: Assemble signed release APK
-        working-directory: android
-        run: ./gradlew assembleRelease --no-daemon --stacktrace
-
       - name: Bundle signed release AAB
         working-directory: android
         run: ./gradlew bundleRelease --no-daemon --stacktrace
-
-      - name: Upload signed release APK artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-release-apk
-          path: android/app/build/outputs/apk/release/*.apk
-          if-no-files-found: error
 
       - name: Upload signed release AAB artifact
         uses: actions/upload-artifact@v4
