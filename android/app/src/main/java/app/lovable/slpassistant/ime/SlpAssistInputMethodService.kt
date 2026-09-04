@@ -2,18 +2,18 @@ package app.lovable.slpassistant.ime
 
 import android.graphics.drawable.ColorDrawable
 import android.inputmethodservice.InputMethodService
+import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.text.InputType
 import android.view.Gravity
 import android.view.KeyEvent
+import android.view.MotionEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
 import android.widget.Button
 import android.widget.LinearLayout
-import android.widget.Space
-import android.widget.TextView
-import android.os.Handler
-import android.os.Looper
 
 /**
  * The standalone Android IME for SLP Assist AI.
@@ -124,7 +124,7 @@ class SlpAssistInputMethodService : InputMethodService() {
 
     private fun buildNumberRows(container: LinearLayout) {
         addRow(container, listOf("1234567890".map { keyButton(it.toString()) { commit(it.toString()) } }))
-        addRow(container, listOf("-/:;()$&@".map { keyButton(it.toString()) { commit(it.toString()) } }))
+        addRow(container, listOf("-/:;()\$&@".map { keyButton(it.toString()) { commit(it.toString()) } }))
         addRow(container, listOf(".,?!'".map { keyButton(it.toString()) { commit(it.toString()) } }))
         addRow(
             container,
@@ -202,7 +202,7 @@ class SlpAssistInputMethodService : InputMethodService() {
                     true
                 }
                 button.setOnTouchListener { _, event ->
-                    if (event.actionMasked == KeyEvent.ACTION_UP || event.actionMasked == KeyEvent.ACTION_CANCEL) {
+                    if (event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL) {
                         stopBackspaceRepeat()
                     }
                     false
@@ -235,7 +235,11 @@ class SlpAssistInputMethodService : InputMethodService() {
     private fun switchKeyboard() {
         // Android owns language/layout switching. This remains safe if there
         // is no next enabled IME, and never handles text through JavaScript.
-        switchToNextInputMethod(false)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            switchToNextInputMethod(false)
+        } else {
+            showInputMethodPicker()
+        }
     }
 
     private fun commit(value: String) {
