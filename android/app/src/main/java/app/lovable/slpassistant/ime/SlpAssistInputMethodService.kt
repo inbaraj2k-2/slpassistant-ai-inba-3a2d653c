@@ -12,6 +12,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
+import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.LinearLayout
 
@@ -123,9 +124,9 @@ class SlpAssistInputMethodService : InputMethodService() {
     }
 
     private fun buildNumberRows(container: LinearLayout) {
-        addRow(container, listOf("1234567890".map { keyButton(it.toString()) { commit(it.toString()) } }))
-        addRow(container, listOf("-/:;()\$&@".map { keyButton(it.toString()) { commit(it.toString()) } }))
-        addRow(container, listOf(".,?!'".map { keyButton(it.toString()) { commit(it.toString()) } }))
+        addRow(container, listOf("1234567890".map { keyButton(it.toString(), action = { commit(it.toString()) }) }))
+        addRow(container, listOf("-/:;()\$&@".map { keyButton(it.toString(), action = { commit(it.toString()) }) }))
+        addRow(container, listOf(".,?!'".map { keyButton(it.toString(), action = { commit(it.toString()) }) }))
         addRow(
             container,
             listOf(
@@ -140,9 +141,9 @@ class SlpAssistInputMethodService : InputMethodService() {
     }
 
     private fun buildSymbolRows(container: LinearLayout) {
-        addRow(container, listOf("[]{}<>".map { keyButton(it.toString()) { commit(it.toString()) } }))
-        addRow(container, listOf("\\|~^`".map { keyButton(it.toString()) { commit(it.toString()) } }))
-        addRow(container, listOf("©®™°±×÷".map { keyButton(it.toString()) { commit(it.toString()) } }))
+        addRow(container, listOf("[]{}<>".map { keyButton(it.toString(), action = { commit(it.toString()) }) }))
+        addRow(container, listOf("\\|~^`".map { keyButton(it.toString(), action = { commit(it.toString()) }) }))
+        addRow(container, listOf("©®™°±×÷".map { keyButton(it.toString(), action = { commit(it.toString()) }) }))
         addRow(
             container,
             listOf(
@@ -235,11 +236,10 @@ class SlpAssistInputMethodService : InputMethodService() {
     private fun switchKeyboard() {
         // Android owns language/layout switching. This remains safe if there
         // is no next enabled IME, and never handles text through JavaScript.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            switchToNextInputMethod(false)
-        } else {
-            showInputMethodPicker()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && switchToNextInputMethod(false)) {
+            return
         }
+        getSystemService(InputMethodManager::class.java)?.showInputMethodPicker()
     }
 
     private fun commit(value: String) {
