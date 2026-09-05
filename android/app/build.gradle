@@ -1,5 +1,5 @@
 apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
+apply plugin: 'org.jetbrains.kotlin.android'
 
 // Canonical release signing config: read ONLY android/key.properties.
 def keyPropsFile = rootProject.file("key.properties")
