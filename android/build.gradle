@@ -1,14 +1,17 @@
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
+// Top-level build file where you can add configuration options common to all sub-projects.
 
 buildscript {
-    
+    // Kotlin 2.2.20 is kept with AGP 8.11.1 and Gradle 8.13 for a supported Android build stack.
+    ext.kotlin_version = '2.2.20'
+
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.13.0'
+        classpath 'com.android.tools.build:gradle:8.11.1'
         classpath 'com.google.gms:google-services:4.4.4'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
@@ -28,18 +31,15 @@ subprojects {
     afterEvaluate { project ->
         if (project.hasProperty('android')) {
             project.android.compileOptions {
-                sourceCompatibility JavaVersion.VERSION_17
-                targetCompatibility JavaVersion.VERSION_17
+                sourceCompatibility JavaVersion.VERSION_21
+                targetCompatibility JavaVersion.VERSION_21
             }
-            // Configure Kotlin JVM target without referencing the KotlinCompile
-            // class from the root buildscript classloader (the root project does
-            // not pull in the Kotlin Gradle plugin classpath — only individual
-            // Capacitor plugin subprojects do). Match tasks by name instead so
-            // this stays safe whether or not Kotlin is on the classpath.
+            // Keep every Android Kotlin compilation on the same JVM target as
+            // the app module and Java compile target.
             project.plugins.withId('org.jetbrains.kotlin.android') {
                 project.tasks.matching { it.name.startsWith('compile') && it.name.endsWith('Kotlin') }.configureEach { task ->
                     if (task.hasProperty('kotlinOptions')) {
-                        task.kotlinOptions.jvmTarget = '17'
+                        task.kotlinOptions.jvmTarget = '21'
                     }
                 }
             }

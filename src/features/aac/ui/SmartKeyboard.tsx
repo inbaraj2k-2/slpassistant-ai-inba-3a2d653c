@@ -142,9 +142,9 @@ export function SmartKeyboard() {
 
   // On mount: DO NOT auto-focus the search input. Auto-focus caused the
   // Android software keyboard to open immediately, and combined with the
-  // previous `captureInput: true` Capacitor option it could trap the user
-  // in an unresponsive state where the Back button and bottom nav no
-  // longer received touch events. We now open the keyboard only when the
+  // previous WebView IME interception could trap the user in an
+  // unresponsive state where the Back button and bottom nav no longer
+  // received touch events. We now open the keyboard only when the
   // user actively taps the search field.
   //
   // On unmount (route change / back navigation): always dismiss the OS

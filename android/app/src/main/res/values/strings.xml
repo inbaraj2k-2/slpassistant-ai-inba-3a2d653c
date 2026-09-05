@@ -4,4 +4,6 @@
     <string name="title_activity_main">SLP Assist AI</string>
     <string name="package_name">app.lovable.slpassistant</string>
     <string name="custom_url_scheme">app.lovable.slpassistant</string>
+    <string name="keyboard_name">SLP Assist Keyboard</string>
+    <string name="keyboard_subtype_english">English</string>
 </resources>

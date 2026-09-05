@@ -16,11 +16,10 @@ const config: CapacitorConfig = {
 
   android: {
     allowMixedContent: false,
-    // The tested device can show the IME and accepts native EditText text, but
-    // WebView's normal InputConnection path delivers no DOM beforeinput/input
-    // events. Use Capacitor's supported alternate InputConnection so IME text
-    // is captured by the WebView instead of relying on that failing path.
-    captureInput: true,
+    // Keep the app WebView on Chromium's standard InputConnection. The
+    // system-wide SLP keyboard is a separate native InputMethodService and
+    // must never depend on Capacitor's alternate WebView capture path.
+    captureInput: false,
     // Android 15/16 edge-to-edge needs native margins applied at the WebView
     // boundary. This prevents system/IME insets from producing stale hit-test
     // regions over the web content.

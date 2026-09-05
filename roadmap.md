@@ -1,0 +1,5 @@
+- [x] Complete repository keyboard audit and reconcile current branch
+- [x] Add one native Android InputMethodService implementation and manifest metadata
+- [x] Remove obsolete keyboard diagnostics/helpers and keep WebView keyboard isolated
+- [x] Align Capacitor/Android release configuration and separate APK/AAB workflows
+- [x] Run web, TypeScript, lint, build, Capacitor sync, and available Android validation
