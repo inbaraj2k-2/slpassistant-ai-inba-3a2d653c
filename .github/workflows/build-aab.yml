@@ -1,5 +1,6 @@
 name: Build Signed Android AAB
 
+# Keep Android release CI attached to the native IME/Gradle compatibility fix.
 on:
   push:
     branches:
