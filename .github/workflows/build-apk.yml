@@ -36,7 +36,8 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 21
+          java-version: '21'
+          check-latest: true
 
       - name: Export JAVA_HOME for Gradle
         run: |
@@ -47,6 +48,14 @@ jobs:
         uses: android-actions/setup-android@v3
         with:
           packages: 'platform-tools platforms;android-36 build-tools;36.0.0'
+
+      - name: Verify Java and Gradle
+        working-directory: android
+        env:
+          JAVA_HOME: ${{ steps.setup-java.outputs.path }}
+        run: |
+          "$JAVA_HOME/bin/java" -version
+          ./gradlew --version
 
       - name: Install dependencies
         run: bun install
@@ -64,6 +73,8 @@ jobs:
 
       - name: Assemble Release APK
         working-directory: android
+        env:
+          JAVA_HOME: ${{ steps.setup-java.outputs.path }}
         # Uses the same signing source as the AAB workflow:
         # android/key.properties + the committed keystore.
         # validateReleaseSigning fails loudly if signing is unavailable.
