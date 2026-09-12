@@ -1,15 +1,13 @@
 name: Build Signed Android APK
 
-# Dedicated APK pipeline. Kept intentionally SEPARATE from build-aab.yml so
-# both run independently from the same commit and upload their own artifact.
+# Single-source-of-truth release pipeline: only main can build.
+# Every build explicitly checks out main so the APK cannot come from a
+# feature/diagnostic/stale branch.
 
 on:
   push:
     branches:
-      - '**'
-  pull_request:
-    branches:
-      - '**'
+      - main
   workflow_dispatch:
 
 jobs:
@@ -18,8 +16,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout main only
         uses: actions/checkout@v4
+        with:
+          ref: main
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -75,9 +75,6 @@ jobs:
         working-directory: android
         env:
           JAVA_HOME: ${{ steps.setup-java.outputs.path }}
-        # Uses the same signing source as the AAB workflow:
-        # android/key.properties + the committed keystore.
-        # validateReleaseSigning fails loudly if signing is unavailable.
         run: ./gradlew assembleRelease --no-daemon --stacktrace
 
       - name: Upload release APK artifact
