@@ -2,7 +2,6 @@ package app.lovable.slpassistant.ime
 
 import android.graphics.drawable.ColorDrawable
 import android.inputmethodservice.InputMethodService
-import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.text.InputType
@@ -12,6 +11,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
+import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.LinearLayout
 
@@ -104,16 +104,16 @@ class SlpAssistInputMethodService : InputMethodService() {
         addRow(
             container,
             listOf(
-                listOf(controlButton(if (shift == Shift.CAPS) "⇪" else "⇧") { toggleShift() }),
+                listOf(controlButton(if (shift == Shift.CAPS) "⇪" else "⇧", { toggleShift() })),
                 "zxcvbnm".map { letterButton(it) },
-                listOf(controlButton("⌫", ::deleteText, repeatable = true)),
+                listOf(controlButton("⌫", { deleteText() }, repeatable = true)),
             ),
         )
         addRow(
             container,
             listOf(
-                listOf(controlButton("123") { mode = Mode.NUMBERS; rebuildKeyboard() }),
-                listOf(controlButton("🌐", ::switchKeyboard)),
+                listOf(controlButton("123", { mode = Mode.NUMBERS; rebuildKeyboard() })),
+                listOf(controlButton("🌐", { switchKeyboard() })),
                 listOf(letterOrSymbolButton(",")),
                 listOf(spaceButton()),
                 listOf(letterOrSymbolButton(".")),
@@ -129,12 +129,12 @@ class SlpAssistInputMethodService : InputMethodService() {
         addRow(
             container,
             listOf(
-                listOf(controlButton("ABC") { mode = Mode.LETTERS; rebuildKeyboard() }),
-                listOf(controlButton("#+=") { mode = Mode.SYMBOLS; rebuildKeyboard() }),
-                listOf(controlButton("🌐", ::switchKeyboard)),
+                listOf(controlButton("ABC", { mode = Mode.LETTERS; rebuildKeyboard() })),
+                listOf(controlButton("#+=", { mode = Mode.SYMBOLS; rebuildKeyboard() })),
+                listOf(controlButton("🌐", { switchKeyboard() })),
                 listOf(spaceButton()),
                 listOf(enterButton()),
-                listOf(controlButton("⌫", ::deleteText, repeatable = true)),
+                listOf(controlButton("⌫", { deleteText() }, repeatable = true)),
             ),
         )
     }
@@ -146,12 +146,12 @@ class SlpAssistInputMethodService : InputMethodService() {
         addRow(
             container,
             listOf(
-                listOf(controlButton("ABC") { mode = Mode.LETTERS; rebuildKeyboard() }),
-                listOf(controlButton("123") { mode = Mode.NUMBERS; rebuildKeyboard() }),
-                listOf(controlButton("🌐", ::switchKeyboard)),
+                listOf(controlButton("ABC", { mode = Mode.LETTERS; rebuildKeyboard() })),
+                listOf(controlButton("123", { mode = Mode.NUMBERS; rebuildKeyboard() })),
+                listOf(controlButton("🌐", { switchKeyboard() })),
                 listOf(spaceButton()),
                 listOf(enterButton()),
-                listOf(controlButton("⌫", ::deleteText, repeatable = true)),
+                listOf(controlButton("⌫", { deleteText() }, repeatable = true)),
             ),
         )
     }
@@ -233,12 +233,11 @@ class SlpAssistInputMethodService : InputMethodService() {
     }
 
     private fun switchKeyboard() {
-        // Android owns language/layout switching. This remains safe if there
-        // is no next enabled IME, and never handles text through JavaScript.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
             switchToNextInputMethod(false)
         } else {
-            showInputMethodPicker()
+            val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.showInputMethodPicker()
         }
     }
 
