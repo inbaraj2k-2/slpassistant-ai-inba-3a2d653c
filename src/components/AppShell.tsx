@@ -23,8 +23,6 @@ export function AppShell({ title, subtitle, back, backTo, right, children, hideN
 
   const goBack = () => {
     if (backTo) {
-      // Keep back navigation inside TanStack Router instead of forcing a full
-      // document reload with window.location.assign().
       navigate({ to: backTo });
       return;
     }
@@ -117,7 +115,7 @@ export function AppShell({ title, subtitle, back, backTo, right, children, hideN
   );
 }
 
-function NavItem({ to, icon, label }: { to: string; icon: ReactNode }) {
+function NavItem({ to, icon, label }: { to: string; icon: ReactNode; label: string }) {
   return (
     <Link
       to={to}
