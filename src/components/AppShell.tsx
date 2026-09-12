@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { ArrowLeft, BookOpen, FolderClock, Home, Settings, WifiOff } from "lucide-react";
 import { type ReactNode } from "react";
 import { UserAvatar } from "@/components/UserAvatar";
@@ -17,26 +17,26 @@ interface Props {
 
 export function AppShell({ title, subtitle, back, backTo, right, children, hideNav }: Props) {
   const navigate = useNavigate();
+  const router = useRouter();
   const online = useOnlineStatus();
   const { data: profile } = useProfile();
 
   const goBack = () => {
     if (backTo) {
-      window.location.assign(backTo);
+      // Keep back navigation inside TanStack Router instead of forcing a full
+      // document reload with window.location.assign().
+      navigate({ to: backTo });
       return;
     }
 
     if (window.history.length > 1) {
-      window.history.back();
+      router.history.back();
     } else {
-      window.location.assign("/home");
+      navigate({ to: "/home" });
     }
   };
 
   const handleBackPointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
-    // Android WebView can keep the focused HTML input/IME active after typing.
-    // Handle the navigation at pointer-down, before the normal click/blur
-    // sequence, so the Back control remains responsive while the keyboard is open.
     event.preventDefault();
     goBack();
   };
@@ -63,24 +63,14 @@ export function AppShell({ title, subtitle, back, backTo, right, children, hideN
       <header className="sticky top-0 z-20 border-b border-border/70 bg-background">
         <div className="flex items-center gap-3 px-4 pb-3 pt-5">
           {back ? (
-            backTo ? (
-              <a
-                href={backTo}
-                className="grid h-9 w-9 place-items-center rounded-full bg-secondary text-secondary-foreground transition hover:bg-accent"
-                aria-label="Back"
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </a>
-            ) : (
-              <button
-                type="button"
-                onPointerDown={handleBackPointerDown}
-                className="grid h-9 w-9 place-items-center rounded-full bg-secondary text-secondary-foreground transition hover:bg-accent"
-                aria-label="Back"
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </button>
-            )
+            <button
+              type="button"
+              onPointerDown={handleBackPointerDown}
+              className="grid h-9 w-9 place-items-center rounded-full bg-secondary text-secondary-foreground transition hover:bg-accent"
+              aria-label="Back"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </button>
           ) : (
             <button
               type="button"
@@ -127,7 +117,7 @@ export function AppShell({ title, subtitle, back, backTo, right, children, hideN
   );
 }
 
-function NavItem({ to, icon, label }: { to: string; icon: ReactNode; label: string }) {
+function NavItem({ to, icon, label }: { to: string; icon: ReactNode }) {
   return (
     <Link
       to={to}
