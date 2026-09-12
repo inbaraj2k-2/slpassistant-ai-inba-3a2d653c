@@ -11,7 +11,7 @@ import { downloadToDevice, isNative, openInAppBrowser } from "@/lib/native";
 import { confirmAsync } from "@/lib/confirm";
 
 export const Route = createFileRoute("/_authenticated/library/community")({
-  head: () => ({ meta: [{ title: "Community Library" }] }),
+  head: () => ({ meta: [{ title: "Communicate Library" }] }),
   component: CommunityLibraryPage,
 });
 
@@ -78,7 +78,6 @@ function CommunityLibraryPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [category]);
 
-  // Debounced search
   useEffect(() => {
     const t = setTimeout(() => {
       setLoading(true);
@@ -119,8 +118,6 @@ function CommunityLibraryPage() {
   };
 
   const viewFile = async (r: Row) => {
-    // View inline: for native we open Capacitor Browser (in-app tab) without
-    // forcing a download, so PDFs/images render instead of being saved.
     const { data, error } = await supabase.storage
       .from("uploads")
       .createSignedUrl(r.file_path, 60 * 10);
@@ -129,7 +126,7 @@ function CommunityLibraryPage() {
   };
 
   const removeOwn = async (r: Row) => {
-    if (!(await confirmAsync(`Delete "${r.title}" from community?`, "Delete upload"))) return;
+    if (!(await confirmAsync(`Delete \"${r.title}\" from community?`, "Delete upload"))) return;
     const { error: sErr } = await supabase.storage.from("uploads").remove([r.file_path]);
     if (sErr) return toast.error("Could not delete file.");
     const { error: dErr } = await (supabase as any)
@@ -159,7 +156,7 @@ function CommunityLibraryPage() {
   );
 
   return (
-    <AppShell title="Community Library" subtitle="Shared resources from users" back>
+    <AppShell title="Communicate Library" subtitle="Shared resources from users" back>
       <div className="mb-3 space-y-2">
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
