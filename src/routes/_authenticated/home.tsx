@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { Disclaimer } from "@/components/Disclaimer";
-import { BookOpen, FileText, FolderClock, Gamepad2, PlusCircle, Settings, Sparkles, Stethoscope } from "lucide-react";
+import { BookOpen, FileText, FolderClock, Gamepad2, LibraryBig, PlusCircle, Settings, Sparkles, Brain, Stethoscope } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -69,9 +69,15 @@ function HomePage() {
         />
         <TileLink
           to="/knowledge"
-          icon={<BookOpen className="h-5 w-5" />}
+          icon={<Brain className="h-5 w-5" />}
           label="Clinical Knowledge Base"
           desc="Disorders, Assessments &amp; Clinical References"
+        />
+        <TileLink
+          to="/library"
+          icon={<LibraryBig className="h-5 w-5" />}
+          label="Library"
+          desc="Resources &amp; References"
         />
         <TileLink
           to="/games"
