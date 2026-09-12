@@ -51,7 +51,6 @@ function UploadsPage() {
   const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Share-to-community form state
   const [shareToCommunity, setShareToCommunity] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -72,16 +71,23 @@ function UploadsPage() {
     load();
   }, []);
 
+  // Always open the native file picker. Validation for community sharing is
+  // performed after the user selects a file, so enabling sharing never makes
+  // the Upload file control appear unresponsive.
   const onPick = () => {
-    if (shareToCommunity && !title.trim()) {
-      toast.error("Please add a title before sharing to the community.");
-      return;
-    }
+    if (uploading) return;
     inputRef.current?.click();
   };
 
   const onFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
+
+    if (shareToCommunity && !title.trim()) {
+      toast.error("Please add a title before sharing to the community.");
+      if (inputRef.current) inputRef.current.value = "";
+      return;
+    }
+
     const file = files[0];
     const ext = extOf(file.name);
     if (!ALLOWED.includes(ext)) {
@@ -120,7 +126,7 @@ function UploadsPage() {
           is_public: true,
         });
         if (cErr) throw cErr;
-        toast.success("Shared to Community Library.");
+        toast.success("Shared to Communicate Library.");
         setTitle("");
         setDescription("");
         setCategory("Other");
@@ -155,7 +161,7 @@ function UploadsPage() {
   };
 
   const removeFile = async (row: UploadRow) => {
-    if (!(await confirmAsync(`Delete "${row.file_name}"?`, "Delete upload"))) return;
+    if (!(await confirmAsync(`Delete \"${row.file_name}\"?`, "Delete upload"))) return;
     const { error: sErr } = await supabase.storage.from("uploads").remove([row.file_path]);
     if (sErr) return toast.error("Could not delete file.");
     const { error: dErr } = await (supabase as any)
@@ -173,7 +179,7 @@ function UploadsPage() {
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <Label htmlFor="share-toggle" className="text-sm font-semibold">
-              Share to Community Library
+              Share to Communicate Library
             </Label>
             <p className="text-xs text-muted-foreground">
               Make this file visible to all users.
@@ -233,7 +239,6 @@ function UploadsPage() {
           <p className="text-xs text-muted-foreground">PDF, DOCX, JPG, PNG · up to 999MB</p>
         </div>
       </div>
-
 
       {loading ? (
         <div className="grid place-items-center py-10 text-muted-foreground">
