@@ -50,7 +50,7 @@ const items: {
   },
   {
     to: "/library/community",
-    label: "Community Library",
+    label: "Communicate Library",
     desc: "Shared resources from users",
     icon: <Users className="h-5 w-5" />,
     tone: "amber",
