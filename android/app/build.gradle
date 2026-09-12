@@ -1,5 +1,4 @@
 apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
 
 // Canonical release signing config: read ONLY android/key.properties.
 def keyPropsFile = rootProject.file("key.properties")
@@ -62,11 +61,6 @@ android {
             signingConfig signingConfigs.release
         }
     }
-
-}
-
-kotlin {
-    jvmToolchain(21)
 }
 
 // Fail fast with a precise message BEFORE :app:signReleaseBundle runs,
