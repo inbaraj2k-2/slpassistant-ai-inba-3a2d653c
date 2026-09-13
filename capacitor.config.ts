@@ -26,6 +26,8 @@ const config: CapacitorConfig = {
       backgroundColor: '#5b21b6',
     },
     Keyboard: {
+      // Android owns resizing through Activity.adjustResize. Do not ask the
+      // plugin to apply a second WebView/body resize strategy.
       resize: 'none',
       resizeOnFullScreen: false,
     },
