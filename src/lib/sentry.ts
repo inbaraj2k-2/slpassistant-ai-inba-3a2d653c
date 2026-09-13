@@ -100,7 +100,11 @@ export function initSentry() {
   installLongTaskObserver();
   installGlobalTraps();
   installRouteBreadcrumbs();
-  installInteractionBreadcrumbs();
+  // TEMPORARY ANDROID IME DIAGNOSTIC: do not install the custom touch/pointer
+  // breadcrumb listeners while testing the Android 16 input freeze. Every
+  // touch event previously called Sentry.addBreadcrumb(), adding extra work
+  // to the WebView's main event path and potentially crossing the Capacitor
+  // bridge. Keyboard/dialog/fetch breadcrumbs remain enabled.
   installKeyboardBreadcrumbs();
   installDialogBreadcrumbs();
   installFetchBreadcrumbs();
