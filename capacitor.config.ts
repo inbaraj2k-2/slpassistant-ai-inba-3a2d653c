@@ -16,6 +16,10 @@ const config: CapacitorConfig = {
 
   android: {
     allowMixedContent: false,
+    // Use Chromium's standard WebView InputConnection. Capacitor's alternate
+    // input-capture path must not intercept Android IME text before it reaches
+    // the DOM.
+    captureInput: false,
     webContentsDebuggingEnabled: true,
   },
 

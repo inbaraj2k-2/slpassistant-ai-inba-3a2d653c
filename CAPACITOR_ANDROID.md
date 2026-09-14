@@ -26,10 +26,14 @@ native builds; otherwise re-run `cap:add:android` on a fresh checkout.
 Every time the web code changes:
 
 ```bash
-bun run build                # builds the web app into dist/
-bun run cap:sync             # copies dist/ into the Android project
+bun run build:capacitor      # builds the local SPA into dist/capacitor/
+bun run cap:sync             # rebuilds, syncs, and verifies Android assets
 bun run cap:open:android     # opens Android Studio
 ```
+
+`cap:sync` verifies that `android/app/src/main/assets/public/index.html` is
+the bundled local React SPA and rejects hosted redirects or stale input
+configuration before Android Studio builds an APK.
 
 Then in Android Studio: **Build > Build Bundle(s) / APK(s)** to produce an APK
 or AAB. For a signed release use **Build > Generate Signed Bundle / APK**.
@@ -45,8 +49,9 @@ Unset `CAP_SERVER_URL` and re-sync before shipping a release build.
 
 ## Notes
 
-- `webDir` is `dist`. If your build outputs elsewhere, adjust
-  `capacitor.config.ts` accordingly.
+- `webDir` is `dist/capacitor`. Android release builds must use
+  `build:capacitor` followed by `cap:sync`; they never use `.output/public`
+  or a hosted-URL redirect.
 - The web app is unchanged; Capacitor plugins (`@capacitor/app`,
   `@capacitor/haptics`, `@capacitor/keyboard`, `@capacitor/status-bar`) are
   available if you want to progressively enhance the UI, but nothing calls
