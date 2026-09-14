@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 // The mobile app ships the entire frontend as bundled assets under
-// dist/capacitor/. It never redirects to the hosted lovable.app site — it
+dist/capacitor/. It never redirects to the hosted lovable.app site — it
 // only makes outbound HTTPS calls to Supabase and the AI gateway when online.
 const config: CapacitorConfig = {
   appId: 'app.lovable.slpassistant',
@@ -16,10 +16,6 @@ const config: CapacitorConfig = {
 
   android: {
     allowMixedContent: false,
-    // Use Chromium's standard WebView InputConnection. Capacitor's alternate
-    // input-capture path must not intercept Android IME text before it reaches
-    // the DOM.
-    captureInput: false,
     webContentsDebuggingEnabled: true,
   },
 
