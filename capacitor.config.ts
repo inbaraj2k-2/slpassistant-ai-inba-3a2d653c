@@ -33,6 +33,7 @@ const config: CapacitorConfig = {
       // Android owns resizing through Activity.adjustResize. Do not ask the
       // plugin to apply a second WebView/body resize strategy.
       resize: 'none',
+      style: 'dark',
       resizeOnFullScreen: false,
     },
   },
