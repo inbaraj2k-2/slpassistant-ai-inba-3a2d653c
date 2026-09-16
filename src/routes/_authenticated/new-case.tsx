@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { Disclaimer } from "@/components/Disclaimer";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Sparkles, WifiOff } from "lucide-react";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
@@ -29,59 +29,52 @@ interface Fields {
 }
 
 const empty: Fields = {
-  name: "",
-  age: "",
-  gender: "",
-  chief_complaint: "",
-  prenatal_history: "",
-  natal_history: "",
-  postnatal_history: "",
-  motor_milestones: "",
-  speech_milestones: "",
-  language_history: "",
-  hearing_history: "",
-  education_history: "",
-  family_history: "",
+  name: "", age: "", gender: "", chief_complaint: "", prenatal_history: "",
+  natal_history: "", postnatal_history: "", motor_milestones: "", speech_milestones: "",
+  language_history: "", hearing_history: "", education_history: "", family_history: "",
   additional_notes: "",
 };
+
+type FieldRefs = { [K in keyof Fields]: React.RefObject<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null> };
+
+function makeRefs(): FieldRefs {
+  return {
+    name: { current: null }, age: { current: null }, gender: { current: null },
+    chief_complaint: { current: null }, prenatal_history: { current: null }, natal_history: { current: null },
+    postnatal_history: { current: null }, motor_milestones: { current: null }, speech_milestones: { current: null },
+    language_history: { current: null }, hearing_history: { current: null }, education_history: { current: null },
+    family_history: { current: null }, additional_notes: { current: null },
+  };
+}
 
 function NewCasePage() {
   const navigate = useNavigate();
   const online = useOnlineStatus();
-  const [f, setF] = useState<Fields>(empty);
+  const refs = useRef<FieldRefs>(makeRefs()).current;
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  function set<K extends keyof Fields>(k: K, v: string) {
-    setF((p) => ({ ...p, [k]: v }));
+  function readFields(): Fields {
+    const result = { ...empty };
+    for (const key of Object.keys(empty) as (keyof Fields)[]) {
+      result[key] = refs[key].current?.value ?? "";
+    }
+    return result;
   }
 
   async function analyze() {
     setError(null);
-    if (!f.name.trim()) {
-      setError("Patient name is required.");
-      return;
-    }
-    const tooLong = Object.entries(f).find(([, v]) => (v ?? "").length > 4000);
-    if (tooLong) {
-      setError(`Field "${tooLong[0]}" is too long (max 4000 characters).`);
-      return;
-    }
+    const f = readFields();
+    if (!f.name.trim()) { setError("Patient name is required."); return; }
+    const tooLong = Object.entries(f).find(([, v]) => v.length > 4000);
+    if (tooLong) { setError(`Field "${tooLong[0]}" is too long (max 4000 characters).`); return; }
     setBusy(true);
     try {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) throw new Error("Not signed in");
-      const { data, error } = await supabase
-        .from("cases")
-        .insert({ ...f, user_id: u.user.id })
-        .select("id")
-        .single();
+      const { data, error } = await supabase.from("cases").insert({ ...f, user_id: u.user.id }).select("id").single();
       if (error || !data) throw error ?? new Error("Failed to save case");
-      navigate({
-        to: "/case/$id",
-        params: { id: data.id },
-        search: { run: 1 },
-      });
+      navigate({ to: "/case/$id", params: { id: data.id }, search: { run: 1 } });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to save case");
       setBusy(false);
@@ -91,65 +84,34 @@ function NewCasePage() {
   return (
     <AppShell title="New Case" subtitle="Collect case history" back backTo="/home" hideNav>
       <Disclaimer compact />
-
       <div className="mt-4 space-y-5">
         <Section title="Demographics">
-          <Row>
-            <Field label="Name" value={f.name} onChange={(v) => set("name", v)} required />
-          </Row>
+          <Row><Field label="Name" inputRef={refs.name} required /></Row>
           <Row two>
-            <Field label="Age" value={f.age} onChange={(v) => set("age", v)} placeholder="e.g. 4y 6m" />
-            <Select
-              label="Gender"
-              value={f.gender}
-              onChange={(v) => set("gender", v)}
-              options={["", "Male", "Female", "Other"]}
-            />
+            <Field label="Age" inputRef={refs.age} placeholder="e.g. 4y 6m" />
+            <Select label="Gender" inputRef={refs.gender} options={["", "Male", "Female", "Other"]} />
           </Row>
-          <Area
-            label="Chief Complaint"
-            value={f.chief_complaint}
-            onChange={(v) => set("chief_complaint", v)}
-            placeholder="Parent / patient's primary concern"
-          />
+          <Area label="Chief Complaint" inputRef={refs.chief_complaint} placeholder="Parent / patient's primary concern" />
         </Section>
-
         <Section title="Birth History">
-          <Area label="Prenatal History" value={f.prenatal_history} onChange={(v) => set("prenatal_history", v)} />
-          <Area label="Natal History" value={f.natal_history} onChange={(v) => set("natal_history", v)} />
-          <Area label="Postnatal History" value={f.postnatal_history} onChange={(v) => set("postnatal_history", v)} />
+          <Area label="Prenatal History" inputRef={refs.prenatal_history} />
+          <Area label="Natal History" inputRef={refs.natal_history} />
+          <Area label="Postnatal History" inputRef={refs.postnatal_history} />
         </Section>
-
         <Section title="Developmental">
-          <Area label="Motor Milestones" value={f.motor_milestones} onChange={(v) => set("motor_milestones", v)} />
-          <Area label="Speech Milestones" value={f.speech_milestones} onChange={(v) => set("speech_milestones", v)} />
-          <Area label="Language History" value={f.language_history} onChange={(v) => set("language_history", v)} />
+          <Area label="Motor Milestones" inputRef={refs.motor_milestones} />
+          <Area label="Speech Milestones" inputRef={refs.speech_milestones} />
+          <Area label="Language History" inputRef={refs.language_history} />
         </Section>
-
         <Section title="Other History">
-          <Area label="Hearing History" value={f.hearing_history} onChange={(v) => set("hearing_history", v)} />
-          <Area label="Education History" value={f.education_history} onChange={(v) => set("education_history", v)} />
-          <Area label="Family History" value={f.family_history} onChange={(v) => set("family_history", v)} />
-          <Area label="Additional Notes" value={f.additional_notes} onChange={(v) => set("additional_notes", v)} />
+          <Area label="Hearing History" inputRef={refs.hearing_history} />
+          <Area label="Education History" inputRef={refs.education_history} />
+          <Area label="Family History" inputRef={refs.family_history} />
+          <Area label="Additional Notes" inputRef={refs.additional_notes} />
         </Section>
-
-        {error && (
-          <p className="rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">{error}</p>
-        )}
-
-        {!online && (
-          <div className="flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200">
-            <WifiOff className="mt-0.5 h-4 w-4 shrink-0" />
-            <span>Internet required for AI analysis. You can still save the case history and use offline tools.</span>
-          </div>
-        )}
-
-        <button
-          onClick={analyze}
-          disabled={busy || !online}
-          title={!online ? "Internet required for AI analysis" : undefined}
-          className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-primary font-semibold text-primary-foreground shadow-elev transition hover:opacity-95 disabled:opacity-60"
-        >
+        {error && <p className="rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">{error}</p>}
+        {!online && <div className="flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200"><WifiOff className="mt-0.5 h-4 w-4 shrink-0" /><span>Internet required for AI analysis. You can still save the case history and use offline tools.</span></div>}
+        <button onClick={analyze} disabled={busy || !online} title={!online ? "Internet required for AI analysis" : undefined} className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-primary font-semibold text-primary-foreground shadow-elev transition hover:opacity-95 disabled:opacity-60">
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
           {busy ? "Saving…" : !online ? "AI Unavailable (Offline)" : "Analyze Case"}
         </button>
@@ -159,93 +121,16 @@ function NewCasePage() {
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="rounded-2xl border border-border bg-card p-4 shadow-card">
-      <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-primary">{title}</h3>
-      <div className="space-y-3">{children}</div>
-    </section>
-  );
+  return <section className="rounded-2xl border border-border bg-card p-4 shadow-card"><h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-primary">{title}</h3><div className="space-y-3">{children}</div></section>;
 }
+function Row({ children, two }: { children: React.ReactNode; two?: boolean }) { return <div className={two ? "grid grid-cols-2 gap-3" : ""}>{children}</div>; }
 
-function Row({ children, two }: { children: React.ReactNode; two?: boolean }) {
-  return <div className={two ? "grid grid-cols-2 gap-3" : ""}>{children}</div>;
+function Field({ label, inputRef, ...props }: { label: string; inputRef: React.RefObject<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null> } & Omit<React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange">) {
+  return <label className="block"><span className="mb-1 block text-xs font-medium text-foreground/80">{label}</span><input {...props} ref={inputRef as React.RefObject<HTMLInputElement>} defaultValue="" maxLength={props.maxLength ?? 500} autoComplete="off" className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-ring/30" /></label>;
 }
-
-function Field({
-  label,
-  value,
-  onChange,
-  ...props
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-} & Omit<React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange">) {
-  return (
-    <label className="block">
-      <span className="mb-1 block text-xs font-medium text-foreground/80">{label}</span>
-      <input
-        {...props}
-        value={value}
-        maxLength={props.maxLength ?? 500}
-        onChange={(e) => onChange(e.target.value)}
-        className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-ring/30"
-      />
-    </label>
-  );
+function Select({ label, inputRef, options }: { label: string; inputRef: React.RefObject<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null>; options: string[] }) {
+  return <label className="block"><span className="mb-1 block text-xs font-medium text-foreground/80">{label}</span><select ref={inputRef as React.RefObject<HTMLSelectElement>} defaultValue="" className="h-10 w-full rounded-lg border border-input bg-background px-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-ring/30">{options.map((o) => <option key={o} value={o}>{o || "Select…"}</option>)}</select></label>;
 }
-
-function Select({
-  label,
-  value,
-  onChange,
-  options,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  options: string[];
-}) {
-  return (
-    <label className="block">
-      <span className="mb-1 block text-xs font-medium text-foreground/80">{label}</span>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="h-10 w-full rounded-lg border border-input bg-background px-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-ring/30"
-      >
-        {options.map((o) => (
-          <option key={o} value={o}>
-            {o || "Select…"}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
-}
-
-function Area({
-  label,
-  value,
-  onChange,
-  placeholder,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  placeholder?: string;
-}) {
-  return (
-    <label className="block">
-      <span className="mb-1 block text-xs font-medium text-foreground/80">{label}</span>
-      <textarea
-        rows={3}
-        maxLength={4000}
-        value={value}
-        placeholder={placeholder}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full resize-none rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none placeholder:text-muted-foreground/50 focus:border-primary focus:ring-2 focus:ring-ring/30"
-      />
-    </label>
-  );
+function Area({ label, inputRef, placeholder }: { label: string; inputRef: React.RefObject<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null>; placeholder?: string }) {
+  return <label className="block"><span className="mb-1 block text-xs font-medium text-foreground/80">{label}</span><textarea ref={inputRef as React.RefObject<HTMLTextAreaElement>} rows={3} maxLength={4000} placeholder={placeholder} className="w-full resize-none rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none placeholder:text-muted-foreground/50 focus:border-primary focus:ring-2 focus:ring-ring/30" /></label>;
 }
