@@ -7,7 +7,8 @@ type BrandMarkProps = {
 };
 
 export function BrandMark({ className = "h-full w-full" }: BrandMarkProps) {
-  const [imgSrc, setImgSrc] = useState("/slp-assist-logo.svg");
+  const [imgSrc, setImgSrc] = useState<string | null>("/slp-assist-logo.svg");
+  const [hasError, setHasError] = useState(false);
 
   const { data: branding } = useQuery({
     queryKey: ["brand-mark"],
@@ -34,8 +35,24 @@ export function BrandMark({ className = "h-full w-full" }: BrandMarkProps) {
   });
 
   useEffect(() => {
-    setImgSrc(branding?.clinicLogoUrl || "/slp-assist-logo.svg");
+    if (branding?.clinicLogoUrl) {
+      setImgSrc(branding.clinicLogoUrl);
+      setHasError(false);
+    }
   }, [branding]);
+
+  const handleError = () => {
+    if (!hasError && imgSrc !== "/slp-assist-logo.svg") {
+      setHasError(true);
+      setImgSrc("/slp-assist-logo.svg");
+    } else {
+      setImgSrc(null);
+    }
+  };
+
+  if (!imgSrc) {
+    return <div className={`bg-primary/10 rounded-lg ${className}`} />;
+  }
 
   return (
     <img
@@ -43,7 +60,7 @@ export function BrandMark({ className = "h-full w-full" }: BrandMarkProps) {
       alt={branding?.clinicName || "SLP Assist AI"}
       className={className}
       draggable={false}
-      onError={() => setImgSrc("/slp-assist-logo.svg")}
+      onError={handleError}
     />
   );
 }
