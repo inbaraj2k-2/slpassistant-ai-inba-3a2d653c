@@ -19,7 +19,7 @@ const REMOTE_ORIGIN = "https://slpassistant-ai-inba.lovable.app";
 
 if (typeof window !== "undefined") {
   const originalFetch = window.fetch.bind(window);
-  const FETCH_TIMEOUT_MS = 25_000;
+  const FETCH_TIMEOUT_MS = 15_000;
   window.fetch = (input, init) => {
     let url: string | undefined;
     try {
@@ -30,7 +30,7 @@ if (typeof window !== "undefined") {
 
     let finalInput: RequestInfo | URL = input as RequestInfo;
     if (url) {
-      const match = url.match(/(?:^|\/\/[^/]+)(\/_serverFn\/.*)$/);
+      const match = url.match(/(?:^|\\/\\/[^/]+)(\\/_serverFn\\/.*)$/);
       if (match) {
         const rewritten = REMOTE_ORIGIN + match[1];
         finalInput = input instanceof Request ? new Request(rewritten, input) : rewritten;
@@ -42,9 +42,9 @@ if (typeof window !== "undefined") {
     if (existingSignal) return originalFetch(finalInput, init);
 
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+    const timer = window.setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
     const nextInit: RequestInit = { ...(init ?? {}), signal: controller.signal };
-    return originalFetch(finalInput, nextInit).finally(() => clearTimeout(timer));
+    return originalFetch(finalInput, nextInit).finally(() => window.clearTimeout(timer));
   };
 }
 
