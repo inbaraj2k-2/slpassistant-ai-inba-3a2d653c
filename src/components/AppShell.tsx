@@ -1,4 +1,4 @@
-import { Link, useNavigate, useRouter } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, BookOpen, FolderClock, Home, Settings, WifiOff } from "lucide-react";
 import { type ReactNode } from "react";
 import { UserAvatar } from "@/components/UserAvatar";
@@ -17,20 +17,21 @@ interface Props {
 
 export function AppShell({ title, subtitle, back, backTo, right, children, hideNav }: Props) {
   const navigate = useNavigate();
-  const router = useRouter();
   const online = useOnlineStatus();
   const { data: profile } = useProfile();
 
   const goBack = () => {
     if (backTo) {
-      navigate({ to: backTo });
+      navigate({ to: backTo, replace: true });
       return;
     }
 
+    // Keep UI back navigation inside TanStack Router. The Capacitor entrypoint
+    // no longer installs a competing native history handler.
     if (window.history.length > 1) {
-      router.history.back();
+      window.history.back();
     } else {
-      navigate({ to: "/home" });
+      navigate({ to: "/home", replace: true });
     }
   };
 
