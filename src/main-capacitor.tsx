@@ -82,8 +82,6 @@ const container = document.getElementById("root");
 if (!container) throw new Error("Missing #root element");
 createRoot(container).render(<App />);
 
-const ROOT_ROUTES = new Set(["/", "/home", "/auth"]);
-
 (async () => {
   try {
     const { App: CapApp } = await import("@capacitor/app");
@@ -97,30 +95,9 @@ const ROOT_ROUTES = new Set(["/", "/home", "/auth"]);
       }
     });
 
-    CapApp.addListener("backButton", async () => {
-      // Android's back button is navigation/OS behavior. Do not mutate the
-      // DOM focus or keyboard state here. Chromium/WebView owns the input
-      // connection and will handle keyboard dismissal naturally.
-      try {
-        const overlay = document.querySelector<HTMLElement>(
-          '[role="dialog"], [data-state="open"][role="alertdialog"], [data-radix-portal] [role="dialog"]',
-        );
-        if (overlay) {
-          document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
-          return;
-        }
-
-        const path = window.location.pathname || "/";
-        if (ROOT_ROUTES.has(path) || window.history.length <= 1) {
-          try { await CapApp.exitApp(); } catch { /* ignore */ }
-          return;
-        }
-
-        router.history.back();
-      } catch {
-        // Ignore native back errors; never interfere with DOM input focus.
-      }
-    });
+    // Do not register a Capacitor backButton listener. Android/WebView owns
+    // hardware-back history, while AppShell owns the in-app back button.
+    // Having both handlers call history.back() can cause duplicate traversal.
   } catch {
     // Not running under Capacitor — ignore.
   }
