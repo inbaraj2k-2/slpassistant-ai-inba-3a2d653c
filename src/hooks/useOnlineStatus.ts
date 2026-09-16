@@ -16,44 +16,56 @@ export function useOnlineStatus(): boolean {
   });
 
   useEffect(() => {
-    let cleanupNative: (() => void) | undefined;
     let cancelled = false;
+    let nativeHandle: { remove: () => Promise<void> } | null = null;
 
-    // Try Capacitor Network plugin first (works when installed as an APK).
-    (async () => {
+    const onOnline = () => {
+      if (!cancelled) setOnline(true);
+    };
+    const onOffline = () => {
+      if (!cancelled) setOnline(false);
+    };
+
+    window.addEventListener("online", onOnline);
+    window.addEventListener("offline", onOffline);
+
+    const setupNativeListener = async () => {
       try {
         const { Capacitor } = await import("@capacitor/core");
-        if (!Capacitor.isNativePlatform()) return;
+        if (cancelled || !Capacitor.isNativePlatform()) return;
+
         const { Network } = await import("@capacitor/network");
+        if (cancelled) return;
+
         const status = await Network.getStatus();
         if (cancelled) return;
         setOnline(status.connected);
-        const handle = await Network.addListener("networkStatusChange", (s) => {
-          setOnline(s.connected);
+
+        const handle = await Network.addListener("networkStatusChange", (status) => {
+          if (!cancelled) setOnline(status.connected);
         });
+
         if (cancelled) {
-          handle.remove().catch(() => {});
+          await handle.remove().catch(() => undefined);
           return;
         }
-        cleanupNative = () => {
-          handle.remove().catch(() => {});
-        };
-      } catch {
-        // Plugin not available in this runtime (browser) — fall through to web listeners.
-      }
-    })();
 
-    // Web fallback (also active in native as a safety net).
-    const onOnline = () => setOnline(true);
-    const onOffline = () => setOnline(false);
-    window.addEventListener("online", onOnline);
-    window.addEventListener("offline", onOffline);
+        nativeHandle = handle;
+      } catch {
+        // Capacitor Network is unavailable; web listeners remain active.
+      }
+    };
+
+    void setupNativeListener();
 
     return () => {
       cancelled = true;
       window.removeEventListener("online", onOnline);
       window.removeEventListener("offline", onOffline);
-      cleanupNative?.();
+
+      const handle = nativeHandle;
+      nativeHandle = null;
+      if (handle) void handle.remove().catch(() => undefined);
     };
   }, []);
 
