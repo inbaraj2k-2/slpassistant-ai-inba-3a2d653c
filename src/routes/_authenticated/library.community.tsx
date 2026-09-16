@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,7 +45,7 @@ function CommunityLibraryPage() {
     supabase.auth.getUser().then(({ data }) => setMe(data.user?.id ?? null));
   }, []);
 
-  const fetchPage = async (nextPage: number, replace: boolean) => {
+  const fetchPage = useCallback(async (nextPage: number, replace: boolean, currentSearch: string, currentCategory: string) => {
     const from = nextPage * PAGE_SIZE;
     const to = from + PAGE_SIZE - 1;
     let q = (supabase as any)
@@ -54,9 +54,9 @@ function CommunityLibraryPage() {
       .eq("is_public", true)
       .order("created_at", { ascending: false })
       .range(from, to);
-    if (category !== "All") q = q.eq("category", category);
-    if (search.trim()) {
-      const term = `%${search.trim()}%`;
+    if (currentCategory !== "All") q = q.eq("category", currentCategory);
+    if (currentSearch.trim()) {
+      const term = `%${currentSearch.trim()}%`;
       q = q.or(
         `title.ilike.${term},file_name.ilike.${term},description.ilike.${term},category.ilike.${term}`,
       );
@@ -69,29 +69,28 @@ function CommunityLibraryPage() {
     const list = (data as Row[]) ?? [];
     setHasMore(list.length === PAGE_SIZE);
     setRows((prev) => (replace ? list : [...prev, ...list]));
-  };
+  }, []);
 
   useEffect(() => {
     setLoading(true);
     setPage(0);
-    fetchPage(0, true).finally(() => setLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [category]);
+    fetchPage(0, true, search, category).finally(() => setLoading(false));
+  }, [category, fetchPage]);
 
   useEffect(() => {
     const t = setTimeout(() => {
       setLoading(true);
       setPage(0);
-      fetchPage(0, true).finally(() => setLoading(false));
-    }, 250);
+      fetchPage(0, true, search, category).finally(() => setLoading(false));
+    }, 300);
     return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search]);
+  }, [search, category, fetchPage]);
 
   const loadMore = async () => {
+    if (loadingMore || !hasMore) return;
     setLoadingMore(true);
     const next = page + 1;
-    await fetchPage(next, false);
+    await fetchPage(next, false, search, category);
     setPage(next);
     setLoadingMore(false);
   };
