@@ -53,19 +53,23 @@ function EditCasePage() {
 
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
+    setError(null);
+    setFields(empty);
     (async () => {
       const { data, error } = await supabase.from("cases").select("*").eq("id", id).single();
       if (cancelled) return;
       if (error || !data) {
         if (error) console.error("[case.edit] load failed", error);
         setError("Case could not be loaded. Please try again.");
-      } else {
-        const next = { ...empty };
-        for (const key of Object.keys(empty) as (keyof Fields)[]) {
-          next[key] = (data[key] as string | null) ?? "";
-        }
-        setFields(next);
+        setLoading(false);
+        return;
       }
+      const next = { ...empty };
+      for (const key of Object.keys(empty) as (keyof Fields)[]) {
+        next[key] = (data[key] as string | null) ?? "";
+      }
+      setFields(next);
       setLoading(false);
     })();
     return () => {
@@ -119,7 +123,23 @@ function EditCasePage() {
   }
 
   if (loading) {
-    return <AppShell title="Edit Case" back hideNav><div className="flex items-center justify-center py-20">{error ? <p className="text-xs text-destructive">{error}</p> : <Loader2 className="h-6 w-6 animate-spin text-primary" />}</div></AppShell>;
+    return (
+      <AppShell title="Edit Case" back hideNav>
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        </div>
+      </AppShell>
+    );
+  }
+
+  if (error) {
+    return (
+      <AppShell title="Edit Case" back hideNav>
+        <div className="flex items-center justify-center py-20">
+          <p className="text-xs text-destructive">{error}</p>
+        </div>
+      </AppShell>
+    );
   }
 
   return (

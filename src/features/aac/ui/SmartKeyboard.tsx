@@ -57,7 +57,6 @@ export function SmartKeyboard() {
   useVocabSync();
 
   const refreshBoard = useCallback(async () => {
-    setBoardKey((k) => k + 1);
     try {
       const { data } = await supabase.from("aac_vocabulary").select("*").order("updated_at", { ascending: false }).limit(2000);
       if (data) { indexVocab(data as unknown as VocabRow[]); setBoardKey((k) => k + 1); }
@@ -70,6 +69,10 @@ export function SmartKeyboard() {
     setBanner(msg);
     if (bannerTimer.current) clearTimeout(bannerTimer.current);
     bannerTimer.current = setTimeout(() => setBanner(null), 2200);
+  }, []);
+
+  useEffect(() => () => {
+    if (bannerTimer.current) clearTimeout(bannerTimer.current);
   }, []);
 
   const addChip = useCallback((r: AacResult) => {

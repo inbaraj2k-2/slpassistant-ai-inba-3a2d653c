@@ -5,11 +5,13 @@ import { UserAvatar } from "@/components/UserAvatar";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { useProfile } from "@/hooks/useProfile";
 
+type AppRoute = "/home" | "/cases" | "/library" | "/settings" | "/profile";
+
 interface Props {
   title: string;
   subtitle?: string;
   back?: boolean;
-  backTo?: string;
+  backTo?: AppRoute;
   right?: ReactNode;
   children: ReactNode;
   hideNav?: boolean;
@@ -33,13 +35,13 @@ export function AppShell({ title, subtitle, back, backTo, right, children, hideN
     <div className="mx-auto flex h-full w-full max-w-md flex-col overflow-hidden bg-background">
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden" style={{ paddingTop: "env(safe-area-inset-top)" }}>
         {!online && (
-          <div role="status" aria-live="polite" className="sticky top-0 z-30 flex shrink-0 items-center justify-center gap-2 bg-amber-500/95 px-4 py-1.5 text-[11px] font-semibold text-amber-950 shadow-sm">
+          <div role="status" aria-live="polite" className="relative z-30 flex shrink-0 items-center justify-center gap-2 bg-amber-500/95 px-4 py-1.5 text-[11px] font-semibold text-amber-950 shadow-sm">
             <WifiOff className="h-3.5 w-3.5" />
             Offline — AI features disabled. Saved data still available.
           </div>
         )}
 
-        <header className="sticky top-0 z-20 shrink-0 border-b border-border/70 bg-background">
+        <header className="relative z-20 shrink-0 border-b border-border/70 bg-background">
           <div className="flex items-center gap-3 px-4 pb-3 pt-5">
             {back ? (
               <button type="button" onClick={goBack} className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-secondary text-secondary-foreground transition hover:bg-accent" aria-label="Back">
@@ -58,7 +60,7 @@ export function AppShell({ title, subtitle, back, backTo, right, children, hideN
           </div>
         </header>
 
-        <main className="min-h-0 flex-1 overflow-y-auto px-4 pb-28 pt-4">{children}</main>
+        <main className={`min-h-0 flex-1 overflow-y-auto px-4 pt-4 ${hideNav ? "" : "pb-28"}`}>{children}</main>
       </div>
 
       {!hideNav && (
@@ -75,6 +77,6 @@ export function AppShell({ title, subtitle, back, backTo, right, children, hideN
   );
 }
 
-function NavItem({ to, icon, label }: { to: string; icon: ReactNode; label: string }) {
-  return <Link to={to} className="flex flex-1 flex-col items-center gap-0.5 rounded-lg px-2 py-1.5 text-[10px] font-medium text-muted-foreground transition data-[status=active]:text-primary" activeProps={{ className: "text-primary" }}>{icon}<span>{label}</span></Link>;
+function NavItem({ to, icon, label }: { to: AppRoute; icon: ReactNode; label: string }) {
+  return <Link to={to} className="flex flex-1 flex-col items-center gap-0.5 rounded-lg px-2 py-1.5 text-[10px] font-medium text-muted-foreground transition" activeProps={{ className: "text-primary" }}>{icon}<span>{label}</span></Link>;
 }

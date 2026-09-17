@@ -77,7 +77,8 @@ function NewCasePage() {
         .select("id")
         .single();
       if (error || !data) throw error ?? new Error("Failed to save case");
-      navigate({ to: "/case/$id", params: { id: data.id }, search: { run: 1 } });
+      if (online) navigate({ to: "/case/$id", params: { id: data.id }, search: { run: 1 } });
+      else navigate({ to: "/case/$id", params: { id: data.id } });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to save case");
       setBusy(false);
@@ -114,9 +115,9 @@ function NewCasePage() {
         </Section>
         {error && <p className="rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">{error}</p>}
         {!online && <div className="flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200"><WifiOff className="mt-0.5 h-4 w-4 shrink-0" /><span>Internet required for AI analysis. You can still save the case history and use offline tools.</span></div>}
-        <button onClick={analyze} disabled={busy || !online} title={!online ? "Internet required for AI analysis" : undefined} className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-primary font-semibold text-primary-foreground shadow-elev transition hover:opacity-95 disabled:opacity-60">
+        <button onClick={analyze} disabled={busy} title={!online ? "AI analysis is unavailable offline; saving is still available" : undefined} className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-primary font-semibold text-primary-foreground shadow-elev transition hover:opacity-95 disabled:opacity-60">
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-          {busy ? "Saving…" : !online ? "AI Unavailable (Offline)" : "Analyze Case"}
+          {busy ? "Saving…" : !online ? "Save Case (Offline)" : "Analyze Case"}
         </button>
       </div>
     </AppShell>
