@@ -35,11 +35,6 @@ export function AppShell({ title, subtitle, back, backTo, right, children, hideN
     }
   };
 
-  const handleBackPointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
-    event.preventDefault();
-    goBack();
-  };
-
   return (
     <div
       className="mx-auto flex min-h-screen w-full max-w-md flex-col bg-background"
@@ -64,7 +59,7 @@ export function AppShell({ title, subtitle, back, backTo, right, children, hideN
           {back ? (
             <button
               type="button"
-              onPointerDown={handleBackPointerDown}
+              onClick={goBack}
               className="grid h-9 w-9 place-items-center rounded-full bg-secondary text-secondary-foreground transition hover:bg-accent"
               aria-label="Back"
             >
