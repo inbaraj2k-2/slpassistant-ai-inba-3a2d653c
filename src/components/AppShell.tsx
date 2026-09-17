@@ -30,8 +30,8 @@ export function AppShell({ title, subtitle, back, backTo, right, children, hideN
   };
 
   return (
-    <div className="mx-auto flex min-h-screen min-h-[100dvh] w-full max-w-md flex-col overflow-x-hidden bg-background">
-      <div className="flex min-h-0 flex-1 flex-col" style={{ paddingTop: "env(safe-area-inset-top)" }}>
+    <div className="mx-auto flex h-full w-full max-w-md flex-col overflow-hidden bg-background">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden" style={{ paddingTop: "env(safe-area-inset-top)" }}>
         {!online && (
           <div role="status" aria-live="polite" className="sticky top-0 z-30 flex shrink-0 items-center justify-center gap-2 bg-amber-500/95 px-4 py-1.5 text-[11px] font-semibold text-amber-950 shadow-sm">
             <WifiOff className="h-3.5 w-3.5" />
@@ -58,7 +58,7 @@ export function AppShell({ title, subtitle, back, backTo, right, children, hideN
           </div>
         </header>
 
-        <main className="min-h-0 flex-1 px-4 pb-28 pt-4">{children}</main>
+        <main className="min-h-0 flex-1 overflow-y-auto px-4 pb-28 pt-4">{children}</main>
       </div>
 
       {!hideNav && (
