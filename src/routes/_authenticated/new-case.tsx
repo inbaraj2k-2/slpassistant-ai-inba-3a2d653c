@@ -12,46 +12,36 @@ export const Route = createFileRoute("/_authenticated/new-case")({
 });
 
 interface Fields {
-  name: string;
-  age: string;
-  gender: string;
-  chief_complaint: string;
-  prenatal_history: string;
-  natal_history: string;
-  postnatal_history: string;
-  motor_milestones: string;
-  speech_milestones: string;
-  language_history: string;
-  hearing_history: string;
-  education_history: string;
-  family_history: string;
-  additional_notes: string;
+  name: string; age: string; gender: string; chief_complaint: string;
+  prenatal_history: string; natal_history: string; postnatal_history: string;
+  motor_milestones: string; speech_milestones: string; language_history: string;
+  hearing_history: string; education_history: string; family_history: string; additional_notes: string;
 }
 
 const empty: Fields = {
-  name: "", age: "", gender: "", chief_complaint: "", prenatal_history: "",
-  natal_history: "", postnatal_history: "", motor_milestones: "", speech_milestones: "",
-  language_history: "", hearing_history: "", education_history: "", family_history: "",
-  additional_notes: "",
+  name: "", age: "", gender: "", chief_complaint: "", prenatal_history: "", natal_history: "",
+  postnatal_history: "", motor_milestones: "", speech_milestones: "", language_history: "",
+  hearing_history: "", education_history: "", family_history: "", additional_notes: "",
 };
+
+type FieldElement = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
+type RegisterField = (key: keyof Fields, element: FieldElement | null) => void;
 
 function NewCasePage() {
   const navigate = useNavigate();
   const online = useOnlineStatus();
-  const inputRefs = useRef<Partial<Record<keyof Fields, HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>>>({});
+  const inputRefs = useRef<Partial<Record<keyof Fields, FieldElement>>>({});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  function registerField(key: keyof Fields, element: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null) {
+  function registerField(key: keyof Fields, element: FieldElement | null) {
     if (element) inputRefs.current[key] = element;
     else delete inputRefs.current[key];
   }
 
   function readFields(): Fields {
     const values = { ...empty };
-    for (const key of Object.keys(empty) as (keyof Fields)[]) {
-      values[key] = inputRefs.current[key]?.value ?? "";
-    }
+    for (const key of Object.keys(empty) as (keyof Fields)[]) values[key] = inputRefs.current[key]?.value ?? "";
     return values;
   }
 
@@ -117,8 +107,6 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   return <section className="rounded-2xl border border-border bg-card p-4 shadow-card"><h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-primary">{title}</h3><div className="space-y-3">{children}</div></section>;
 }
 function Row({ children, two }: { children: React.ReactNode; two?: boolean }) { return <div className={two ? "grid grid-cols-2 gap-3" : ""}>{children}</div>; }
-
-type RegisterField = (key: keyof Fields, element: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null) => void;
 
 function Field({ label, name, registerField, ...props }: { label: string; name: keyof Fields; registerField: RegisterField } & Omit<React.InputHTMLAttributes<HTMLInputElement>, "name" | "type">) {
   return <label className="block"><span className="mb-1 block text-xs font-medium text-foreground/80">{label}</span><input type="text" inputMode="text" {...props} name={name} ref={(element) => registerField(name, element)} maxLength={props.maxLength ?? 500} className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-ring/30" /></label>;
