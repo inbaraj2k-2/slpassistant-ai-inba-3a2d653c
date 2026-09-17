@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Save } from "lucide-react";
 
@@ -22,21 +22,10 @@ const empty: Fields = {
   hearing_history: "", education_history: "", family_history: "", additional_notes: "",
 };
 
-type FieldRefs = { [K in keyof Fields]: React.RefObject<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null> };
-function makeRefs(): FieldRefs {
-  return {
-    name: { current: null }, age: { current: null }, gender: { current: null }, chief_complaint: { current: null },
-    prenatal_history: { current: null }, natal_history: { current: null }, postnatal_history: { current: null },
-    motor_milestones: { current: null }, speech_milestones: { current: null }, language_history: { current: null },
-    hearing_history: { current: null }, education_history: { current: null }, family_history: { current: null }, additional_notes: { current: null },
-  };
-}
-
 function EditCasePage() {
   const { id } = Route.useParams();
   const navigate = useNavigate();
-  const refs = useRef<FieldRefs>(makeRefs()).current;
-  const [initial, setInitial] = useState<Fields | null>(null);
+  const [fields, setFields] = useState<Fields>(empty);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,24 +41,21 @@ function EditCasePage() {
       } else {
         const next = { ...empty };
         for (const k of Object.keys(empty) as (keyof Fields)[]) next[k] = (data[k] as string | null) ?? "";
-        setInitial(next);
+        setFields(next);
       }
       setLoading(false);
     })();
     return () => { cancelled = true; };
   }, [id]);
 
-  function readFields(): Fields {
-    const result = { ...empty };
-    for (const key of Object.keys(empty) as (keyof Fields)[]) result[key] = refs[key].current?.value ?? "";
-    return result;
+  function updateField(key: keyof Fields, value: string) {
+    setFields((current) => ({ ...current, [key]: value }));
   }
 
   async function save() {
     setError(null);
-    const f = readFields();
-    if (!f.name.trim()) { setError("Patient name is required."); return; }
-    if (Object.values(f).some((v) => v.length > 4000)) { setError("A field is too long (max 4000 characters)."); return; }
+    if (!fields.name.trim()) { setError("Patient name is required."); return; }
+    if (Object.values(fields).some((v) => v.length > 4000)) { setError("A field is too long (max 4000 characters)."); return; }
     if (busy) return;
     setBusy(true);
     let watchdog: ReturnType<typeof setTimeout> | null = setTimeout(() => {
@@ -77,7 +63,7 @@ function EditCasePage() {
       setBusy(false);
     }, 25_000);
     try {
-      const { error } = await supabase.from("cases").update({ ...f, updated_at: new Date().toISOString() }).eq("id", id);
+      const { error } = await supabase.from("cases").update({ ...fields, updated_at: new Date().toISOString() }).eq("id", id);
       if (watchdog) { clearTimeout(watchdog); watchdog = null; }
       if (error) { setError(error.message); setBusy(false); return; }
       navigate({ to: "/case/$id", params: { id }, replace: true });
@@ -88,7 +74,7 @@ function EditCasePage() {
     }
   }
 
-  if (loading || !initial) {
+  if (loading) {
     return <AppShell title="Edit Case" back hideNav><div className="flex items-center justify-center py-20">{error ? <p className="text-xs text-destructive">{error}</p> : <Loader2 className="h-6 w-6 animate-spin text-primary" />}</div></AppShell>;
   }
 
@@ -96,25 +82,25 @@ function EditCasePage() {
     <AppShell title="Edit Case" subtitle="Update case history" back hideNav>
       <div className="space-y-5">
         <Section title="Demographics">
-          <Field label="Name" inputRef={refs.name} defaultValue={initial.name} required />
-          <div className="grid grid-cols-2 gap-3"><Field label="Age" inputRef={refs.age} defaultValue={initial.age} /><Field label="Gender" inputRef={refs.gender} defaultValue={initial.gender} /></div>
-          <Area label="Chief Complaint" inputRef={refs.chief_complaint} defaultValue={initial.chief_complaint} />
+          <Field label="Name" value={fields.name} onChange={(value) => updateField("name", value)} required />
+          <div className="grid grid-cols-2 gap-3"><Field label="Age" value={fields.age} onChange={(value) => updateField("age", value)} /><Field label="Gender" value={fields.gender} onChange={(value) => updateField("gender", value)} /></div>
+          <Area label="Chief Complaint" value={fields.chief_complaint} onChange={(value) => updateField("chief_complaint", value)} />
         </Section>
         <Section title="Birth History">
-          <Area label="Prenatal History" inputRef={refs.prenatal_history} defaultValue={initial.prenatal_history} />
-          <Area label="Natal History" inputRef={refs.natal_history} defaultValue={initial.natal_history} />
-          <Area label="Postnatal History" inputRef={refs.postnatal_history} defaultValue={initial.postnatal_history} />
+          <Area label="Prenatal History" value={fields.prenatal_history} onChange={(value) => updateField("prenatal_history", value)} />
+          <Area label="Natal History" value={fields.natal_history} onChange={(value) => updateField("natal_history", value)} />
+          <Area label="Postnatal History" value={fields.postnatal_history} onChange={(value) => updateField("postnatal_history", value)} />
         </Section>
         <Section title="Developmental">
-          <Area label="Motor Milestones" inputRef={refs.motor_milestones} defaultValue={initial.motor_milestones} />
-          <Area label="Speech Milestones" inputRef={refs.speech_milestones} defaultValue={initial.speech_milestones} />
-          <Area label="Language History" inputRef={refs.language_history} defaultValue={initial.language_history} />
+          <Area label="Motor Milestones" value={fields.motor_milestones} onChange={(value) => updateField("motor_milestones", value)} />
+          <Area label="Speech Milestones" value={fields.speech_milestones} onChange={(value) => updateField("speech_milestones", value)} />
+          <Area label="Language History" value={fields.language_history} onChange={(value) => updateField("language_history", value)} />
         </Section>
         <Section title="Other History">
-          <Area label="Hearing History" inputRef={refs.hearing_history} defaultValue={initial.hearing_history} />
-          <Area label="Education History" inputRef={refs.education_history} defaultValue={initial.education_history} />
-          <Area label="Family History" inputRef={refs.family_history} defaultValue={initial.family_history} />
-          <Area label="Additional Notes" inputRef={refs.additional_notes} defaultValue={initial.additional_notes} />
+          <Area label="Hearing History" value={fields.hearing_history} onChange={(value) => updateField("hearing_history", value)} />
+          <Area label="Education History" value={fields.education_history} onChange={(value) => updateField("education_history", value)} />
+          <Area label="Family History" value={fields.family_history} onChange={(value) => updateField("family_history", value)} />
+          <Area label="Additional Notes" value={fields.additional_notes} onChange={(value) => updateField("additional_notes", value)} />
         </Section>
         {error && <p className="rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">{error}</p>}
         <button onClick={save} disabled={busy} className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-primary font-semibold text-primary-foreground shadow-elev disabled:opacity-60">
@@ -126,5 +112,5 @@ function EditCasePage() {
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) { return <section className="rounded-2xl border border-border bg-card p-4 shadow-card"><h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-primary">{title}</h3><div className="space-y-3">{children}</div></section>; }
-function Field({ label, inputRef, ...props }: { label: string; inputRef: React.RefObject<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null> } & Omit<React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange">) { return <label className="block"><span className="mb-1 block text-xs font-medium text-foreground/80">{label}</span><input type="text" inputMode="text" {...props} ref={inputRef as React.RefObject<HTMLInputElement>} maxLength={props.maxLength ?? 500} autoComplete="off" className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-ring/30" /></label>; }
-function Area({ label, inputRef, defaultValue }: { label: string; inputRef: React.RefObject<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null>; defaultValue?: string }) { return <label className="block"><span className="mb-1 block text-xs font-medium text-foreground/80">{label}</span><textarea ref={inputRef as React.RefObject<HTMLTextAreaElement>} rows={3} maxLength={4000} defaultValue={defaultValue} className="w-full resize-none rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-ring/30" /></label>; }
+function Field({ label, value, onChange, ...props }: { label: string; value: string; onChange: (value: string) => void } & Omit<React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange" | "type">) { return <label className="block"><span className="mb-1 block text-xs font-medium text-foreground/80">{label}</span><input type="text" inputMode="text" {...props} value={value} onChange={(event) => onChange(event.target.value)} maxLength={props.maxLength ?? 500} className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-ring/30" /></label>; }
+function Area({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (value: string) => void; placeholder?: string }) { return <label className="block"><span className="mb-1 block text-xs font-medium text-foreground/80">{label}</span><textarea value={value} onChange={(event) => onChange(event.target.value)} rows={3} maxLength={4000} placeholder={placeholder} className="w-full resize-none rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground/50 focus:border-primary focus:ring-2 focus:ring-ring/30" /></label>; }
