@@ -23,6 +23,10 @@ const AacSearchInput = forwardRef<AacSearchInputHandle, { onQueryChange: (query:
 
   useImperativeHandle(ref, () => ({
     clear() {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
       setValue("");
       onQueryChange("");
     },
@@ -38,7 +42,10 @@ const AacSearchInput = forwardRef<AacSearchInputHandle, { onQueryChange: (query:
   const handleChange = (value: string) => {
     setValue(value);
     if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => onQueryChange(value), 120);
+    timerRef.current = setTimeout(() => {
+      timerRef.current = null;
+      onQueryChange(value);
+    }, 120);
   };
 
   return <input ref={inputRef} value={value} onChange={(e) => handleChange(e.target.value)} type="text" inputMode="search" enterKeyHint="search" placeholder="Type a word…" aria-label="Search AAC vocabulary" className="h-11 flex-1 border-0 bg-transparent text-base outline-none placeholder:text-muted-foreground" />;
@@ -59,7 +66,10 @@ export function SmartKeyboard() {
   const refreshBoard = useCallback(async () => {
     try {
       const { data } = await supabase.from("aac_vocabulary").select("*").order("updated_at", { ascending: false }).limit(2000);
-      if (data) { indexVocab(data as unknown as VocabRow[]); setBoardKey((k) => k + 1); }
+      if (data) {
+        indexVocab(data as unknown as VocabRow[]);
+        setBoardKey((k) => k + 1);
+      }
     } catch { /* noop */ }
   }, []);
 
