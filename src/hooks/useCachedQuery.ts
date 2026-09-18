@@ -1,5 +1,4 @@
 import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
-import { useEffect } from "react";
 
 /**
  * useQuery variant that persists results to localStorage keyed by `cacheKey`
@@ -12,7 +11,7 @@ export function useCachedQuery<T>(
   queryFn: () => Promise<T>,
   options?: Omit<UseQueryOptions<T>, "queryKey" | "queryFn">,
 ) {
-  const query = useQuery<T>({
+  return useQuery<T>({
     queryKey: [cacheKey],
     queryFn: async () => {
       try {
@@ -39,19 +38,4 @@ export function useCachedQuery<T>(
     },
     ...options,
   });
-
-  // Warm the cache on first render if the query is still pending.
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (query.data !== undefined) return;
-    try {
-      const raw = localStorage.getItem(cacheKey);
-      if (!raw) return;
-      // no-op: query will hydrate on its own; this effect just guards SSR.
-    } catch {
-      /* ignore */
-    }
-  }, [cacheKey, query.data]);
-
-  return query;
 }
