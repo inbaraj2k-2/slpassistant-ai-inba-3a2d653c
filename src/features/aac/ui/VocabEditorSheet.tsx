@@ -57,8 +57,8 @@ export function VocabEditorSheet({ row, onClose }: Props) {
     setBusy(true);
     setErr(null);
     try {
-      const { data: sess } = await supabase.auth.getUser();
-      const uid = sess.user?.id;
+      const { data: { session } } = await supabase.auth.getSession();
+      const uid = session?.user?.id;
       if (!uid) throw new Error("Sign in required");
       const ext = file.name.split(".").pop()?.toLowerCase() || "png";
       const path = `aac/${uid}/${Date.now()}-${row.id}.${ext}`;
@@ -73,7 +73,11 @@ export function VocabEditorSheet({ row, onClose }: Props) {
         data: {
           id: row.id,
           label,
-          keywords: keywords.split(",").map((k) => k.trim()).filter(Boolean),
+          keywords: keywords
+            .split(",")
+            .map((k) => k.trim())
+            .filter(Boolean)
+            .slice(0, 20),
           image_path: path,
           image_url: signed?.signedUrl ?? null,
           source: row.source,
