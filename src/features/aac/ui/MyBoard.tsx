@@ -31,7 +31,6 @@ export const MyBoard = memo(function MyBoard({ onPick, refreshKey, onChanged }: 
   const [menuFor, setMenuFor] = useState<string | null>(null);
 
   const { board, favorites, nextSort } = useMemo(() => {
-    // refreshKey participates so we recompute after mutations.
     void refreshKey;
     const all = getAllVocab().filter((r) => r.source === "user" || r.source === "ai");
     const sorted = all
@@ -72,6 +71,7 @@ export const MyBoard = memo(function MyBoard({ onPick, refreshKey, onChanged }: 
 
   async function move(row: VocabRow, dir: -1 | 1) {
     const idx = board.findIndex((r) => r.id === row.id);
+    if (idx === -1) return;
     const swap = board[idx + dir];
     if (!swap) return;
     try {
@@ -179,13 +179,13 @@ export const MyBoard = memo(function MyBoard({ onPick, refreshKey, onChanged }: 
               isFirst={idx === 0}
               isLast={idx === board.length - 1}
               menuOpen={menuFor === row.id}
-              onOpenMenu={(e) => {
-                e.stopPropagation();
-                setMenuFor((m) => (m === row.id ? null : row.id));
-              }}
+              onOpenMenu={() => setMenuFor((m) => (m === row.id ? null : row.id))}
               onPick={() => onPick(toResult(row))}
               onFav={() => toggleFavorite(row)}
-              onEdit={() => setEditing(row)}
+              onEdit={() => {
+                setMenuFor(null);
+                setEditing(row);
+              }}
               onDelete={() => remove(row)}
               onMoveLeft={() => move(row, -1)}
               onMoveRight={() => move(row, 1)}
@@ -231,7 +231,7 @@ interface TileProps {
   isFirst: boolean;
   isLast: boolean;
   menuOpen: boolean;
-  onOpenMenu: (e: React.MouseEvent) => void;
+  onOpenMenu: () => void;
   onPick: () => void;
   onFav: () => void;
   onEdit: () => void;
@@ -321,7 +321,10 @@ function BoardTile({
       </button>
 
       <button
-        onClick={onOpenMenu}
+        onClick={(e) => {
+          e.stopPropagation();
+          onOpenMenu();
+        }}
         aria-label="More"
         className="absolute right-1 top-1 grid h-6 w-6 place-items-center rounded-full bg-background/85 shadow-sm"
       >
@@ -334,10 +337,7 @@ function BoardTile({
           onClick={stop}
         >
           <button
-            onClick={() => {
-              onEdit();
-              onOpenMenu({ stopPropagation: () => {} } as React.MouseEvent);
-            }}
+            onClick={onEdit}
             className="flex items-center gap-1.5 rounded px-2 py-1 hover:bg-secondary"
           >
             <Pencil className="h-3 w-3" /> Edit
