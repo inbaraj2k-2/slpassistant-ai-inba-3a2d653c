@@ -33,8 +33,8 @@ export function AddCardSheet({ onClose, onSaved, nextSortOrder }: Props) {
     if (!picked) return;
     setBusy(true);
     try {
-      const { data: sess } = await supabase.auth.getUser();
-      const uid = sess.user?.id;
+      const { data: { session } } = await supabase.auth.getSession();
+      const uid = session?.user?.id;
       if (!uid) throw new Error("Please sign in first.");
       const path = `aac/${uid}/${Date.now()}.${picked.extension}`;
       const { error: upErr } = await supabase.storage
@@ -142,7 +142,6 @@ export function AddCardSheet({ onClose, onSaved, nextSortOrder }: Props) {
               className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm normal-case"
               maxLength={80}
               placeholder="e.g. Mom, Water, Play"
-              autoFocus
             />
           </label>
           <label className="block text-[11px] font-semibold uppercase text-muted-foreground">
