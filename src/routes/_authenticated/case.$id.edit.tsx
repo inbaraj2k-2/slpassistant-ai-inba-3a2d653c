@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
-import { useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Save } from "lucide-react";
 
@@ -77,9 +77,9 @@ function EditCasePage() {
     };
   }, [id]);
 
-  function updateField(key: keyof Fields, value: string) {
+  const updateField = useCallback((key: keyof Fields, value: string) => {
     setFields((current) => ({ ...current, [key]: value }));
-  }
+  }, []);
 
   async function save() {
     setError(null);
@@ -179,18 +179,20 @@ function EditCasePage() {
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+const Section = memo(function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return <section className="rounded-2xl border border-border bg-card p-4 shadow-card"><h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-primary">{title}</h3><div className="space-y-3">{children}</div></section>;
-}
+});
 
 type UpdateField = (key: keyof Fields, value: string) => void;
 
-function Field({ label, name, value, onChange, ...props }: { label: string; name: keyof Fields; value: string; onChange: UpdateField } & Omit<React.InputHTMLAttributes<HTMLInputElement>, "name" | "type" | "value" | "onChange">) {
+const Field = memo(function Field({ label, name, value, onChange, ...props }: { label: string; name: keyof Fields; value: string; onChange: UpdateField } & Omit<React.InputHTMLAttributes<HTMLInputElement>, "name" | "type" | "value" | "onChange">) {
   return <label className="block"><span className="mb-1 block text-xs font-medium text-foreground/80">{label}</span><input type="text" inputMode="text" {...props} name={name} value={value} onChange={(e) => onChange(name, e.target.value)} maxLength={props.maxLength ?? 500} className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-ring/30" /></label>;
-}
-function Select({ label, name, value, onChange, options }: { label: string; name: keyof Fields; value: string; onChange: UpdateField; options: string[] }) {
+});
+
+const Select = memo(function Select({ label, name, value, onChange, options }: { label: string; name: keyof Fields; value: string; onChange: UpdateField; options: string[] }) {
   return <label className="block"><span className="mb-1 block text-xs font-medium text-foreground/80">{label}</span><select name={name} value={value} onChange={(e) => onChange(name, e.target.value)} className="h-10 w-full rounded-lg border border-input bg-background px-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-ring/30">{options.map((o) => <option key={o} value={o}>{o || "Select…"}</option>)}</select></label>;
-}
-function Area({ label, name, value, onChange, placeholder }: { label: string; name: keyof Fields; value: string; onChange: UpdateField; placeholder?: string }) {
+});
+
+const Area = memo(function Area({ label, name, value, onChange, placeholder }: { label: string; name: keyof Fields; value: string; onChange: UpdateField; placeholder?: string }) {
   return <label className="block"><span className="mb-1 block text-xs font-medium text-foreground/80">{label}</span><textarea name={name} value={value} onChange={(e) => onChange(name, e.target.value)} rows={3} maxLength={4000} placeholder={placeholder} className="w-full resize-none rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground outline-none placeholder:text-muted-foreground/50 focus:border-primary focus:ring-2 focus:ring-ring/30" /></label>;
-}
+});
