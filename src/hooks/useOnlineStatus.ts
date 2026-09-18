@@ -1,71 +1,76 @@
 import { useEffect, useState } from "react";
 
-/**
- * Reports online/offline status for the app.
- *
- * - On Capacitor native (Android/iOS): uses @capacitor/network, which
- *   reports the actual device connectivity (Wi-Fi / cellular / none).
- * - On web: uses navigator.onLine + online/offline events.
- *
- * Defaults to true during SSR to avoid a false "offline" flash.
- */
+type Subscriber = (online: boolean) => void;
+
+type NativeHandle = { remove: () => Promise<void> };
+
+let cachedOnline = typeof navigator !== "undefined" ? navigator.onLine : true;
+const subscribers = new Set<Subscriber>();
+let bootstrapped = false;
+let bootstrapPromise: Promise<void> | null = null;
+let nativeHandle: NativeHandle | null = null;
+let webListenersInstalled = false;
+
+function publish(online: boolean) {
+  if (cachedOnline === online) return;
+  cachedOnline = online;
+  for (const subscriber of subscribers) subscriber(online);
+}
+
+function installWebListeners() {
+  if (webListenersInstalled || typeof window === "undefined") return;
+  webListenersInstalled = true;
+  window.addEventListener("online", () => publish(true));
+  window.addEventListener("offline", () => publish(false));
+}
+
+async function bootstrap() {
+  if (bootstrapped) return;
+  if (bootstrapPromise) return bootstrapPromise;
+
+  bootstrapPromise = (async () => {
+    try {
+      const { Capacitor } = await import("@capacitor/core");
+      if (Capacitor.isNativePlatform()) {
+        const { Network } = await import("@capacitor/network");
+        const status = await Network.getStatus();
+        publish(status.connected);
+        nativeHandle = await Network.addListener("networkStatusChange", (status) => {
+          publish(status.connected);
+        });
+        bootstrapped = true;
+        return;
+      }
+    } catch {
+      // Fall through to browser connectivity events.
+    }
+
+    installWebListeners();
+    bootstrapped = true;
+  })();
+
+  try {
+    await bootstrapPromise;
+  } finally {
+    bootstrapPromise = null;
+  }
+}
+
 export function useOnlineStatus(): boolean {
-  const [online, setOnline] = useState<boolean>(() => {
-    if (typeof navigator === "undefined") return true;
-    return navigator.onLine;
-  });
+  const [online, setOnline] = useState(cachedOnline);
 
   useEffect(() => {
-    let cancelled = false;
-    let nativeHandle: { remove: () => Promise<void> } | null = null;
-
-    const onOnline = () => {
-      if (!cancelled) setOnline(true);
-    };
-    const onOffline = () => {
-      if (!cancelled) setOnline(false);
-    };
-
-    window.addEventListener("online", onOnline);
-    window.addEventListener("offline", onOffline);
-
-    const setupNativeListener = async () => {
-      try {
-        const { Capacitor } = await import("@capacitor/core");
-        if (cancelled || !Capacitor.isNativePlatform()) return;
-
-        const { Network } = await import("@capacitor/network");
-        if (cancelled) return;
-
-        const status = await Network.getStatus();
-        if (cancelled) return;
-        setOnline(status.connected);
-
-        const handle = await Network.addListener("networkStatusChange", (status) => {
-          if (!cancelled) setOnline(status.connected);
-        });
-
-        if (cancelled) {
-          await handle.remove().catch(() => undefined);
-          return;
-        }
-
-        nativeHandle = handle;
-      } catch {
-        // Capacitor Network is unavailable; web listeners remain active.
-      }
-    };
-
-    void setupNativeListener();
+    subscribers.add(setOnline);
+    setOnline(cachedOnline);
+    void bootstrap();
 
     return () => {
-      cancelled = true;
-      window.removeEventListener("online", onOnline);
-      window.removeEventListener("offline", onOffline);
+      subscribers.delete(setOnline);
 
-      const handle = nativeHandle;
-      nativeHandle = null;
-      if (handle) void handle.remove().catch(() => undefined);
+      // Keep the singleton listener alive for the lifetime of the app. This
+      // avoids repeatedly tearing down and recreating the native Network
+      // bridge as components mount/unmount during route transitions.
+      void nativeHandle;
     };
   }, []);
 
