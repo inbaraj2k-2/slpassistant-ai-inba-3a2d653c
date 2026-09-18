@@ -5,23 +5,17 @@ import { indexVocab } from "../providers/userVocabProvider";
 import type { VocabRow } from "../types";
 
 /**
- * Hydrates the in-memory user vocab index from the offline snapshot first,
- * then refreshes it from Supabase. Kept side-effect only (no React state) so
- * every load doesn't rerender the SmartKeyboard subtree — a hot path on
- * Android where extra renders were compounding jank.
+ * Hydrates the user vocabulary index from the offline snapshot first, then
+ * refreshes it from Supabase. Realtime changes are coalesced so a burst of
+ * updates cannot rebuild the 2,000-row Fuse index repeatedly on the WebView
+ * main thread.
  */
 export function useVocabSync() {
   useEffect(() => {
     let alive = true;
     let loading = false;
+    let reloadTimer: ReturnType<typeof setTimeout> | null = null;
 
-    // 1) Warm from offline snapshot.
-    (async () => {
-      const snap = await readVocabSnapshot<VocabRow[]>();
-      if (snap && alive) indexVocab(snap);
-    })();
-
-    // 2) Fetch fresh.
     const load = async () => {
       if (loading || !alive) return;
       loading = true;
@@ -41,12 +35,27 @@ export function useVocabSync() {
         loading = false;
       }
     };
+
+    const scheduleReload = () => {
+      if (reloadTimer) clearTimeout(reloadTimer);
+      reloadTimer = setTimeout(() => {
+        reloadTimer = null;
+        void load();
+      }, 400);
+    };
+
+    // 1) Warm from offline snapshot.
+    void readVocabSnapshot<VocabRow[]>().then((snap) => {
+      if (snap && alive) indexVocab(snap);
+    });
+
+    // 2) Fetch fresh.
     void load();
 
-    // 3) Realtime cross-device sync — track channel locally so cleanup
-    //    always removes it even if the auth lookup hasn't resolved yet.
+    // 3) Realtime cross-device sync. Coalesce bursts so recordUse or a batch
+    //    of edits produces one indexed reload rather than one per event.
     let channel: ReturnType<typeof supabase.channel> | null = null;
-    supabase.auth.getSession().then(({ data }) => {
+    void supabase.auth.getSession().then(({ data }) => {
       if (!alive) return;
       const uid = data.session?.user?.id;
       if (!uid) return;
@@ -55,16 +64,18 @@ export function useVocabSync() {
         .on(
           "postgres_changes",
           { event: "*", schema: "public", table: "aac_vocabulary", filter: `user_id=eq.${uid}` },
-          () => void load(),
+          scheduleReload,
         )
         .subscribe();
     });
 
     return () => {
       alive = false;
-      if (channel) supabase.removeChannel(channel).catch(() => {});
+      if (reloadTimer) {
+        clearTimeout(reloadTimer);
+        reloadTimer = null;
+      }
+      if (channel) void supabase.removeChannel(channel).catch(() => {});
     };
   }, []);
 }
-
-
