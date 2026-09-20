@@ -104,13 +104,12 @@ function VoiceAssessmentPage() {
         const a = await analyzeInWorker(r.pcm, r.sampleRate);
         setAnalysis(a);
         setStatus("done");
-        void requestSummary(a, sex, ageYears ? parseInt(ageYears, 10) : null);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Analysis failed.");
         setStatus("error");
       }
     },
-    [requestSummary, sex, ageYears],
+    [],
   );
 
   function reset() {
@@ -140,8 +139,7 @@ function VoiceAssessmentPage() {
   useEffect(() => {
     if (status !== "done" || !analysis) return;
     void requestSummary(analysis, sex, ageYears ? parseInt(ageYears, 10) : null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sex]);
+  }, [status, analysis, sex, ageYears, requestSummary]);
 
   return (
     <AppShell title="Voice Assessment" subtitle="Clinical acoustic analysis" back>
