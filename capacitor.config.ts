@@ -19,6 +19,12 @@ const config: CapacitorConfig = {
 
   android: {
     allowMixedContent: false,
+    // On the affected Android/WebView path, the default Chromium
+    // InputConnection opens the system IME but does not deliver committed
+    // IME text to the DOM. Capacitor's supported capture path bridges the
+    // system IME text back into the focused HTML input without introducing
+    // a custom keyboard or native keyboard service.
+    captureInput: true,
     webContentsDebuggingEnabled: true,
   },
 
