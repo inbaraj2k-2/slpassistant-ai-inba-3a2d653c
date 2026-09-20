@@ -1,21 +1,18 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
-const liveReloadUrl = process.env.CAP_SERVER_URL;
-
+// The mobile app ships the entire frontend as bundled assets under
+// dist/capacitor/. It never redirects to the hosted lovable.app site — it
+// only makes outbound HTTPS calls to Supabase and the AI gateway when online.
 const config: CapacitorConfig = {
   appId: 'app.lovable.slpassistant',
   appName: 'SLP Assist AI',
   webDir: 'dist/capacitor',
 
-  ...(liveReloadUrl
-    ? {
-        server: {
-          androidScheme: 'https' as const,
-          url: liveReloadUrl,
-          cleartext: false,
-        },
-      }
-    : {}),
+  server: {
+    androidScheme: 'https',
+    url: process.env.CAP_SERVER_URL,
+    cleartext: false,
+  },
 
   android: {
     allowMixedContent: false,
