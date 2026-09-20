@@ -1,12 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
-import { MessageSquare, Mic } from "lucide-react";
+import { Mic } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/clinical-tools/")({
   head: () => ({
     meta: [
       { title: "Clinical Tools — SLP Assist AI" },
-      { name: "description", content: "AAC communicator and voice analysis tools for speech-language clinicians." },
+      { name: "description", content: "Voice analysis tools for speech-language clinicians." },
     ],
   }),
   component: ClinicalToolsPage,
@@ -14,14 +14,8 @@ export const Route = createFileRoute("/_authenticated/clinical-tools/")({
 
 function ClinicalToolsPage() {
   return (
-    <AppShell title="Clinical Tools" subtitle="AAC & voice analysis" back>
+    <AppShell title="Clinical Tools" subtitle="Voice analysis" back>
       <div className="grid grid-cols-1 gap-3">
-        <ToolCard
-          to="/clinical-tools/aac"
-          icon={<MessageSquare className="h-5 w-5" />}
-          title="AAC Communicator"
-          desc="Multi-page symbol board with core words, categories, and sentence strip. Offline speech."
-        />
         <ToolCard
           to="/clinical-tools/voice-analysis"
           icon={<Mic className="h-5 w-5" />}
