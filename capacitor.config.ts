@@ -16,25 +16,13 @@ const config: CapacitorConfig = {
 
   android: {
     allowMixedContent: false,
-    // Keep the app WebView on Chromium's standard InputConnection. The
-    // system-wide SLP keyboard is a separate native InputMethodService and
-    // must never depend on Capacitor's alternate WebView capture path.
+    // Keep Chromium/WebView as the owner of DOM focus and the Android
+    // InputConnection. Do not use Capacitor's alternate capture-input path.
     captureInput: false,
-    // Android 15/16 edge-to-edge needs native margins applied at the WebView
-    // boundary. This prevents system/IME insets from producing stale hit-test
-    // regions over the web content.
-    adjustMarginsForEdgeToEdge: 'auto',
     webContentsDebuggingEnabled: true,
   },
 
   plugins: {
-    Keyboard: {
-      // Do not let the Capacitor Keyboard plugin rewrite the WebView layout
-      // when the IME opens. Chromium's visual viewport/DOM handles the
-      // keyboard while native WebView keeps its normal touch hit-testing.
-      resize: 'none',
-      resizeOnFullScreen: false,
-    },
     StatusBar: {
       overlaysWebView: false,
       style: 'LIGHT',
