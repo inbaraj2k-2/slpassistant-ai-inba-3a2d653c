@@ -65,12 +65,9 @@ export function useOnlineStatus(): boolean {
     void bootstrap();
 
     return () => {
+      // The native Network listener intentionally remains app-lifetime.
+      // Only this component's React subscriber is removed on unmount.
       subscribers.delete(setOnline);
-
-      // Keep the singleton listener alive for the lifetime of the app. This
-      // avoids repeatedly tearing down and recreating the native Network
-      // bridge as components mount/unmount during route transitions.
-      void nativeHandle;
     };
   }, []);
 
