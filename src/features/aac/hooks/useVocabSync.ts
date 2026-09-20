@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { saveVocabSnapshot, readVocabSnapshot } from "../engine/cache";
 import { indexVocab } from "../providers/userVocabProvider";
@@ -11,6 +11,8 @@ import type { VocabRow } from "../types";
  * main thread.
  */
 export function useVocabSync() {
+  const previousDataHash = useRef("");
+
   useEffect(() => {
     let alive = true;
     let loading = false;
@@ -26,9 +28,19 @@ export function useVocabSync() {
           .order("updated_at", { ascending: false })
           .limit(2000);
         if (!alive) return;
+
         const list = (data ?? []) as unknown as VocabRow[];
-        indexVocab(list);
-        void saveVocabSnapshot(list);
+        const latestTimestamp = list[0]?.updated_at ?? "";
+        const dataHash = `${list.length}-${latestTimestamp}`;
+
+        // Fuse construction is synchronous and can block the WebView main
+        // thread for a large vocabulary. Do not rebuild the index when the
+        // underlying rows have not changed.
+        if (previousDataHash.current !== dataHash) {
+          indexVocab(list);
+          previousDataHash.current = dataHash;
+          void saveVocabSnapshot(list);
+        }
       } catch {
         // Offline or transient auth/network errors should not block the UI.
       } finally {
@@ -46,7 +58,10 @@ export function useVocabSync() {
 
     // 1) Warm from offline snapshot.
     void readVocabSnapshot<VocabRow[]>().then((snap) => {
-      if (snap && alive) indexVocab(snap);
+      if (!snap || !alive) return;
+      const latestTimestamp = snap[0]?.updated_at ?? "";
+      previousDataHash.current = `${snap.length}-${latestTimestamp}`;
+      indexVocab(snap);
     });
 
     // 2) Fetch fresh.
