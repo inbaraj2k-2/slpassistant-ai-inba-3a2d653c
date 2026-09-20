@@ -12,7 +12,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "cap:add:android": "cap add android",
-    "cap:sync": "bun run build:capacitor && cap sync android && node scripts/verify-capacitor-assets.mjs",
+    "cap:sync": "bun run build:capacitor && cap sync android",
     "cap:copy": "cap copy android",
     "cap:open:android": "cap open android",
     "android:build": "bun run cap:sync && cap open android"
@@ -29,7 +29,6 @@
     "@capacitor/filesystem": "^8.1.2",
     "@capacitor/geolocation": "^8.2.2",
     "@capacitor/haptics": "^8.0.2",
-    "@capacitor/keyboard": "^8.0.5",
     "@capacitor/network": "^8.0.1",
     "@capacitor/status-bar": "^8.0.2",
     "@dnd-kit/core": "^6.3.1",
