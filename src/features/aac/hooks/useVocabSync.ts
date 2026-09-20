@@ -18,24 +18,54 @@ export function useVocabSync() {
     let loading = false;
     let reloadTimer: ReturnType<typeof setTimeout> | null = null;
 
+    const getDataHash = (rows: VocabRow[]) => {
+      // Hash the fields that can affect AAC search/results instead of relying
+      // only on length + latest timestamp. That older shortcut could miss an
+      // in-place row edit and could incorrectly keep a stale offline snapshot.
+      let hash = 2166136261;
+      for (const row of rows) {
+        const value = [
+          row.id,
+          row.updated_at,
+          row.label,
+          row.category,
+          row.emoji,
+          row.image_url,
+          row.source,
+          row.is_favorite,
+          row.pinned,
+          row.use_count,
+          ...(row.keywords ?? []),
+        ]
+          .map((part) => String(part ?? ""))
+          .join("\u001f");
+
+        for (let i = 0; i < value.length; i += 1) {
+          hash ^= value.charCodeAt(i);
+          hash = Math.imul(hash, 16777619);
+        }
+      }
+      return `${rows.length}-${hash >>> 0}`;
+    };
+
     const load = async () => {
       if (loading || !alive) return;
       loading = true;
       try {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from("aac_vocabulary")
           .select("*")
           .order("updated_at", { ascending: false })
           .limit(2000);
         if (!alive) return;
+        if (error) throw error;
 
         const list = (data ?? []) as unknown as VocabRow[];
-        const latestTimestamp = list[0]?.updated_at ?? "";
-        const dataHash = `${list.length}-${latestTimestamp}`;
+        const dataHash = getDataHash(list);
 
         // Fuse construction is synchronous and can block the WebView main
         // thread for a large vocabulary. Do not rebuild the index when the
-        // underlying rows have not changed.
+        // underlying searchable data has not changed.
         if (previousDataHash.current !== dataHash) {
           indexVocab(list);
           previousDataHash.current = dataHash;
@@ -56,19 +86,18 @@ export function useVocabSync() {
       }, 400);
     };
 
-    // 1) Warm from offline snapshot.
+    // Warm from the offline snapshot first. The fresh Supabase result is
+    // still allowed to replace it when any searchable row data differs.
     void readVocabSnapshot<VocabRow[]>().then((snap) => {
       if (!snap || !alive) return;
-      const latestTimestamp = snap[0]?.updated_at ?? "";
-      previousDataHash.current = `${snap.length}-${latestTimestamp}`;
       indexVocab(snap);
+      previousDataHash.current = getDataHash(snap);
     });
 
-    // 2) Fetch fresh.
     void load();
 
-    // 3) Realtime cross-device sync. Coalesce bursts so recordUse or a batch
-    //    of edits produces one indexed reload rather than one per event.
+    // Realtime cross-device sync. Coalesce bursts so recordUse or a batch of
+    // edits produces one indexed reload rather than one per event.
     let channel: ReturnType<typeof supabase.channel> | null = null;
     void supabase.auth.getSession().then(({ data }) => {
       if (!alive) return;
