@@ -69,11 +69,12 @@ function NewCasePage() {
     }
     setBusy(true);
     try {
-      const { data: u } = await supabase.auth.getUser();
-      if (!u.user) throw new Error("Not signed in");
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id;
+      if (!userId) throw new Error("Not signed in");
       const { data, error } = await supabase
         .from("cases")
-        .insert({ ...fields, user_id: u.user.id })
+        .insert({ ...fields, user_id: userId })
         .select("id")
         .single();
       if (error || !data) throw error ?? new Error("Failed to save case");
