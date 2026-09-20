@@ -11,7 +11,7 @@ import { downloadToDevice, isNative, openInAppBrowser } from "@/lib/native";
 import { confirmAsync } from "@/lib/confirm";
 
 export const Route = createFileRoute("/_authenticated/library/community")({
-  head: () => ({ meta: [{ title: "Communicate Library" }] }),
+  head: () => ({ meta: [{ title: "Community Library" }] }),
   component: CommunityLibraryPage,
 });
 
@@ -45,45 +45,49 @@ function CommunityLibraryPage() {
     supabase.auth.getUser().then(({ data }) => setMe(data.user?.id ?? null));
   }, []);
 
-  const fetchPage = useCallback(async (nextPage: number, replace: boolean, currentSearch: string, currentCategory: string) => {
-    const from = nextPage * PAGE_SIZE;
-    const to = from + PAGE_SIZE - 1;
-    let q = (supabase as any)
-      .from("community_uploads")
-      .select("*")
-      .eq("is_public", true)
-      .order("created_at", { ascending: false })
-      .range(from, to);
-    if (currentCategory !== "All") q = q.eq("category", currentCategory);
-    if (currentSearch.trim()) {
-      const term = `%${currentSearch.trim()}%`;
-      q = q.or(
-        `title.ilike.${term},file_name.ilike.${term},description.ilike.${term},category.ilike.${term}`,
-      );
-    }
-    const { data, error } = await q;
-    if (error) {
-      toast.error("Could not load community library.");
-      return;
-    }
-    const list = (data as Row[]) ?? [];
-    setHasMore(list.length === PAGE_SIZE);
-    setRows((prev) => (replace ? list : [...prev, ...list]));
-  }, []);
+  const fetchPage = useCallback(
+    async (nextPage: number, replace: boolean, currentSearch: string, currentCategory: string) => {
+      const from = nextPage * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+      let q = (supabase as any)
+        .from("community_uploads")
+        .select("*")
+        .eq("is_public", true)
+        .order("created_at", { ascending: false })
+        .range(from, to);
+      if (currentCategory !== "All") q = q.eq("category", currentCategory);
+      if (currentSearch.trim()) {
+        const term = `%${currentSearch.trim()}%`;
+        q = q.or(
+          `title.ilike.${term},file_name.ilike.${term},description.ilike.${term},category.ilike.${term}`,
+        );
+      }
+      const { data, error } = await q;
+      if (error) {
+        toast.error("Could not load community library.");
+        return;
+      }
+      const list = (data as Row[]) ?? [];
+      setHasMore(list.length === PAGE_SIZE);
+      setRows((prev) => (replace ? list : [...prev, ...list]));
+    },
+    [],
+  );
 
   useEffect(() => {
-    setLoading(true);
-    setPage(0);
-    fetchPage(0, true, search, category).finally(() => setLoading(false));
-  }, [category, fetchPage]);
-
-  useEffect(() => {
-    const t = setTimeout(() => {
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
       setLoading(true);
       setPage(0);
-      fetchPage(0, true, search, category).finally(() => setLoading(false));
-    }, 300);
-    return () => clearTimeout(t);
+      void fetchPage(0, true, search, category).finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    }, search.trim() ? 300 : 0);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
   }, [search, category, fetchPage]);
 
   const loadMore = async () => {
@@ -155,7 +159,7 @@ function CommunityLibraryPage() {
   );
 
   return (
-    <AppShell title="Communicate Library" subtitle="Shared resources from users" back>
+    <AppShell title="Community Library" subtitle="Shared resources from users" back>
       <div className="mb-3 space-y-2">
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -193,25 +197,16 @@ function CommunityLibraryPage() {
         <>
           <ul className="space-y-2">
             {rows.map((r) => (
-              <li
-                key={r.id}
-                className="rounded-2xl border border-border bg-card p-3 shadow-card"
-              >
+              <li key={r.id} className="rounded-2xl border border-border bg-card p-3 shadow-card">
                 <div className="flex items-start gap-3">
                   <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary-soft text-primary">
-                    {isImage(r.file_type) ? (
-                      <ImageIcon className="h-5 w-5" />
-                    ) : (
-                      <FileText className="h-5 w-5" />
-                    )}
+                    {isImage(r.file_type) ? <ImageIcon className="h-5 w-5" /> : <FileText className="h-5 w-5" />}
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold">{r.title}</p>
                     <p className="truncate text-xs text-muted-foreground">{r.file_name}</p>
                     {r.description && (
-                      <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
-                        {r.description}
-                      </p>
+                      <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{r.description}</p>
                     )}
                     <div className="mt-2 flex flex-wrap items-center gap-2">
                       <Badge variant="secondary" className="text-[10px]">
@@ -224,12 +219,7 @@ function CommunityLibraryPage() {
                   </div>
                 </div>
                 <div className="mt-3 flex items-center gap-2">
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    className="rounded-xl"
-                    onClick={() => viewFile(r)}
-                  >
+                  <Button size="sm" variant="secondary" className="rounded-xl" onClick={() => viewFile(r)}>
                     <Eye className="h-4 w-4" />
                     View
                   </Button>
@@ -240,20 +230,11 @@ function CommunityLibraryPage() {
                     onClick={() => download(r)}
                     disabled={busyId === r.id}
                   >
-                    {busyId === r.id ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Download className="h-4 w-4" />
-                    )}
+                    {busyId === r.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
                     {busyId === r.id ? "Saving…" : "Download"}
                   </Button>
                   {me === r.user_id && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => removeOwn(r)}
-                      aria-label="Delete"
-                    >
+                    <Button size="sm" variant="ghost" onClick={() => removeOwn(r)} aria-label="Delete">
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
                   )}
@@ -263,12 +244,7 @@ function CommunityLibraryPage() {
           </ul>
           {hasMore && (
             <div className="mt-4 grid place-items-center">
-              <Button
-                variant="outline"
-                onClick={loadMore}
-                disabled={loadingMore}
-                className="rounded-xl"
-              >
+              <Button variant="outline" onClick={loadMore} disabled={loadingMore} className="rounded-xl">
                 {loadingMore ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                 Load more
               </Button>
