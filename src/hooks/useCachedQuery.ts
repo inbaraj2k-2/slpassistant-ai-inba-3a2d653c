@@ -1,7 +1,8 @@
 import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
+import { get, set } from "idb-keyval";
 
 /**
- * useQuery variant that persists results to localStorage keyed by `cacheKey`
+ * useQuery variant that persists results to IndexedDB keyed by `cacheKey`
  * and returns the cached snapshot when the network read fails (offline).
  *
  * Data must be JSON-serializable.
@@ -17,19 +18,16 @@ export function useCachedQuery<T>(
       try {
         const data = await queryFn();
         try {
-          localStorage.setItem(cacheKey, JSON.stringify({ data, at: Date.now() }));
+          await set(cacheKey, { data, at: Date.now() });
         } catch {
-          /* quota */
+          /* storage unavailable / quota */
         }
         return data;
       } catch (err) {
         // Offline / RLS blocked: return the last-good local cache when present.
         try {
-          const raw = localStorage.getItem(cacheKey);
-          if (raw) {
-            const parsed = JSON.parse(raw) as { data: T };
-            return parsed.data;
-          }
+          const cached = await get<{ data: T }>(cacheKey);
+          if (cached) return cached.data;
         } catch {
           /* fall through */
         }
