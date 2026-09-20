@@ -4,150 +4,640 @@ export type Json =
   | boolean
   | null
   | { [key: string]: Json | undefined }
-  | Json[];
+  | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5";
-  };
+    PostgrestVersion: "14.5"
+  }
   public: {
     Tables: {
+      aac_search_history: {
+        Row: {
+          chosen_vocab_id: string | null
+          created_at: string
+          id: string
+          query: string
+          user_id: string
+        }
+        Insert: {
+          chosen_vocab_id?: string | null
+          created_at?: string
+          id?: string
+          query: string
+          user_id: string
+        }
+        Update: {
+          chosen_vocab_id?: string | null
+          created_at?: string
+          id?: string
+          query?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aac_search_history_chosen_vocab_id_fkey"
+            columns: ["chosen_vocab_id"]
+            isOneToOne: false
+            referencedRelation: "aac_vocabulary"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      aac_settings: {
+        Row: {
+          high_contrast: boolean
+          large_targets: boolean
+          mode: string
+          updated_at: string
+          user_id: string
+          voice_pitch: number
+          voice_rate: number
+        }
+        Insert: {
+          high_contrast?: boolean
+          large_targets?: boolean
+          mode?: string
+          updated_at?: string
+          user_id: string
+          voice_pitch?: number
+          voice_rate?: number
+        }
+        Update: {
+          high_contrast?: boolean
+          large_targets?: boolean
+          mode?: string
+          updated_at?: string
+          user_id?: string
+          voice_pitch?: number
+          voice_rate?: number
+        }
+        Relationships: []
+      }
+      aac_vocabulary: {
+        Row: {
+          category: string | null
+          created_at: string
+          emoji: string | null
+          id: string
+          image_path: string | null
+          image_url: string | null
+          is_favorite: boolean
+          keywords: string[]
+          label: string
+          last_used_at: string | null
+          pinned: boolean
+          sort_order: number
+          source: string
+          updated_at: string
+          use_count: number
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          emoji?: string | null
+          id?: string
+          image_path?: string | null
+          image_url?: string | null
+          is_favorite?: boolean
+          keywords?: string[]
+          label: string
+          last_used_at?: string | null
+          pinned?: boolean
+          sort_order?: number
+          source?: string
+          updated_at?: string
+          use_count?: number
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          emoji?: string | null
+          id?: string
+          image_path?: string | null
+          image_url?: string | null
+          is_favorite?: boolean
+          keywords?: string[]
+          label?: string
+          last_used_at?: string | null
+          pinned?: boolean
+          sort_order?: number
+          source?: string
+          updated_at?: string
+          use_count?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       assessments: {
-        Row: { created_at: string; disorder_id: string; id: string; name: string; source_reference: string | null };
-        Insert: { created_at?: string; disorder_id: string; id?: string; name: string; source_reference?: string | null };
-        Update: { created_at?: string; disorder_id?: string; id?: string; name?: string; source_reference?: string | null };
-        Relationships: [{ foreignKeyName: "assessments_disorder_id_fkey"; columns: ["disorder_id"]; isOneToOne: false; referencedRelation: "disorders"; referencedColumns: ["id"] }];
-      };
+        Row: {
+          created_at: string
+          disorder_id: string
+          id: string
+          name: string
+          source_reference: string | null
+        }
+        Insert: {
+          created_at?: string
+          disorder_id: string
+          id?: string
+          name: string
+          source_reference?: string | null
+        }
+        Update: {
+          created_at?: string
+          disorder_id?: string
+          id?: string
+          name?: string
+          source_reference?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessments_disorder_id_fkey"
+            columns: ["disorder_id"]
+            isOneToOne: false
+            referencedRelation: "disorders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cases: {
         Row: {
-          additional_notes: string | null; age: string | null; analysis: Json | null; chief_complaint: string | null;
-          created_at: string; education_history: string | null; family_history: string | null; gender: string | null;
-          hearing_history: string | null; id: string; language_history: string | null; motor_milestones: string | null;
-          name: string; natal_history: string | null; postnatal_history: string | null; prenatal_history: string | null;
-          speech_milestones: string | null; updated_at: string; user_id: string;
-        };
+          additional_notes: string | null
+          age: string | null
+          analysis: Json | null
+          chief_complaint: string | null
+          created_at: string
+          education_history: string | null
+          family_history: string | null
+          gender: string | null
+          hearing_history: string | null
+          id: string
+          language_history: string | null
+          motor_milestones: string | null
+          name: string
+          natal_history: string | null
+          postnatal_history: string | null
+          prenatal_history: string | null
+          speech_milestones: string | null
+          updated_at: string
+          user_id: string
+        }
         Insert: {
-          additional_notes?: string | null; age?: string | null; analysis?: Json | null; chief_complaint?: string | null;
-          created_at?: string; education_history?: string | null; family_history?: string | null; gender?: string | null;
-          hearing_history?: string | null; id?: string; language_history?: string | null; motor_milestones?: string | null;
-          name: string; natal_history?: string | null; postnatal_history?: string | null; prenatal_history?: string | null;
-          speech_milestones?: string | null; updated_at?: string; user_id: string;
-        };
+          additional_notes?: string | null
+          age?: string | null
+          analysis?: Json | null
+          chief_complaint?: string | null
+          created_at?: string
+          education_history?: string | null
+          family_history?: string | null
+          gender?: string | null
+          hearing_history?: string | null
+          id?: string
+          language_history?: string | null
+          motor_milestones?: string | null
+          name: string
+          natal_history?: string | null
+          postnatal_history?: string | null
+          prenatal_history?: string | null
+          speech_milestones?: string | null
+          updated_at?: string
+          user_id: string
+        }
         Update: {
-          additional_notes?: string | null; age?: string | null; analysis?: Json | null; chief_complaint?: string | null;
-          created_at?: string; education_history?: string | null; family_history?: string | null; gender?: string | null;
-          hearing_history?: string | null; id?: string; language_history?: string | null; motor_milestones?: string | null;
-          name?: string; natal_history?: string | null; postnatal_history?: string | null; prenatal_history?: string | null;
-          speech_milestones?: string | null; updated_at?: string; user_id?: string;
-        };
-        Relationships: [];
-      };
+          additional_notes?: string | null
+          age?: string | null
+          analysis?: Json | null
+          chief_complaint?: string | null
+          created_at?: string
+          education_history?: string | null
+          family_history?: string | null
+          gender?: string | null
+          hearing_history?: string | null
+          id?: string
+          language_history?: string | null
+          motor_milestones?: string | null
+          name?: string
+          natal_history?: string | null
+          postnatal_history?: string | null
+          prenatal_history?: string | null
+          speech_milestones?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       clinical_sources: {
-        Row: { created_at: string; disorder_id: string | null; disorder_name: string; id: string; kind: string; primary_source: string | null; secondary_source: string | null; verification_status: string | null };
-        Insert: { created_at?: string; disorder_id?: string | null; disorder_name: string; id?: string; kind: string; primary_source?: string | null; secondary_source?: string | null; verification_status?: string | null };
-        Update: { created_at?: string; disorder_id?: string | null; disorder_name?: string; id?: string; kind?: string; primary_source?: string | null; secondary_source?: string | null; verification_status?: string | null };
-        Relationships: [{ foreignKeyName: "clinical_sources_disorder_id_fkey"; columns: ["disorder_id"]; isOneToOne: false; referencedRelation: "disorders"; referencedColumns: ["id"] }];
-      };
+        Row: {
+          created_at: string
+          disorder_id: string | null
+          disorder_name: string
+          id: string
+          kind: string
+          primary_source: string | null
+          secondary_source: string | null
+          verification_status: string | null
+        }
+        Insert: {
+          created_at?: string
+          disorder_id?: string | null
+          disorder_name: string
+          id?: string
+          kind: string
+          primary_source?: string | null
+          secondary_source?: string | null
+          verification_status?: string | null
+        }
+        Update: {
+          created_at?: string
+          disorder_id?: string | null
+          disorder_name?: string
+          id?: string
+          kind?: string
+          primary_source?: string | null
+          secondary_source?: string | null
+          verification_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clinical_sources_disorder_id_fkey"
+            columns: ["disorder_id"]
+            isOneToOne: false
+            referencedRelation: "disorders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       community_uploads: {
-        Row: { category: string; created_at: string; description: string | null; file_name: string; file_path: string; file_size: number | null; file_type: string | null; file_url: string; id: string; is_public: boolean; title: string; updated_at: string; user_id: string };
-        Insert: { category?: string; created_at?: string; description?: string | null; file_name: string; file_path: string; file_size?: number | null; file_type?: string | null; file_url: string; id?: string; is_public?: boolean; title: string; updated_at?: string; user_id: string };
-        Update: { category?: string; created_at?: string; description?: string | null; file_name?: string; file_path?: string; file_size?: number | null; file_type?: string | null; file_url?: string; id?: string; is_public?: boolean; title?: string; updated_at?: string; user_id?: string };
-        Relationships: [];
-      };
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          file_name: string
+          file_path: string
+          file_size: number | null
+          file_type: string | null
+          file_url: string
+          id: string
+          is_public: boolean
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url: string
+          id?: string
+          is_public?: boolean
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string
+          id?: string
+          is_public?: boolean
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       disorders: {
-        Row: { category: string | null; created_at: string; id: string; name: string; parent_id: string | null; red_flags: string | null; source_reference: string | null; symptoms: string | null; updated_at: string };
-        Insert: { category?: string | null; created_at?: string; id?: string; name: string; parent_id?: string | null; red_flags?: string | null; source_reference?: string | null; symptoms?: string | null; updated_at?: string };
-        Update: { category?: string | null; created_at?: string; id?: string; name?: string; parent_id?: string | null; red_flags?: string | null; source_reference?: string | null; symptoms?: string | null; updated_at?: string };
-        Relationships: [{ foreignKeyName: "disorders_parent_id_fkey"; columns: ["parent_id"]; isOneToOne: false; referencedRelation: "disorders"; referencedColumns: ["id"] }];
-      };
+        Row: {
+          category: string | null
+          created_at: string
+          id: string
+          name: string
+          parent_id: string | null
+          red_flags: string | null
+          source_reference: string | null
+          symptoms: string | null
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          parent_id?: string | null
+          red_flags?: string | null
+          source_reference?: string | null
+          symptoms?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          parent_id?: string | null
+          red_flags?: string | null
+          source_reference?: string | null
+          symptoms?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "disorders_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "disorders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       materials: {
-        Row: { created_at: string; disorder_id: string; id: string; name: string; source_reference: string | null };
-        Insert: { created_at?: string; disorder_id: string; id?: string; name: string; source_reference?: string | null };
-        Update: { created_at?: string; disorder_id?: string; id?: string; name?: string; source_reference?: string | null };
-        Relationships: [{ foreignKeyName: "materials_disorder_id_fkey"; columns: ["disorder_id"]; isOneToOne: false; referencedRelation: "disorders"; referencedColumns: ["id"] }];
-      };
+        Row: {
+          created_at: string
+          disorder_id: string
+          id: string
+          name: string
+          source_reference: string | null
+        }
+        Insert: {
+          created_at?: string
+          disorder_id: string
+          id?: string
+          name: string
+          source_reference?: string | null
+        }
+        Update: {
+          created_at?: string
+          disorder_id?: string
+          id?: string
+          name?: string
+          source_reference?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "materials_disorder_id_fkey"
+            columns: ["disorder_id"]
+            isOneToOne: false
+            referencedRelation: "disorders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
-        Row: { avatar_path: string | null; avatar_url: string | null; clinic_logo_url: string | null; clinic_name: string | null; created_at: string; display_name: string | null; email: string | null; full_name: string | null; id: string; provider: string | null; updated_at: string };
-        Insert: { avatar_path?: string | null; avatar_url?: string | null; clinic_logo_url?: string | null; clinic_name?: string | null; created_at?: string; display_name?: string | null; email?: string | null; full_name?: string | null; id: string; provider?: string | null; updated_at?: string };
-        Update: { avatar_path?: string | null; avatar_url?: string | null; clinic_logo_url?: string | null; clinic_name?: string | null; created_at?: string; display_name?: string | null; email?: string | null; full_name?: string | null; id?: string; provider?: string | null; updated_at?: string };
-        Relationships: [];
-      };
+        Row: {
+          avatar_path: string | null
+          avatar_url: string | null
+          clinic_logo_url: string | null
+          clinic_name: string | null
+          created_at: string
+          display_name: string | null
+          email: string | null
+          full_name: string | null
+          id: string
+          provider: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_path?: string | null
+          avatar_url?: string | null
+          clinic_logo_url?: string | null
+          clinic_name?: string | null
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          full_name?: string | null
+          id: string
+          provider?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_path?: string | null
+          avatar_url?: string | null
+          clinic_logo_url?: string | null
+          clinic_name?: string | null
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          provider?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       therapy_goals: {
-        Row: { created_at: string; disorder_id: string; goal: string; id: string; source_reference: string | null };
-        Insert: { created_at?: string; disorder_id: string; goal: string; id?: string; source_reference?: string | null };
-        Update: { created_at?: string; disorder_id?: string; goal?: string; id?: string; source_reference?: string | null };
-        Relationships: [{ foreignKeyName: "therapy_goals_disorder_id_fkey"; columns: ["disorder_id"]; isOneToOne: false; referencedRelation: "disorders"; referencedColumns: ["id"] }];
-      };
+        Row: {
+          created_at: string
+          disorder_id: string
+          goal: string
+          id: string
+          source_reference: string | null
+        }
+        Insert: {
+          created_at?: string
+          disorder_id: string
+          goal: string
+          id?: string
+          source_reference?: string | null
+        }
+        Update: {
+          created_at?: string
+          disorder_id?: string
+          goal?: string
+          id?: string
+          source_reference?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "therapy_goals_disorder_id_fkey"
+            columns: ["disorder_id"]
+            isOneToOne: false
+            referencedRelation: "disorders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_uploads: {
-        Row: { created_at: string; file_name: string; file_path: string; file_size: number | null; file_type: string | null; file_url: string; id: string; user_id: string };
-        Insert: { created_at?: string; file_name: string; file_path: string; file_size?: number | null; file_type?: string | null; file_url: string; id?: string; user_id: string };
-        Update: { created_at?: string; file_name?: string; file_path?: string; file_size?: number | null; file_type?: string | null; file_url?: string; id?: string; user_id?: string };
-        Relationships: [];
-      };
-    };
-    Views: { [_ in never]: never };
-    Functions: { [_ in never]: never };
-    Enums: { [_ in never]: never };
-    CompositeTypes: { [_ in never]: never };
-  };
-};
+        Row: {
+          created_at: string
+          file_name: string
+          file_path: string
+          file_size: number | null
+          file_type: string | null
+          file_url: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+}
 
-type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">;
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">];
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
-  DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] & DefaultSchema["Views"]) | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] & DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
-  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] & DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends { Row: infer R }
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] & DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends { Row: infer R }
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
       ? R
       : never
-    : never;
+    : never
 
 export type TablesInsert<
-  DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"] | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends { Insert: infer I }
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
     ? I
     : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends { Insert: infer I }
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
       ? I
       : never
-    : never;
+    : never
 
 export type TablesUpdate<
-  DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"] | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends { Update: infer U }
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
     ? U
     : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends { Update: infer U }
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
       ? U
       : never
-    : never;
+    : never
 
-export type Enums<DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"] | { schema: keyof DatabaseWithoutInternals }, EnumName extends DefaultSchemaEnumNameOrOptions extends { schema: keyof DatabaseWithoutInternals } ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"] : never = never> = DefaultSchemaEnumNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never) = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-    : never;
+    : never
 
-export type CompositeTypes<PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"] | { schema: keyof DatabaseWithoutInternals }, CompositeTypeName extends PublicCompositeTypeNameOrOptions extends { schema: keyof DatabaseWithoutInternals } ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"] : never = never> = PublicCompositeTypeNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never) = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
   ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-    : never;
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const
