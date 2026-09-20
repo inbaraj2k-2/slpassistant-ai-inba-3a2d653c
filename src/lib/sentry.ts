@@ -1,6 +1,6 @@
-// Production crash reporting only. Keep Sentry off the interaction, keyboard,
+// Production crash reporting only. Keep Sentry off the interaction,
 // viewport, navigation, and network hot paths so it cannot contend with the
-// Android WebView while the IME is opening or closing.
+// Android WebView during lifecycle and rendering transitions.
 import * as Sentry from "@sentry/capacitor";
 import * as SentryReact from "@sentry/react";
 
