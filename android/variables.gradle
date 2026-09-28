@@ -1,10 +1,10 @@
 ext {
     minSdkVersion = 24
     compileSdkVersion = 36
-    // Android 16 (API 36) enforces edge-to-edge for target 36, which changes
-    // the window/IME inset path used by the Capacitor WebView. Keep target 35
-    // so Android 16 uses the legacy window/IME behavior while this app remains
-    // on compileSdk 36.
+    // Keep target 35 intentionally for the current Android 15/16 compatibility
+    // path. Android 15+ still enforces edge-to-edge at target 35, so the app
+    // must handle WebView/system/IME insets explicitly rather than assuming
+    // legacy window behavior.
     targetSdkVersion = 35
     androidxActivityVersion = '1.11.0'
     androidxAppCompatVersion = '1.7.1'
