@@ -7,12 +7,12 @@ if (keyPropsFile.exists()) {
     keyPropsFile.withInputStream { keyProps.load(it) }
 }
 
+// Resolve keystore path (relative to android/) — fall back to app dir if needed.
 def signingStoreFileName = (keyProps.getProperty('storeFile') ?: '').trim()
 def signingStorePassword = (keyProps.getProperty('storePassword') ?: '').trim()
 def signingKeyAlias      = (keyProps.getProperty('keyAlias') ?: '').trim()
 def signingKeyPassword   = (keyProps.getProperty('keyPassword') ?: '').trim()
 
-// Resolve keystore path (relative to android/) — fall back to app dir if needed.
 def resolvedStoreFile = null
 if (!signingStoreFileName.isEmpty()) {
     def candidates = [
@@ -22,8 +22,6 @@ if (!signingStoreFileName.isEmpty()) {
     resolvedStoreFile = candidates.find { it != null && it.exists() }
 }
 
-// Always provide a non-null placeholder so signingConfigs.release is well-formed.
-// Real validation happens in the validateReleaseSigning task below.
 def placeholderStore = rootProject.file("key.properties")
 def effectiveStoreFile = resolvedStoreFile ?: placeholderStore
 
@@ -38,8 +36,8 @@ android {
         applicationId "app.lovable.slpassistant"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 23
-        versionName "1.0.22"
+        versionCode 24
+        versionName "1.0.23"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
@@ -87,7 +85,6 @@ tasks.register("validateReleaseSigning") {
     }
 }
 
-// Attach validation before every release signing / bundling task.
 tasks.matching { it.name in ["bundleRelease", "assembleRelease", "signReleaseBundle", "packageRelease"] }.configureEach {
     dependsOn "validateReleaseSigning"
 }
