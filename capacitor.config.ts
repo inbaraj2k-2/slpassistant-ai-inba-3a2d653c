@@ -17,27 +17,24 @@ const config: CapacitorConfig = {
       }
     : {}),
 
-  // Do not force native WebView focus before an HTML input is tapped.
+  // Let the tapped HTML element own focus; never force focus on the WebView.
   initialFocus: false,
 
   android: {
     allowMixedContent: false,
-    // Chromium/WebView must remain the owner of DOM focus and the Android
-    // InputConnection. Do not replace the standard WebView IME path.
+    // Keep Chromium/WebView as the owner of DOM focus and Android InputConnection.
     captureInput: false,
-    // Android 15/16 edge-to-edge requires the WebView boundary to account for
-    // native insets. This avoids stale hit-test regions after IME transitions.
+    // Keep edge-to-edge inset handling enabled for Android 15/16.
     adjustMarginsForEdgeToEdge: 'auto',
     webContentsDebuggingEnabled: true,
   },
 
   plugins: {
     Keyboard: {
-      // Let Chromium's visual viewport/DOM handle the keyboard instead of
-      // asking the Capacitor Keyboard plugin to resize the WebView on IME
-      // show/hide. This avoids post-IME layout mutations that can leave stale
-      // WebView hit-test regions and an unresponsive page.
-      resize: 'none',
+      // Match AndroidManifest.xml's windowSoftInputMode="adjustResize".
+      // Capacitor delegates keyboard resizing to Android while Chromium retains
+      // the focused DOM input and its InputConnection through IME transitions.
+      resize: 'native',
       resizeOnFullScreen: false,
     },
     StatusBar: {
