@@ -49,11 +49,16 @@ function EditCasePage() {
   const [fields, setFields] = useState<Fields>(empty);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  // Load failures replace the form; save/validation errors must NOT, otherwise
+  // every focused input/textarea is unmounted and the Android IME is left
+  // talking to a dead InputConnection.
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    setLoadError(null);
     setError(null);
     setFields(empty);
     (async () => {
@@ -61,7 +66,7 @@ function EditCasePage() {
       if (cancelled) return;
       if (error || !data) {
         if (error) console.error("[case.edit] load failed", error);
-        setError("Case could not be loaded. Please try again.");
+        setLoadError("Case could not be loaded. Please try again.");
         setLoading(false);
         return;
       }
@@ -132,11 +137,11 @@ function EditCasePage() {
     );
   }
 
-  if (error) {
+  if (loadError) {
     return (
       <AppShell title="Edit Case" back hideNav>
         <div className="flex items-center justify-center py-20">
-          <p className="text-xs text-destructive">{error}</p>
+          <p className="text-xs text-destructive">{loadError}</p>
         </div>
       </AppShell>
     );
