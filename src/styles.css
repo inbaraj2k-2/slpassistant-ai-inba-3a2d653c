@@ -95,6 +95,17 @@
     min-height: 100%;
     height: 100%;
   }
+  /*
+   * Keep the app shell sized to the live Android WebView viewport.
+   * The dynamic viewport unit helps the layout follow adjustResize when
+   * the soft keyboard opens, while 100% remains a compatibility fallback.
+   */
+  @supports (height: 100dvh) {
+    html, body, #root {
+      min-height: 100dvh;
+      height: 100dvh;
+    }
+  }
   body {
     margin: 0;
     background-color: var(--color-background);
