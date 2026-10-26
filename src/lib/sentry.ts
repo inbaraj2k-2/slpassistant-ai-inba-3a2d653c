@@ -7,6 +7,7 @@ import * as SentryReact from "@sentry/react";
 let initialized = false;
 
 export function initSentry() {
+  if ((import.meta as any).env?.VITE_ENABLE_SENTRY !== "true") return;
   if (initialized) return;
 
   const env = (import.meta as any).env;
